@@ -1,0 +1,62 @@
+### Consistent inclusions
+!.gitignore
+!.gitkeep
+
+### Java
+# Log files
+*.log
+
+# Package Files #
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+### Gradle template
+.gradle
+/build/
+
+# Ignore Gradle GUI config
+gradle-app.setting
+
+# Cache of project
+.gradletasknamecache
+
+# # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
+# gradle/wrapper/gradle-wrapper.properties
+
+### IDE metadata
+
+## JetBrains IDEs
+.idea/
+
+# File-based project format:
+*.iws
+
+# Build output
+out/
+target/
+
+
+## Eclipse
+.metadata
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.settings/
+.loadpath
+.recommenders
+
+### OS specific exclusions
+
+## macOS
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
