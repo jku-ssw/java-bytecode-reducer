@@ -1,0 +1,30 @@
+Configuration:
+  status: warn
+  name: "JReduceProductionConfig"
+  Properties:
+    Property:
+      name: filename
+      value: out/production/jreduce.log
+
+  Appenders:
+    Console:
+      name: CONSOLE
+      PatternLayout:
+        Pattern: "%m%n"
+    File:
+      name: FILE
+      fileName: ${filename}
+      PatternLayout:
+        pattern: "%d{HH:mm:ss.SSS} %d  %p %C{1.} [%t] %m%n"
+
+  Loggers:
+    Logger:
+      -
+        name: at.jku.ssw.jreduce
+        level: DEBUG # TODO change for production
+
+    Root:
+      level: INFO
+      AppenderRef:
+        - ref: CONSOLE
+        - ref: FILE
