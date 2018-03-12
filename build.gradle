@@ -26,6 +26,9 @@ dependencies {
     testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.1.0'
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
     testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.1.0'
+
+    // https://mvnrepository.com/artifact/org.javassist/javassist
+    compile group: 'org.javassist', name: 'javassist', version: '3.22.0-GA'
 }
 
 buildscript {
