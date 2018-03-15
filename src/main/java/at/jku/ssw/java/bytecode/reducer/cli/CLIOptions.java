@@ -5,7 +5,7 @@ package at.jku.ssw.java.bytecode.reducer.cli;
  */
 public interface CLIOptions {
     String HELP       = "help";
-    String VERSION    = "help";
+    String VERSION    = "version";
     String QUIET      = "q";
     String VERBOSE    = "v";
     String SEQUENTIAL = "s";
