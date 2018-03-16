@@ -1,15 +1,31 @@
 group 'at.jku.ssw'
 version '0.1-SNAPSHOT'
 
+/* PLUGINS ================================================================= */
+
 apply plugin: 'java'
 apply plugin: 'org.junit.platform.gradle.plugin'
 
 sourceCompatibility = 1.9
 targetCompatibility = 1.9
 
+/* CUSTOM TASKS ============================================================ */
+
+/**
+ * Task that generates the Javadoc
+ */
+javadoc {
+    source = sourceSets.main.allJava
+}
+
+/* REPOSITORIES ============================================================ */
+
+
 repositories {
     mavenCentral()
 }
+
+/* DEPENDENCIES ============================================================ */
 
 dependencies {
     // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api
@@ -33,6 +49,8 @@ dependencies {
     // https://mvnrepository.com/artifact/commons-cli/commons-cli
     compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
 }
+
+/* PLUGIN SETTINGS ========================================================= */
 
 buildscript {
     repositories {
