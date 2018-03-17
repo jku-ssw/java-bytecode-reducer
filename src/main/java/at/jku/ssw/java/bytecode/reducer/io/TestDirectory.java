@@ -5,7 +5,6 @@ import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -115,9 +114,15 @@ public class TestDirectory {
         if (purged) return true;
 
         try {
-            return purged = Files.walk(path)
-                    .map(Path::toFile)
-                    .allMatch(File::delete);
+            Files.walk(path)
+                    .forEach(p -> {
+                        try {
+                            Files.delete(p);
+                        } catch (IOException e) {
+                            logger.fatal("ERROR: Could not delete file {} from test directory {}: {}", p, path, e.getMessage());
+                        }
+                    });
+            return purged = true;
         } catch (IOException e) {
             logger.fatal("ERROR: Could not clear test directory {}: {}", path, e.getMessage());
         }
@@ -128,16 +133,6 @@ public class TestDirectory {
     // endregion
     //-------------------------------------------------------------------------
     // region IO utilities
-
-    private void delete(List<Path> src) {
-        src.forEach(p -> {
-            try {
-                Files.delete(p);
-            } catch (IOException e) {
-                logger.fatal("ERROR: Could not delete file {} from test directory: {}", p, e.getMessage());
-            }
-        });
-    }
 
     private void copy(List<Path> src, Path dst) {
         src.forEach(p -> {
