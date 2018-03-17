@@ -12,7 +12,7 @@ targetCompatibility = 1.9
 /* CUSTOM TASKS ============================================================ */
 
 /**
- * Task that generates the Javadoc
+ * Generate Javadoc from the source files.
  */
 javadoc {
     source = sourceSets.main.allJava
