@@ -105,7 +105,7 @@ public class ContextFactory {
         this.iTests = iTests;
         this.workingDir = workingDir == null ? "" : workingDir;
         this.outDir = outDir == null ? DEFAULT_OUT : outDir;
-        this.tempDir = tempDir == null ? DEFAULT_TEMP : outDir;
+        this.tempDir = tempDir == null ? DEFAULT_TEMP : tempDir;
 
         if (nThreads == 0)
             this.nThreads = DEFAULT_THREAD_NUM;
@@ -141,7 +141,19 @@ public class ContextFactory {
         return result;
     }
 
-    // endregion
+    @Override
+    public String toString() {
+        return "ContextFactory{" +
+                "classFiles=" + Arrays.toString(classFiles) +
+                ", iTests=" + Arrays.toString(iTests) +
+                ", workingDir='" + workingDir + '\'' +
+                ", outDir='" + outDir + '\'' +
+                ", tempDir='" + tempDir + '\'' +
+                ", nThreads=" + nThreads +
+                '}';
+    }
+
+// endregion
     //-------------------------------------------------------------------------
     // region Factory methods
 
