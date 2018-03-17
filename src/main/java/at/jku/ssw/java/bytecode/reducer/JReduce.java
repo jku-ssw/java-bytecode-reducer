@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer;
 
 import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
+import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -20,16 +21,17 @@ public class JReduce {
         CLIParser cliParser = new CLIParser();
 
         try {
-            Context context = cliParser.parseArguments(args);
+            ContextFactory contextFactory = cliParser.parseArguments(args);
 
             // No context received - exit
-            if (context == null)
+            if (contextFactory == null)
                 System.exit(EXIT_SUCCESS);
 
         } catch (ParseException e) {
             logger.fatal(e.getMessage());
             System.exit(ERROR_INVALID_ARGS);
         }
+
         logger.debug("Initialized test context");
 
         // TODO
