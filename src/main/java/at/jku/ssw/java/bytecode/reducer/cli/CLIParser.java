@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.cli;
 
-import at.jku.ssw.java.bytecode.reducer.Context;
+import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -13,7 +13,7 @@ import java.util.Optional;
 public class CLIParser {
     private static final Logger logger = LogManager.getLogger();
 
-    public Context parseArguments(String[] args) throws ParseException {
+    public ContextFactory parseArguments(String[] args) throws ParseException {
         Options     options = generateArgumentOptions();
         CommandLine cmd     = generateCommandLine(options, args);
 
@@ -42,12 +42,12 @@ public class CLIParser {
                     .map(Number::intValue)
                     .orElse(0);
 
-        String out = getArg(cmd, CLIOptions.OUT);
-        String tmp = getArg(cmd, CLIOptions.TEMP);
+        String out        = getArg(cmd, CLIOptions.OUT);
+        String tmp        = getArg(cmd, CLIOptions.TEMP);
+        String workingDir = getArg(cmd, CLIOptions.WORKING_D);
 
-        // TODO set default values
         String[] iTests = Optional
-                .ofNullable(cmd.getOptionValues(CLIOptions.I_TESTS))
+                .ofNullable((String[]) getArg(cmd, CLIOptions.I_TESTS))
                 .orElse(new String[0]);
 
         String[] classFiles = cmd.getArgs();
@@ -59,9 +59,10 @@ public class CLIParser {
         System.out.println("classFiles = " + Arrays.toString(classFiles));
         System.out.println("iTests = " + Arrays.toString(iTests));
 
-        return new Context(
+        return new ContextFactory(
                 classFiles,
                 iTests,
+                workingDir,
                 out,
                 tmp,
                 nThreads
@@ -131,15 +132,32 @@ public class CLIParser {
 //        Option time = Option.builder("t")
 //                .desc("Limit execution time (maximum duration in seconds)")
 //                .longOpt("time")
-//                .hasArg(false)
+//                .hasArg(true)
 //                .required(false)
 //                .numberOfArgs(1)
-//                .type(Long.class)
+//                .type(Integer.class)
 //                .build();
+
+        // TODO would this be useful?
+//        Option size = Option.builder("s")
+//                .desc("The target size for reduced files (in bytes). " +
+//                        "If a reduction result is valid (interesting) and " +
+//                        "does not exceed this limit, the run will end. " +
+//                        "If more than one argument is specified, the given " +
+//                        "limits are taken for the individual class files " +
+//                        "(e.g. the first limit corresponds to the first file). " +
+//                        "If the file size should be specified in another unit, " +
+//                        "a simple modifier (kb, kB, MB etc. - case-insensitive) " +
+//                        "can be appended to the numeric value")
+//                .longOpt("size")
+//                .hasArgs()
+//                .required(false)
+//                .build();
+
 
         Option nthreads = Option.builder(CLIOptions.N_THREADS)
                 .desc("Maximum number of threads to operate concurrently")
-                .longOpt("nthreads")
+                .longOpt("n-threads")
                 .hasArg(true)
                 .required(false)
                 .type(Integer.class)
@@ -147,9 +165,30 @@ public class CLIParser {
 
         Option iTest = Option.builder(CLIOptions.I_TESTS)
                 .desc("The interestingness test file (test.{sh,bat} is assumed if no argument is supplied)")
-                .longOpt("itest")
+                .longOpt("i-tests")
                 .valueSeparator(',')
                 .hasArgs()
+                .required(false)
+                .build();
+
+        Option workingDir = Option.builder(CLIOptions.WORKING_D)
+                .desc("The working directory in which the task is run (if omitted, the current directory is assumed)")
+                .longOpt("working-dir")
+                .hasArg(true)
+                .required(false)
+                .build();
+
+        Option outDir = Option.builder(CLIOptions.OUT)
+                .desc("The directory where results will be placed")
+                .longOpt("out-dir")
+                .hasArg(true)
+                .required(false)
+                .build();
+
+        Option tempDir = Option.builder(CLIOptions.TEMP)
+                .desc("The temporary directory where the intermediate test results will be placed")
+                .longOpt("temp-dir")
+                .hasArg(true)
                 .required(false)
                 .build();
 
@@ -165,8 +204,9 @@ public class CLIParser {
 
         options.addOption(CLIOptions.HELP, "Display information about application usage")
                 .addOption(CLIOptions.VERSION, "Print program version")
-                .addOption(CLIOptions.OUT, true, "The directory where results will be placed")
-                .addOption(CLIOptions.TEMP, "temp", true, "The temporary directory where the intermediate test results will be placed")
+                .addOption(workingDir)
+                .addOption(outDir)
+                .addOption(tempDir)
                 .addOptionGroup(logging)
                 .addOptionGroup(threading)
                 .addOption(iTest);
