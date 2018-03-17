@@ -13,7 +13,7 @@ import java.util.Optional;
 public class CLIParser {
     private static final Logger logger = LogManager.getLogger();
 
-    public ContextFactory parseArguments(String[] args) throws ParseException {
+    public ContextFactory parseArguments(String... args) throws ParseException {
         Options     options = generateArgumentOptions();
         CommandLine cmd     = generateCommandLine(options, args);
 
@@ -46,11 +46,19 @@ public class CLIParser {
         String tmp        = getArg(cmd, CLIOptions.TEMP);
         String workingDir = getArg(cmd, CLIOptions.WORKING_D);
 
+        String[] fileArgs   = cmd.getArgs();
+        String[] classFiles = fileArgs;
+
         String[] iTests = Optional
                 .ofNullable((String[]) getArg(cmd, CLIOptions.I_TESTS))
                 .orElse(new String[0]);
 
-        String[] classFiles = cmd.getArgs();
+        // if no explicit tests are provided with the option,
+        // the first file is assumed to be the test
+        if (iTests.length == 0 && fileArgs.length > 1) {
+            iTests = new String[]{fileArgs[0]};
+            classFiles = Arrays.copyOfRange(fileArgs, 1, fileArgs.length);
+        }
 
         // TODO remove after testing
         System.out.println("nThreads = " + nThreads);
