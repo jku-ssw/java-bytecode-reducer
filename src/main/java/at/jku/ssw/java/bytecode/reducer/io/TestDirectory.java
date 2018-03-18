@@ -45,14 +45,6 @@ public class TestDirectory {
     // region Properties
 
     /**
-     * The name of the current directory.
-     * This name must be unique in order to prevent the tasks to override other
-     * existing test files.
-     * After the test directory is purged, this name can be reassigned.
-     */
-    public final String name;
-
-    /**
      * The current test context. Holds properties like the different paths.
      */
     private final Context context;
@@ -69,13 +61,12 @@ public class TestDirectory {
 
     // endregion
     //-------------------------------------------------------------------------
-    // region Constructors
+    // region Constructor and overridden methods
 
     public TestDirectory(Context context, String name) throws IOException {
         assert context != null : "Cannot initialize test directory without context";
         assert StringUtils.isNotBlank(name) : "Cannot initialize nameless test directory";
 
-        this.name = name;
         this.context = context;
 
         this.purged = false;
@@ -88,7 +79,12 @@ public class TestDirectory {
         copy(context.iTests, this.path);
     }
 
-    // endregion
+    @Override
+    public String toString() {
+        return path.toString();
+    }
+
+// endregion
     //-------------------------------------------------------------------------
     // region Directory management methods
 
