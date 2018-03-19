@@ -6,7 +6,13 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
+/**
+ * Class that handles batch and shell scripts and enables those file types'
+ * execution.
+ */
 public class ScriptRunner {
+
+    public static final int EXIT_SUCCESS = 0;
 
     /**
      * Initializes a process to execute the script that is located at the given
