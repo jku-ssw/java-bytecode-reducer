@@ -31,6 +31,7 @@ gradle-app.setting
 
 ## JetBrains IDEs
 .idea/
+*.iml
 
 # File-based project format:
 *.iws
