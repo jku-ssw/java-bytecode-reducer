@@ -8,6 +8,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.List;
 
 /**
@@ -97,9 +98,9 @@ public class TestDirectory {
         Files.list(path)
                 .forEach(p -> {
                     try {
-                        Files.copy(p, out.resolve(p.getFileName()));
+                        Files.copy(p, out.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        logger.fatal("ERROR: Could not copy result file {} to output directory {}. The current results lie in {}: {}", p, out, path, e.getMessage());
+                        logger.fatal("Could not copy result file {} to output directory {}. The current results lie in {}: {}", p, out, path, e.getMessage());
                     }
                 });
 
@@ -115,12 +116,12 @@ public class TestDirectory {
                         try {
                             Files.delete(p);
                         } catch (IOException e) {
-                            logger.fatal("ERROR: Could not delete file {} from test directory {}: {}", p, path, e.getMessage());
+                            logger.fatal("Could not delete file {} from test directory {}: {}", p, path, e.getMessage());
                         }
                     });
             return purged = true;
         } catch (IOException e) {
-            logger.fatal("ERROR: Could not clear test directory {}: {}", path, e.getMessage());
+            logger.fatal("Could not clear test directory {}: {}", path, e.getMessage());
         }
 
         return false;
@@ -133,9 +134,9 @@ public class TestDirectory {
     private void copy(List<Path> src, Path dst) {
         src.forEach(p -> {
             try {
-                Files.copy(p, dst.resolve(p.getFileName()));
+                Files.copy(p, dst.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
             } catch (IOException e) {
-                logger.fatal("ERROR: Could not copy file {} to test directory {}: {}", p, dst, e.getMessage());
+                logger.fatal("Could not copy file {} to test directory {}: {}", p, dst, e.getMessage());
             }
         });
     }
