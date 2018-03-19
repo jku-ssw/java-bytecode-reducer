@@ -2,6 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.cli;
 
 /**
  * Holds constants related to the CLI parameters.
+ * TODO add options to keep temp files
  */
 public interface CLIOptions {
     String HELP       = "help";
