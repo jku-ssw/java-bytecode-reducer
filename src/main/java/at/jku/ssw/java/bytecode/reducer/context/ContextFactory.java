@@ -5,9 +5,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
+import java.nio.file.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -90,6 +88,16 @@ public class ContextFactory {
      */
     private final int nThreads;
 
+    /**
+     * Matcher for test scripts.
+     */
+    private final PathMatcher scriptMatcher;
+
+    /**
+     * Matcher for class files.
+     */
+    private final PathMatcher classMatcher;
+
     // endregion
     //-------------------------------------------------------------------------
     // region Initialization
@@ -113,6 +121,10 @@ public class ContextFactory {
             this.nThreads = MAX_THREADS;
         else
             this.nThreads = nThreads;
+
+        String scriptPattern = OSUtils.isWindows() ? "glob:*.bat" : "glob:*.sh";
+        scriptMatcher = FileSystems.getDefault().getPathMatcher(scriptPattern);
+        classMatcher = FileSystems.getDefault().getPathMatcher("glob:*.class");
     }
 
     // endregion
@@ -171,14 +183,14 @@ public class ContextFactory {
                 workingDir,
                 this.classFiles,
                 outDir,
-                ".class"
+                classMatcher
         );
 
         List<Path> iTests = validateAndCopy(
                 workingDir,
                 this.iTests,
                 outDir,
-                OSUtils.isWindows() ? ".bat" : ".sh"
+                scriptMatcher
         );
 
         return new Context(
@@ -201,22 +213,22 @@ public class ContextFactory {
      * @param workingDir The working directory (default reference for relative paths)
      * @param files      The files to analyze
      * @param out        The target directory
-     * @param postfix    The required file ending
+     * @param matcher    The required file ending
      * @return the filtered and verified list of files
      * @throws IOException if the file handlers run into problems
      */
     private List<Path> validateAndCopy(Path workingDir,
                                        String[] files,
                                        Path out,
-                                       String postfix)
+                                       PathMatcher matcher)
             throws IOException {
 
         final Stream<Path> paths;
 
         if (files.length == 0)
-            paths = scanFiles(workingDir, postfix);
+            paths = scanFiles(workingDir, matcher);
         else
-            paths = resolve(workingDir, files, postfix);
+            paths = resolve(workingDir, files, matcher);
 
         return copy(paths, out)
                 .collect(Collectors.toList());
@@ -229,27 +241,28 @@ public class ContextFactory {
      *
      * @param root    Reference directory for relative paths
      * @param paths   The path descriptors that should be resolved to valid paths
-     * @param postfix The required file ending
+     * @param matcher The required file ending
      * @return a stream of (absolute) paths representing the given descriptors
      */
-    private Stream<Path> resolve(Path root, String[] paths, String postfix) {
+    private Stream<Path> resolve(Path root, String[] paths, PathMatcher matcher) {
         return Arrays.stream(paths)
                 .map(Paths::get)
+                .map(root::resolve)
                 .filter(p -> {
                     if (Files.isDirectory(p)) {
-                        logger.warn("WARNING: Skipping {} - not a file.", p);
+                        logger.warn("Skipping {} - not a file.", p);
                         return false;
                     } else if (Files.notExists(p)) {
-                        logger.warn("WARNING: Skipping {} - file not found.");
+                        logger.warn("Skipping {} - file not found.", p);
                         return false;
-                    } else if (!p.endsWith(postfix)) {
-                        logger.warn("WARNING: Skipping {} - file does not match the required ending (\"{}\").", p, postfix);
+                    } else if (!matcher.matches(p)) {
+                        logger.warn(p.getFileName());
+                        logger.warn("Skipping {} - file does not match the required extension (\"{}\").", p, matcher);
                         return false;
                     }
 
                     return true;
-                })
-                .map(root::resolve);
+                });
     }
 
     /**
@@ -257,14 +270,14 @@ public class ContextFactory {
      * with the given string.
      *
      * @param workingDir The directory to scan
-     * @param postfix    String that all files have to end with
+     * @param matcher    String that all files have to end with
      * @return a stream of paths that point to the result files
      * @throws IOException if the directory is a file or inaccessible
      */
-    private Stream<Path> scanFiles(Path workingDir, String postfix) throws IOException {
+    private Stream<Path> scanFiles(Path workingDir, PathMatcher matcher) throws IOException {
         return Files.list(workingDir)
                 .filter(Files::isRegularFile)
-                .filter(p -> p.endsWith(postfix));
+                .filter(matcher::matches);
     }
 
     /**
@@ -278,9 +291,9 @@ public class ContextFactory {
         return src
                 .map(p -> {
                     try {
-                        return Files.copy(p, out.resolve(p.getFileName()));
+                        return Files.copy(p, out.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
                     } catch (IOException e) {
-                        logger.fatal("ERROR: Could not copy {} to output directory {}: {}", p, out, e.getMessage());
+                        logger.fatal("Could not copy {} to output directory {}: {}", p, out, e.getMessage());
                         return null;
                     }
                 })
