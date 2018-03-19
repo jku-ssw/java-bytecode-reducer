@@ -55,26 +55,26 @@ public class ContextFactory {
     /**
      * Either relative or absolute paths to the class files.
      */
-    public final String[] classFiles;
+    private final String[] classFiles;
 
     /**
      * Either relative or absolute paths to the interestingness tests.
      */
-    public final String[] iTests;
+    private final String[] iTests;
 
     /**
      * Relative or absolute path to the working directory that is used
      * to store the temporary and output directory.
      * The current directory is used, if no argument was specified.
      */
-    public final String workingDir;
+    private final String workingDir;
 
     /**
      * Output directory for the final / intermediate result files.
      * If a relative path is specified, the output directory for the context
      * is assumed to be a subdirectory of the working directory.
      */
-    public final String outDir;
+    private final String outDir;
 
     /**
      * Temporary directory that is used to store the sources and
@@ -82,13 +82,13 @@ public class ContextFactory {
      * If the path is relative, the temporary directory for the context is
      * assumed to be a subdirectory of the working directory.
      */
-    public final String tempDir;
+    private final String tempDir;
 
     /**
      * The number of threads that the context should be
      * able to run concurrently.
      */
-    public final int nThreads;
+    private final int nThreads;
 
     // endregion
     //-------------------------------------------------------------------------
