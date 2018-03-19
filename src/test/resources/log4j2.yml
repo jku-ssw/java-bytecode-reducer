@@ -10,7 +10,7 @@ Configuration:
     Console:
       name: CONSOLE
       PatternLayout:
-        Pattern: "%m%n"
+        Pattern: "[%t] %m%n"
     File:
       name: FILE
       fileName: ${filename}
