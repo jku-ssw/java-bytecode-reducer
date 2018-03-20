@@ -89,6 +89,12 @@ public class ContextFactory {
     private final int nThreads;
 
     /**
+     * Keep temporary test files and directories instead of deleting
+     * them after each run.
+     */
+    private final boolean keepTemp;
+
+    /**
      * Matcher for test scripts.
      */
     private final PathMatcher scriptMatcher;
@@ -107,13 +113,15 @@ public class ContextFactory {
                           String workingDir,
                           String outDir,
                           String tempDir,
-                          int nThreads) {
+                          int nThreads,
+                          boolean keepTemp) {
 
         this.classFiles = classFiles;
         this.iTests = iTests;
         this.workingDir = workingDir == null ? "" : workingDir;
         this.outDir = outDir == null ? DEFAULT_OUT : outDir;
         this.tempDir = tempDir == null ? DEFAULT_TEMP : tempDir;
+        this.keepTemp = keepTemp;
 
         if (nThreads == 0)
             this.nThreads = DEFAULT_THREAD_NUM;
@@ -199,7 +207,8 @@ public class ContextFactory {
                 workingDir,
                 outDir,
                 tempDir,
-                nThreads
+                nThreads,
+                keepTemp
         );
     }
 

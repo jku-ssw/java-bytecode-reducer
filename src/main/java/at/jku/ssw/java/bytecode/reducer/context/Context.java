@@ -36,18 +36,25 @@ public class Context {
      */
     public final int nThreads;
 
+    /**
+     * Flag that indicates that temporary directories should not be removed.
+     */
+    public final boolean keepTemp;
+
     Context(List<Path> classFiles,
             List<Path> iTests,
             Path workingDir,
             Path outDir,
             Path tempDir,
-            int nThreads) {
-        
+            int nThreads,
+            boolean keepTemp) {
+
         this.classFiles = classFiles;
         this.iTests = iTests;
         this.workingDir = workingDir;
         this.outDir = outDir;
         this.tempDir = tempDir;
         this.nThreads = nThreads;
+        this.keepTemp = keepTemp;
     }
 }

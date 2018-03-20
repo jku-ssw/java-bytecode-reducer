@@ -53,6 +53,8 @@ public class CLIParser {
                 .ofNullable((String[]) getArg(cmd, CLIOptions.I_TESTS))
                 .orElse(new String[0]);
 
+        boolean keepTemp = cmd.hasOption(CLIOptions.KEEP_TEMP);
+
         // if no explicit tests are provided with the option,
         // the first file is assumed to be the test
         if (iTests.length == 0 && fileArgs.length > 1) {
@@ -73,7 +75,8 @@ public class CLIParser {
                 workingDir,
                 out,
                 tmp,
-                nThreads
+                nThreads,
+                keepTemp
         );
     }
 
@@ -212,6 +215,7 @@ public class CLIParser {
 
         options.addOption(CLIOptions.HELP, "Display information about application usage")
                 .addOption(CLIOptions.VERSION, "Print program version")
+                .addOption(CLIOptions.KEEP_TEMP, "keep-temp", false, "Keep temporary test directories and files")
                 .addOption(workingDir)
                 .addOption(outDir)
                 .addOption(tempDir)
