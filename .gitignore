@@ -6,6 +6,11 @@
 # Log files
 *.log
 
+# include resource class files
+!resources/*.class
+# ignore other class files
+*.class
+
 # Package Files #
 *.jar
 *.war
@@ -61,3 +66,5 @@ local.properties
 .DS_Store
 .AppleDouble
 .LSOverride
+
+##
