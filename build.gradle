@@ -4,7 +4,6 @@ version '0.1-SNAPSHOT'
 /* PLUGINS ================================================================= */
 
 apply plugin: 'java'
-apply plugin: 'org.junit.platform.gradle.plugin'
 
 sourceCompatibility = 1.9
 targetCompatibility = 1.9
@@ -16,6 +15,10 @@ targetCompatibility = 1.9
  */
 javadoc {
     source = sourceSets.main.allJava
+}
+
+test {
+    useJUnitPlatform()
 }
 
 /* REPOSITORIES ============================================================ */
@@ -62,12 +65,4 @@ buildscript {
         // https://mvnrepository.com/artifact/org.junit.platform/junit-platform-gradle-plugin
         classpath group: 'org.junit.platform', name: 'junit-platform-gradle-plugin', version: '1.1.0'
     }
-}
-
-// Plugin setup according to the JUnit 5 documentation at
-// https://junit.org/junit5/docs/current/user-guide/#running-tests-build-gradle
-junitPlatform {
-    reportsDir file('build/test-results/junit-platform') // this is the default
-    enableStandardTestTask true
-    logManager 'org.apache.logging.log4j.LogManager'
 }
