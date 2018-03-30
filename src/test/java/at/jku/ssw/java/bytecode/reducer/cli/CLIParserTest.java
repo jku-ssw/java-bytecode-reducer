@@ -26,7 +26,8 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
-                DEFAULT_THREAD_NUM
+                DEFAULT_THREAD_NUM,
+                false
         );
     }
 
@@ -85,7 +86,8 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
-                DEFAULT_THREAD_NUM
+                DEFAULT_THREAD_NUM,
+                false
         );
 
         assertEquals(expected, parse(args));
