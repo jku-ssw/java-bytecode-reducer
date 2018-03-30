@@ -21,10 +21,10 @@ Configuration:
     Logger:
       -
         name: at.jku.ssw.jreduce
-        level: DEBUG # TODO change for production
+        level: DEBUG
 
     Root:
-      level: INFO
+      level: ERROR
       AppenderRef:
         - ref: CONSOLE
         - ref: FILE
