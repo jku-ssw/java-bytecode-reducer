@@ -1,10 +1,10 @@
-group 'at.jku.ssw'
-version '0.1-SNAPSHOT'
+group = 'at.jku.ssw'
+version = '0.1-SNAPSHOT'
 
 /* PLUGINS ================================================================= */
 
 apply plugin: 'java'
-
+// TODO update Gradle version
 sourceCompatibility = 1.9
 targetCompatibility = 1.9
 
@@ -44,25 +44,13 @@ dependencies {
     compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.4'
 
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.1.0'
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.1.0'
     // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-    testRuntime group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.1.0'
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.1.0'
 
     // https://mvnrepository.com/artifact/org.javassist/javassist
     compile group: 'org.javassist', name: 'javassist', version: '3.22.0-GA'
 
     // https://mvnrepository.com/artifact/commons-cli/commons-cli
     compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
-}
-
-/* PLUGIN SETTINGS ========================================================= */
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        // https://mvnrepository.com/artifact/org.junit.platform/junit-platform-gradle-plugin
-        classpath group: 'org.junit.platform', name: 'junit-platform-gradle-plugin', version: '1.1.0'
-    }
 }
