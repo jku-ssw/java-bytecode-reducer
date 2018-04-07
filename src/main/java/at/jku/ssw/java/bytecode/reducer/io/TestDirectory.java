@@ -114,11 +114,13 @@ public class TestDirectory {
             Files.walk(path)
                     .forEach(p -> {
                         try {
-                            Files.delete(p);
+                            if (Files.isRegularFile(p))
+                                Files.delete(p);
                         } catch (IOException e) {
                             logger.fatal("Could not delete file {} from test directory {}: {}", p, path, e.getMessage());
                         }
                     });
+            // TODO clear directory / directories
             return purged = true;
         } catch (IOException e) {
             logger.fatal("Could not clear test directory {}: {}", path, e.getMessage());
