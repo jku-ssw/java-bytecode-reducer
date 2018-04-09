@@ -4,7 +4,6 @@ version = '0.1-SNAPSHOT'
 /* PLUGINS ================================================================= */
 
 apply plugin: 'java'
-// TODO update Gradle version
 sourceCompatibility = 1.9
 targetCompatibility = 1.9
 
@@ -21,8 +20,11 @@ test {
     useJUnitPlatform()
 }
 
-/* REPOSITORIES ============================================================ */
+wrapper {
+    gradleVersion    = '4.6'
+}
 
+/* REPOSITORIES ============================================================ */
 
 repositories {
     mavenCentral()
