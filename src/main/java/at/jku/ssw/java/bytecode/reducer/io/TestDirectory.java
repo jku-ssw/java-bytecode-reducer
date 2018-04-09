@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.io;
 
 import at.jku.ssw.java.bytecode.reducer.context.Context;
+import at.jku.ssw.java.bytecode.reducer.utils.FileUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -111,16 +112,7 @@ public class TestDirectory {
         if (purged) return true;
 
         try {
-            Files.walk(path)
-                    .forEach(p -> {
-                        try {
-                            if (Files.isRegularFile(p))
-                                Files.delete(p);
-                        } catch (IOException e) {
-                            logger.fatal("Could not delete file {} from test directory {}: {}", p, path, e.getMessage());
-                        }
-                    });
-            // TODO clear directory / directories
+            FileUtils.delete(path);
             return purged = true;
         } catch (IOException e) {
             logger.fatal("Could not clear test directory {}: {}", path, e.getMessage());
