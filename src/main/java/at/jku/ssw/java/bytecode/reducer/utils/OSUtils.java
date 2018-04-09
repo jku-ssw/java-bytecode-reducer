@@ -3,7 +3,8 @@ package at.jku.ssw.java.bytecode.reducer.utils;
 /**
  * Utility class for OS specific checks.
  */
-public class OSUtils {
+public final class OSUtils {
+    private OSUtils() {}
 
     /**
      * Determine whether the application is running on
