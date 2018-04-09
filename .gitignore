@@ -7,7 +7,7 @@
 *.log
 
 # include resource class files
-!resources/*.class
+!/src/test/resources/**/*.class
 # ignore other class files
 *.class
 
@@ -19,7 +19,7 @@
 *.tar.gz
 *.rar
 
-### Gradle template
+### Gradle
 .gradle
 /build/
 
@@ -66,5 +66,3 @@ local.properties
 .DS_Store
 .AppleDouble
 .LSOverride
-
-##
