@@ -3,7 +3,7 @@ package at.jku.ssw.java.bytecode.reducer;
 import at.jku.ssw.java.bytecode.reducer.context.Context;
 import at.jku.ssw.java.bytecode.reducer.io.ScriptRunner;
 import at.jku.ssw.java.bytecode.reducer.io.TestDirectory;
-import at.jku.ssw.java.bytecode.reducer.reducers.Reducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
@@ -54,8 +54,9 @@ public class DeltaTest implements Runnable {
             for (Path classFile : context.classFiles) {
                 reduce(classFile);
             }
-        } catch (CannotCompileException | NotFoundException | IOException e) {
+        } catch (Exception e) {
             fatal("Could not complete reduction: {}", e.getMessage());
+            e.printStackTrace();
         }
 
         debug("Finished reduction", this, reducer);
@@ -99,7 +100,7 @@ public class DeltaTest implements Runnable {
         clazz.writeFile();
     }
 
-    private void reduce(Path path) throws IOException, CannotCompileException, NotFoundException {
+    private void reduce(Path path) throws Exception {
         CtClass clazz = loadClass(path);
         clazz = reducer.transform(clazz);
         writeClass(clazz);

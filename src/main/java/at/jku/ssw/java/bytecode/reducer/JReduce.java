@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer;
 
 import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
-import at.jku.ssw.java.bytecode.reducer.reducers.RemoveUnusedFields;
+import at.jku.ssw.java.bytecode.reducer.modules.RemoveUnusedFields;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

@@ -1,5 +1,6 @@
-package at.jku.ssw.java.bytecode.reducer.reducers;
+package at.jku.ssw.java.bytecode.reducer.modules;
 
+import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import javassist.CtClass;
 
 public class ThrowCaughtExceptions implements Reducer {
