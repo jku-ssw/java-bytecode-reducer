@@ -20,11 +20,14 @@ Configuration:
   Loggers:
     Logger:
       -
-        name: at.jku.ssw.jreduce
-        level: DEBUG # TODO change for production
-      -
         name: at.jku.ssw.jreduce.utils
         level: DEBUG
+      -
+        name: at.jku.ssw.jreduce.modules
+        level: TRACE
+      -
+        name: at.jku.ssw.jreduce
+        level: DEBUG # TODO change for production
 
     Root:
       level: INFO
