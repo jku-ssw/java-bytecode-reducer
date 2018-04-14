@@ -6,10 +6,10 @@
 # Log files
 *.log
 
+# ignore class files
+*.class
 # include resource class files
 !/src/test/resources/**/*.class
-# ignore other class files
-*.class
 
 # Package Files #
 *.jar
