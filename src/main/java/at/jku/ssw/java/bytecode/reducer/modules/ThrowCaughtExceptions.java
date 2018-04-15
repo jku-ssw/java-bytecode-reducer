@@ -1,13 +1,18 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
-import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
-import javassist.CtClass;
+import at.jku.ssw.java.bytecode.reducer.context.Reduction;
+import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 
-public class ThrowCaughtExceptions implements Reducer {
+public class ThrowCaughtExceptions implements RepeatableReducer<Object> {
     // TODO
 
     @Override
-    public CtClass transform(CtClass clazz) {
+    public Reduction.Result<Object> apply(Reduction.Base<Object> base) throws Exception {
         return null;
+    }
+
+    @Override
+    public byte[] apply(byte[] bytecode) throws Exception {
+        return new byte[0];
     }
 }
