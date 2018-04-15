@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer;
+package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
@@ -8,13 +8,13 @@ import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Superclass for module tests.
+ * Superclass for {@link Reducer} tests.
  * Simplifies the access to byte codes / resources and keeps track
  * of a reducer's individual resources.
  *
  * @param <T> The type of the {@link Reducer} to test
  */
-public abstract class ModuleTest<T extends Reducer> {
+public abstract class ReducerTest<T extends Reducer> {
 
     /**
      * The directory name for byte codes.
@@ -50,7 +50,7 @@ public abstract class ModuleTest<T extends Reducer> {
      * Instantiate a new test and determine the resource paths accordingly.
      */
     @SuppressWarnings("unchecked")
-    public ModuleTest() {
+    public ReducerTest() {
         Class<T> reducer = (Class<T>) ClassUtils.getGenericTypes(getClass())[0];
 
         String dirName   = StringUtils.snake_case(reducer.getSimpleName());

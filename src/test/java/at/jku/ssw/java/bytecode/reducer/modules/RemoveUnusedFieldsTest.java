@@ -1,8 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
-import at.jku.ssw.java.bytecode.reducer.ModuleTest;
-
-public class RemoveUnusedFieldsTest extends ModuleTest<RemoveUnusedFields> {
+public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields> {
     void testNoFields() {
 
     }
