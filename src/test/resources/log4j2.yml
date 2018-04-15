@@ -10,7 +10,7 @@ Configuration:
     Console:
       name: CONSOLE
       PatternLayout:
-        Pattern: "[%-5p] %m%n"
+        Pattern: "%highlight{[%-5p]} %m%n%throwable"
     File:
       name: FILE
       fileName: ${filename}
