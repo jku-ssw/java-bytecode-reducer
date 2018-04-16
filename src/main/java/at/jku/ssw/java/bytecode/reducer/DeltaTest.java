@@ -102,7 +102,7 @@ public class DeltaTest implements Runnable {
 
     private void reduce(Path path) throws Exception {
         CtClass clazz = loadClass(path);
-        clazz = reducer.transform(clazz);
+//        clazz = reducer.apply();
         writeClass(clazz);
     }
 
