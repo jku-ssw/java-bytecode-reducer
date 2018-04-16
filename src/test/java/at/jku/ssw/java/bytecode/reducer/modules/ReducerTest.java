@@ -2,7 +2,9 @@ package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
+import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
+import javassist.CtClass;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -47,6 +49,11 @@ public abstract class ReducerTest<T extends Reducer> {
     private final String reducedResources;
 
     /**
+     * The reducer instance to use.
+     */
+    protected T reducer;
+
+    /**
      * Instantiate a new test and determine the resource paths accordingly.
      */
     @SuppressWarnings("unchecked")
@@ -66,8 +73,10 @@ public abstract class ReducerTest<T extends Reducer> {
      * @return the byte code of the requested class
      * @throws IOException if the file cannot be found
      */
-    protected final byte[] loadOriginalClass(String name) throws IOException {
-        return load(originalResources + name + "." + CLASS_POSTFIX);
+    protected final byte[] loadOriginalBytecode(String name) throws IOException {
+        try (InputStream is = getResourceStream(originalResources + name + "." + CLASS_POSTFIX)) {
+            return is.readAllBytes();
+        }
     }
 
     /**
@@ -77,21 +86,24 @@ public abstract class ReducerTest<T extends Reducer> {
      * @return the byte code of the requested class
      * @throws IOException if the file cannot be found
      */
-    protected final byte[] loadReducedClass(String name) throws IOException {
-        return load(reducedResources + name + "." + CLASS_POSTFIX);
+    protected final byte[] loadReducedBytecode(String name) throws IOException {
+        try (InputStream is = getResourceStream(reducedResources + name + "." + CLASS_POSTFIX)) {
+            return is.readAllBytes();
+        }
     }
 
     /**
-     * Load the resource file.
+     * Fetch the resource at the given class path location.
      *
-     * @param file The file to load
-     * @return the byte code
-     * @throws IOException if the file cannot be accessed
+     * @param path The path of the resource
+     * @return an input stream for the resource file
      */
-    private byte[] load(String file) throws IOException {
-        try (InputStream is = getClass().getClassLoader().getResourceAsStream(file)) {
-            return is.readAllBytes();
-        }
+    private InputStream getResourceStream(String path) {
+        return getClass().getClassLoader().getResourceAsStream(path);
+    }
+
+    protected static CtClass classFromBytecode(byte[] bytecode) throws IOException {
+        return Javassist.loadClass(bytecode);
     }
 
 }
