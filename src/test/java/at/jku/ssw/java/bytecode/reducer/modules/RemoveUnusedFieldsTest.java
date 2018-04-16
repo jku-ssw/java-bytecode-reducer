@@ -1,27 +1,65 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
+import javassist.CtClass;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields> {
-    void testNoFields() {
 
+    private void assertReduced(final String className) throws Exception {
+        byte[] original = loadOriginalBytecode(className);
+
+        byte[] expectedBytecode = loadReducedBytecode(className);
+
+        byte[] reducedBytecode = reducer.getMinimal(original, __ -> true);
+
+        CtClass expected = classFromBytecode(expectedBytecode);
+        CtClass actual   = classFromBytecode(reducedBytecode);
+
+        //TODO somehow fix comparison
+        assertEquals(expected, actual);
     }
 
-    void testOnlyUsedFields() {
-
+    @BeforeEach
+    void setUp() {
+        reducer = new RemoveUnusedFields();
     }
 
-    void testOnlyUnusedFields() {
-
+    @AfterEach
+    void tearDown() {
+        reducer = null;
     }
 
-    void testStaticFields() {
-
+    @Test
+    void testNoFields() throws Exception {
+        assertReduced("NoFields");
     }
 
-    void testPrivateFields() {
-
+    @Test
+    void testOnlyUsedFields() throws Exception {
+        // TODO
     }
 
+    @Test
+    void testOnlyUnusedFields() throws Exception {
+        // TODO
+    }
+
+    @Test
+    void testStaticFields() throws Exception {
+        // TODO
+    }
+
+    @Test
+    void testPrivateFields() throws Exception {
+        // TODO
+    }
+
+    @Test
     void testPublicFields() {
-
+        // TODO
     }
 }
