@@ -26,24 +26,28 @@ public abstract class Reduction<T> {
     protected final Set<T> cache;
 
     /**
+     * Increasing identifier for consecutive runs.
+     */
+    protected final int run;
+
+    /**
      * Instantiate a new object with the given byte code and attempt cache.
      *
      * @param bytecode The byte code that represents this base / result
-     * @param cache    The initial cache
+     * @param cache    The initial cache (empty if null)
+     * @param run      The run number (default 0)
      */
-    private Reduction(byte[] bytecode, Set<T> cache) {
+    private Reduction(byte[] bytecode, Set<T> cache, int run) {
         this.bytecode = bytecode;
         this.cache = cache;
+        this.run = run;
     }
 
     /**
-     * Instantiate a new object without attempt log but
-     * with the given byte code.
-     *
-     * @param bytecode The byte code that represents this base / result
+     * @see Reduction#Reduction(byte[], Set, int)
      */
-    private Reduction(byte[] bytecode) {
-        this(bytecode, Set.of());
+    private Reduction(byte[] bytecode, int run) {
+        this(bytecode, Set.of(), run);
     }
 
     /**
@@ -84,17 +88,24 @@ public abstract class Reduction<T> {
     public static final class Base<T> extends Reduction<T> {
 
         /**
-         * @see Reduction#Reduction(byte[], Set)
+         * @see Reduction#Reduction(byte[], Set, int)
          */
-        private Base(byte[] bytecode, Set<T> cache) {
-            super(bytecode, cache);
+        private Base(byte[] bytecode, Set<T> cache, int run) {
+            super(bytecode, cache, run);
         }
 
         /**
-         * @see Reduction#Reduction(byte[], Set)
+         * @see Reduction#Reduction(byte[], Set, int)
+         */
+        private Base(byte[] bytecode, int run) {
+            super(bytecode, run);
+        }
+
+        /**
+         * @see Reduction#Reduction(byte[], Set, int)
          */
         private Base(byte[] bytecode) {
-            super(bytecode);
+            super(bytecode, 0);
         }
 
         /**
@@ -164,7 +175,7 @@ public abstract class Reduction<T> {
         private Result(Base<T> base, byte[] bytecode, Set<T> attempts, boolean min) {
             super(bytecode, Stream.of(base.cache, attempts)
                     .flatMap(Collection::stream)
-                    .collect(Collectors.toSet()));
+                    .collect(Collectors.toSet()), base.run + 1);
             this.previous = base.bytecode;
             this.minimal = min;
         }
@@ -189,7 +200,7 @@ public abstract class Reduction<T> {
          * attempt log
          */
         public Base<T> accept() {
-            return new Base<>(bytecode);
+            return new Base<>(bytecode, run);
         }
 
         /**
@@ -200,7 +211,7 @@ public abstract class Reduction<T> {
          * and the cached attempts
          */
         public Base<T> reject() {
-            return new Base<>(previous, cache);
+            return new Base<>(previous, cache, run);
         }
 
         /**
