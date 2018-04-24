@@ -1,6 +1,9 @@
 package at.jku.ssw.java.bytecode.reducer.utils;
 
-import javassist.*;
+import javassist.ClassPool;
+import javassist.CtClass;
+import javassist.CtConstructor;
+import javassist.CtMember;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
