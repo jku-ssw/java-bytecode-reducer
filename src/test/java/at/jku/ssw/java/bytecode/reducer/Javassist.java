@@ -1,9 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer;
 
-import javassist.CtBehavior;
-import javassist.CtClass;
-import javassist.CtField;
-import javassist.NotFoundException;
+import javassist.*;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.annotation.Annotation;
 
@@ -198,7 +195,6 @@ public final class Javassist {
         return equals(a1.getMemberNames(), a2.getMemberNames(), String::equals, cmpMemberValues);
     }
 
-
     private static <T> boolean compareAnnotations(T a,
                                                   T b,
                                                   Function<T, Object[]> prop) {
@@ -211,5 +207,22 @@ public final class Javassist {
                 cmpAnnotationNames,
                 Javassist::equals
         );
+    }
+
+    public static boolean equals(CtBehavior b1, CtBehavior b2) {
+        if (b1 instanceof CtMethod && b2 instanceof CtMethod)
+            return equals((CtMethod) b1, (CtMethod) b2);
+        if (b1 instanceof CtConstructor && b2 instanceof CtConstructor)
+            return equals((CtConstructor) b1, (CtConstructor) b2);
+
+        return true;
+    }
+
+    public static boolean equals(CtMethod m1, CtMethod m2) {
+        return true;
+    }
+
+    public static boolean equals(CtConstructor m1, CtConstructor m2) {
+        return true;
     }
 }
