@@ -8,8 +8,6 @@ public interface CLIOptions {
     String VERSION    = "version";
     String QUIET      = "q";
     String VERBOSE    = "v";
-    String SEQUENTIAL = "s";
-    String N_THREADS  = "n";
     String WORKING_D  = "d";
     String OUT        = "out";
     String TEMP       = "tmp";

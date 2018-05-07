@@ -32,11 +32,6 @@ public class Context {
     public final Path tempDir;
 
     /**
-     * The maximum number of threads to generate for the tests.
-     */
-    public final int nThreads;
-
-    /**
      * Flag that indicates that temporary directories should not be removed.
      */
     public final boolean keepTemp;
@@ -46,7 +41,6 @@ public class Context {
             Path workingDir,
             Path outDir,
             Path tempDir,
-            int nThreads,
             boolean keepTemp) {
 
         this.classFiles = classFiles;
@@ -54,7 +48,6 @@ public class Context {
         this.workingDir = workingDir;
         this.outDir = outDir;
         this.tempDir = tempDir;
-        this.nThreads = nThreads;
         this.keepTemp = keepTemp;
     }
 }

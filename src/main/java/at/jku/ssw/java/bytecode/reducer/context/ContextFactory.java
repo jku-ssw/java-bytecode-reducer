@@ -83,12 +83,6 @@ public class ContextFactory {
     private final String tempDir;
 
     /**
-     * The number of threads that the context should be
-     * able to run concurrently.
-     */
-    private final int nThreads;
-
-    /**
      * Keep temporary test files and directories instead of deleting
      * them after each run.
      */
@@ -113,7 +107,6 @@ public class ContextFactory {
                           String workingDir,
                           String outDir,
                           String tempDir,
-                          int nThreads,
                           boolean keepTemp) {
 
         this.classFiles = classFiles;
@@ -122,13 +115,6 @@ public class ContextFactory {
         this.outDir = outDir == null ? DEFAULT_OUT : outDir;
         this.tempDir = tempDir == null ? DEFAULT_TEMP : tempDir;
         this.keepTemp = keepTemp;
-
-        if (nThreads == 0)
-            this.nThreads = DEFAULT_THREAD_NUM;
-        else if (nThreads > MAX_THREADS)
-            this.nThreads = MAX_THREADS;
-        else
-            this.nThreads = nThreads;
 
         String scriptPattern = OSUtils.isWindows() ? "glob:*.bat" : "glob:*.sh";
         scriptMatcher = FileSystems.getDefault().getPathMatcher(scriptPattern);
@@ -144,8 +130,7 @@ public class ContextFactory {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ContextFactory that = (ContextFactory) o;
-        return nThreads == that.nThreads &&
-                Arrays.equals(classFiles, that.classFiles) &&
+        return Arrays.equals(classFiles, that.classFiles) &&
                 Arrays.equals(iTests, that.iTests) &&
                 Objects.equals(workingDir, that.workingDir) &&
                 Objects.equals(outDir, that.outDir) &&
@@ -155,7 +140,7 @@ public class ContextFactory {
     @Override
     public int hashCode() {
 
-        int result = Objects.hash(workingDir, outDir, tempDir, nThreads);
+        int result = Objects.hash(workingDir, outDir, tempDir);
         result = 31 * result + Arrays.hashCode(classFiles);
         result = 31 * result + Arrays.hashCode(iTests);
         return result;
@@ -169,7 +154,6 @@ public class ContextFactory {
                 ", workingDir='" + workingDir + '\'' +
                 ", outDir='" + outDir + '\'' +
                 ", tempDir='" + tempDir + '\'' +
-                ", nThreads=" + nThreads +
                 '}';
     }
 
@@ -207,7 +191,6 @@ public class ContextFactory {
                 workingDir,
                 outDir,
                 tempDir,
-                nThreads,
                 keepTemp
         );
     }
