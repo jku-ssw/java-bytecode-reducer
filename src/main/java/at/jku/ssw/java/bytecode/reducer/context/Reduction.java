@@ -28,7 +28,7 @@ public abstract class Reduction<T> {
     /**
      * Increasing identifier for consecutive runs.
      */
-    protected final int run;
+    public final int run;
 
     /**
      * Instantiate a new object with the given byte code and attempt cache.
