@@ -1,9 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.utils;
 
-import javassist.ClassPool;
-import javassist.CtClass;
-import javassist.CtConstructor;
-import javassist.CtMember;
+import javassist.*;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -49,5 +46,17 @@ public class Javassist {
         try (InputStream is = new ByteArrayInputStream(bytecode)) {
             return ClassPool.getDefault().makeClass(is);
         }
+    }
+
+    /**
+     * Retrieves the byte code of the given class without locking the instance.
+     *
+     * @return the byte code that represents the given class
+     */
+    public static byte[] bytecode(CtClass clazz)
+            throws IOException, CannotCompileException {
+        byte[] bytecode = clazz.toBytecode();
+        clazz.defrost();
+        return bytecode;
     }
 }

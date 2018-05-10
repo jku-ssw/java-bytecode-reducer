@@ -4,6 +4,7 @@ import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
+import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
 import javassist.*;
@@ -34,7 +35,7 @@ public class RemoveUnusedFields implements RepeatableReducer<CtField> {
 
         // if no unused field was found, the reduction is minimal
         return optField.map((TFunction<CtField, Result<CtField>>) f ->
-                base.toResult(removeField(clazz, f).toBytecode(), f))
+                base.toResult(Javassist.bytecode(removeField(clazz, f)), f))
                 .orElse(base.toMinimalResult());
     }
 
@@ -45,17 +46,19 @@ public class RemoveUnusedFields implements RepeatableReducer<CtField> {
         unusedFields(clazz).forEach(
                 (TConsumer<CtField>) f -> removeField(clazz, f));
 
-        return clazz.toBytecode();
+        return Javassist.bytecode(clazz);
     }
 
     @Override
     public Result<CtField> force(byte[] bytecode) throws Exception {
         CtClass clazz = loadClass(bytecode);
 
-        Base<CtField> base = Reduction.of(unusedFields(clazz)
-                .map(f -> ((TFunction<CtClass, CtClass>) c -> removeField(c, f)))
-                .reduce(c -> c, (f1, f2) -> c -> f2.apply(f1.apply(c)))
-                .apply(clazz).toBytecode());
+        Base<CtField> base = Reduction.of(
+                Javassist.bytecode(
+                        unusedFields(clazz)
+                                .map(f -> (TFunction<CtClass, CtClass>) c -> removeField(c, f))
+                                .reduce(c -> c, (f1, f2) -> c -> f2.apply(f1.apply(c)))
+                                .apply(clazz)));
 
         return base.toMinimalResult();
     }
