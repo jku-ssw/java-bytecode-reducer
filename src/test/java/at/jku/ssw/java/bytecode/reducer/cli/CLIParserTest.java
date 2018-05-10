@@ -8,7 +8,8 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
-import static at.jku.ssw.java.bytecode.reducer.context.ContextFactory.*;
+import static at.jku.ssw.java.bytecode.reducer.context.ContextFactory.DEFAULT_OUT;
+import static at.jku.ssw.java.bytecode.reducer.context.ContextFactory.DEFAULT_TEMP;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class CLIParserTest {
@@ -26,7 +27,6 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
-                DEFAULT_THREAD_NUM,
                 false
         );
     }
@@ -86,7 +86,6 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
-                DEFAULT_THREAD_NUM,
                 false
         );
 
