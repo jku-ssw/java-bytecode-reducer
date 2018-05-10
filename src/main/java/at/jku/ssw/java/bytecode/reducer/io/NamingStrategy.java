@@ -13,6 +13,8 @@ import java.util.stream.StreamSupport;
 @FunctionalInterface
 public interface NamingStrategy extends Iterable<String> {
 
+    int MAX_ATTEMPTS = 10;
+
     String PREFIX    = ".tmp";
     String SEPARATOR = "-";
 

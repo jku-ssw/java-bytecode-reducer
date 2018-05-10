@@ -5,7 +5,9 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
+import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
+import java.nio.file.NotDirectoryException;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
@@ -27,13 +29,57 @@ public class TempDir {
     protected final Path path;
 
     /**
-     * Package-protected constructor only to be
-     * used by the {@link TempDirBuilder}.
-     *
-     * @param path The path for the temporary directory
+     * The naming strategy to apply.
      */
-    protected TempDir(Path path) {
+    protected final NamingStrategy strat;
+
+    /**
+     * Package-protected constructor only to be
+     * used by the factory method.
+     *
+     * @param strategy The Naming strategy to use for the directory generation
+     * @param path     The path for the temporary directory
+     */
+    protected TempDir(NamingStrategy strategy, Path path) {
         this.path = path;
+        this.strat = strategy;
+    }
+
+    /**
+     * Create a temp directory at the given location.
+     *
+     * @param path The directory location
+     * @return a new temporary directory with its root at the given path
+     * @throws IOException if the path denotes a file
+     *                     or a not writable directory
+     */
+    public static TempDir at(Path path)
+            throws IOException {
+        return at(NamingStrategy.Static(path.getFileName().toString()), path);
+    }
+
+    /**
+     * Create a temp directory at the given location.
+     *
+     * @param strategy The naming strategy to apply
+     * @param path     The directory location
+     * @return a new temporary directory with its root at the given path
+     * @throws IOException if the path denotes a file or a
+     *                     not writable directory
+     */
+    public static TempDir at(NamingStrategy strategy, Path path)
+            throws IOException {
+
+        if (strategy == null)
+            throw new NullPointerException();
+
+        if (Files.exists(path) && !Files.isDirectory(path))
+            throw new NotDirectoryException(path.toString());
+
+        if (Files.isDirectory(path) && !Files.isWritable(path))
+            throw new AccessDeniedException(path.toString());
+
+        return new TempDir(strategy, path);
     }
 
     /**
@@ -46,10 +92,34 @@ public class TempDir {
      * @throws IOException if the creation or clearing of the directory fails
      */
     public Path use(Consumer<Path> task) throws IOException {
-        logger.debug("Creating temporary directory at {}", path);
-        final Path path = Files.createDirectories(this.path);
-        task.accept(path);
-        logger.debug("Clearing temporary directory at {}", this.path);
-        return FileUtils.delete(path);
+        return strat.stream()
+                .limit(NamingStrategy.MAX_ATTEMPTS)
+                .map(path::resolve)
+                .filter(p -> {
+                    try {
+                        return !Files.exists(p) ||
+                                Files.isDirectory(p) &&
+                                        FileUtils.isEmpty(p) &&
+                                        Files.isWritable(p);
+                    } catch (IOException e) {
+                        return false;
+                    }
+                })
+                .findFirst()
+                .map(p -> {
+                    try {
+                        logger.debug("Creating temporary directory at {}", p);
+                        final Path path = Files.createDirectories(p);
+                        task.accept(p);
+                        logger.debug("Clearing temporary directory at {}", p);
+                        return FileUtils.delete(path);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                        return null;
+                    }
+                })
+                .orElseThrow(() ->
+                        new IOException("Could not generate temporary directory at " + path)
+                );
     }
 }
