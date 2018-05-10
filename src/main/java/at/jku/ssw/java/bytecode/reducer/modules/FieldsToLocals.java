@@ -12,6 +12,11 @@ public class FieldsToLocals implements RepeatableReducer<Object> {
     }
 
     @Override
+    public Reduction.Result<Object> force(byte[] bytecode) throws Exception {
+        return null;
+    }
+
+    @Override
     public byte[] apply(byte[] bytecode) throws Exception {
         return new byte[0];
     }

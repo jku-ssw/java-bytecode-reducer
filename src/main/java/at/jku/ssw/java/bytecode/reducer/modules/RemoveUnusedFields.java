@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
+import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
@@ -37,14 +38,6 @@ public class RemoveUnusedFields implements RepeatableReducer<CtField> {
                 .orElse(base.toMinimalResult());
     }
 
-    private Stream<CtField> unusedFields(CtClass clazz) throws CannotCompileException {
-        FieldAccessVisitor visitor = new FieldAccessVisitor(clazz);
-
-        clazz.instrument(visitor);
-
-        return visitor.unusedFields.stream();
-    }
-
     @Override
     public byte[] apply(byte[] bytecode) throws Exception {
         CtClass clazz = loadClass(bytecode);
@@ -55,10 +48,30 @@ public class RemoveUnusedFields implements RepeatableReducer<CtField> {
         return clazz.toBytecode();
     }
 
+    @Override
+    public Result<CtField> force(byte[] bytecode) throws Exception {
+        CtClass clazz = loadClass(bytecode);
+
+        Base<CtField> base = Reduction.of(unusedFields(clazz)
+                .map(f -> ((TFunction<CtClass, CtClass>) c -> removeField(c, f)))
+                .reduce(c -> c, (f1, f2) -> c -> f2.apply(f1.apply(c)))
+                .apply(clazz).toBytecode());
+
+        return base.toMinimalResult();
+    }
+
     private CtClass removeField(CtClass clazz, CtField field) throws NotFoundException {
         logger.debug("Removing field '{}'", field.getSignature());
         clazz.removeField(field);
         return clazz;
+    }
+
+    private Stream<CtField> unusedFields(CtClass clazz) throws CannotCompileException {
+        FieldAccessVisitor visitor = new FieldAccessVisitor(clazz);
+
+        clazz.instrument(visitor);
+
+        return visitor.unusedFields.stream();
     }
 
     private class FieldAccessVisitor extends ExprEditor {
@@ -72,9 +85,9 @@ public class RemoveUnusedFields implements RepeatableReducer<CtField> {
 
         @Override
         public void edit(FieldAccess f) {
-            // allow initial value declaration in constructor
             CtBehavior loc = f.where();
 
+            // allow initial value declaration in constructor
             if (isInitializer(loc) && isMemberOfClass(loc, clazz) && f.isWriter())
                 return;
 
