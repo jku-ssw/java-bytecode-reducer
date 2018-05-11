@@ -13,6 +13,8 @@ import javassist.expr.FieldAccess;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -83,7 +85,7 @@ public class RemoveUnusedFields implements RepeatableReducer<CtField> {
 
         FieldAccessVisitor(CtClass clazz) {
             this.clazz = clazz;
-            this.unusedFields = Set.of(clazz.getDeclaredFields());
+            this.unusedFields = new HashSet<>(Arrays.asList(clazz.getDeclaredFields()));
         }
 
         @Override
