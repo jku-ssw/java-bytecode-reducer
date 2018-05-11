@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -52,26 +53,22 @@ public interface Javassist {
         assertAnnotationEquals(expected, actual,
                 (TFunction<CtClass, Object[]>) CtClass::getAnnotations);
 
-        List<AttributeInfo> a1 = expected.getClassFile().getAttributes();
-        List<AttributeInfo> a2 = actual.getClassFile().getAttributes();
-
-
         // compare attributes
-        assertCollectionEquals(a1, a2,
+        assertCollectionEquals(
+                expected.getClassFile().getAttributes(),
+                actual.getClassFile().getAttributes(),
                 (AttributeInfo a, AttributeInfo b) -> a.getName().equals(b.getName()),
-                (AttributeInfo a, AttributeInfo b) -> assertEquals(a.getName(), b.getName()));
+                (a, b) -> assertEquals(a.getName(), b.getName()));
 
-        CtField[] f1 = expected.getDeclaredFields();
-        CtField[] f2 = actual.getDeclaredFields();
-
-        assertArrayEquals(f1, f2,
+        assertArrayEquals(
+                expected.getDeclaredFields(),
+                actual.getDeclaredFields(),
                 (CtField a, CtField b) -> a.getName().equals(b.getName()),
                 this::assertFieldEquals);
 
-        CtBehavior[] b1 = expected.getDeclaredBehaviors();
-        CtBehavior[] b2 = actual.getDeclaredBehaviors();
-
-        assertArrayEquals(b1, b2,
+        assertArrayEquals(
+                expected.getDeclaredBehaviors(),
+                actual.getDeclaredBehaviors(),
                 (CtBehavior a, CtBehavior b) -> a.getLongName().equals(b.getLongName()),
                 this::assertBehaviourEquals);
     }
@@ -131,61 +128,105 @@ public interface Javassist {
 
 
     @SuppressWarnings("unchecked")
-    default void assertFieldEquals(CtField f1, CtField f2) {
+    default void assertFieldEquals(CtField expected, CtField actual) {
 
-        assertEquals(f1.getName(), f2.getName());
+        assertEquals(expected.getName(), actual.getName());
 
         try {
-            assertEquals(f1.getType(), f2.getType());
+            assertEquals(expected.getType(), actual.getType());
         } catch (NotFoundException e) {
             fail(e);
         }
 
-        assertEquals(f1.getConstantValue(), f2.getConstantValue());
+        assertEquals(expected.getConstantValue(), actual.getConstantValue());
 
-        assertEquals(f1.getModifiers(), f2.getModifiers());
+        assertEquals(expected.getModifiers(), actual.getModifiers());
 
-        List<AttributeInfo> a1 = f1.getFieldInfo().getAttributes();
-        List<AttributeInfo> a2 = f1.getFieldInfo().getAttributes();
-
-        assertCollectionEquals(a1, a2,
+        assertCollectionEquals(
+                expected.getFieldInfo().getAttributes(),
+                expected.getFieldInfo().getAttributes(),
                 (AttributeInfo a, AttributeInfo b) -> a.getName().equals(b.getName()),
-                (AttributeInfo a, AttributeInfo b) -> assertEquals(a.getName(), b.getName()));
+                (a, b) -> assertEquals(a.getName(), b.getName()));
 
-        assertAnnotationEquals(f1, f2,
+        assertAnnotationEquals(expected, actual,
                 (TFunction<CtField, Object[]>) CtField::getAnnotations);
     }
 
-    default void assertAnnotationEquals(Annotation a1, Annotation a2) {
-        assertEquals(a1.getTypeName(), a2.getTypeName());
+    default void assertAnnotationEquals(Annotation expected, Annotation actual) {
+        assertEquals(expected.getTypeName(), actual.getTypeName());
 
-        assertCollectionEquals(a1.getMemberNames(), a2.getMemberNames(),
+        assertCollectionEquals(
+                expected.getMemberNames(),
+                actual.getMemberNames(),
                 String::equals,
-                (a, b) -> assertEquals(a1.getMemberValue(a), a2.getMemberValue(b)));
+                (a, b) -> assertEquals(expected.getMemberValue(a), actual.getMemberValue(b)));
     }
 
-    private <T> void assertAnnotationEquals(T a,
-                                            T b,
-                                            Function<T, Object[]> prop) {
+    private <T> void assertAnnotationEquals(T a, T b, Function<T, Object[]> prop) {
 
-        assertArrayEquals(
-                prop.apply(a),
-                prop.apply(b),
+        assertArrayEquals(prop.apply(a), prop.apply(b),
                 (Annotation a1, Annotation a2) -> a1.getTypeName().equals(a2.getTypeName()),
                 this::assertAnnotationEquals
         );
     }
 
-    default void assertBehaviourEquals(CtBehavior b1, CtBehavior b2) {
-        if (b1 instanceof CtMethod && b2 instanceof CtMethod)
-            assertMethodEquals((CtMethod) b1, (CtMethod) b2);
-        if (b1 instanceof CtConstructor && b2 instanceof CtConstructor)
-            assertConstructorEquals((CtConstructor) b1, (CtConstructor) b2);
+    default void assertBehaviourEquals(CtBehavior expected, CtBehavior actual) {
+        // compare names
+        assertEquals(expected.getLongName(), actual.getLongName());
+
+        // compare signature
+        assertEquals(expected.getSignature(), actual.getSignature());
+
+        // compare method annotations
+        assertAnnotationEquals(expected, actual,
+                (TFunction<CtBehavior, Object[]>) CtBehavior::getAnnotations);
+
+        // compare parameter annotations
+        try {
+            assertAll(IntStream.range(0, expected.getParameterTypes().length)
+                    .mapToObj(i ->
+                            () -> assertAnnotationEquals(
+                                    expected.getParameterAnnotations(),
+                                    actual.getParameterAnnotations(),
+                                    (TFunction<Object[][], Object[]>) arr -> arr[i]))
+            );
+        } catch (NotFoundException e) {
+            fail(e);
+        }
+
+        // compare declared exceptions
+        try {
+            assertArrayEquals(
+                    expected.getExceptionTypes(),
+                    actual.getExceptionTypes(),
+                    (CtClass a, CtClass b) -> a.getName().equals(b.getName()),
+                    (a, b) -> assertEquals(a.getName(), b.getName()));
+        } catch (NotFoundException e) {
+            fail(e);
+        }
+
+        if (expected instanceof CtMethod) {
+            assertTrue(actual instanceof CtMethod);
+            assertMethodEquals((CtMethod) expected, (CtMethod) actual);
+        } else if (expected instanceof CtConstructor) {
+            assertTrue(actual instanceof CtConstructor);
+            assertConstructorEquals((CtConstructor) expected, (CtConstructor) actual);
+        }
     }
 
-    default void assertMethodEquals(CtMethod m1, CtMethod m2) {
+    default void assertMethodEquals(CtMethod expected, CtMethod actual) {
+        try {
+            // compare return type
+            if (expected.getReturnType() == null)
+                assertNull(actual.getReturnType());
+            else
+                assertEquals(expected.getReturnType().getName(),
+                        actual.getReturnType().getName());
+        } catch (NotFoundException e) {
+            fail(e);
+        }
     }
 
-    default void assertConstructorEquals(CtConstructor m1, CtConstructor m2) {
+    default void assertConstructorEquals(CtConstructor expected, CtConstructor actual) {
     }
 }
