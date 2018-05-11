@@ -38,8 +38,8 @@ public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields>
     }
 
     @Test
-    void testOnlyUsedFields() throws Exception {
-        // TODO
+    void testNoUnusedFields() throws Exception {
+        assertReduced("NoUnusedFields");
     }
 
     @Test
