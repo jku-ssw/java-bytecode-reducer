@@ -1,10 +1,10 @@
-package at.jku.ssw.java.bytecode.reducer.modules;
+package at.jku.ssw.java.bytecode.reducer.modules.vars;
 
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 
-public class RemoveUnusedMethods implements RepeatableReducer<Object> {
-    // TODO
+// TODO
+public class RemoveUnusedLocals implements RepeatableReducer<Object>  {
 
     @Override
     public Reduction.Result<Object> apply(Reduction.Base<Object> base) throws Exception {

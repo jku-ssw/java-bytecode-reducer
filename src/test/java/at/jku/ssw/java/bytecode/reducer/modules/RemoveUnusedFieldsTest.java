@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
+import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveUnusedFields;
 import at.jku.ssw.java.bytecode.reducer.support.Javassist;
 import javassist.CtClass;
 import org.junit.jupiter.api.AfterEach;
