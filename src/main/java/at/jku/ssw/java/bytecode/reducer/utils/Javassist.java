@@ -91,16 +91,16 @@ public class Javassist {
 
     private static class FieldAccessVisitor extends ExprEditor {
         private final Set<CtField>           fields;
-        private final Predicate<FieldAccess> exclude;
+        private final Predicate<FieldAccess> filter;
 
-        FieldAccessVisitor(CtClass clazz, Predicate<FieldAccess> exclude) {
+        FieldAccessVisitor(CtClass clazz, Predicate<FieldAccess> include) {
             this.fields = new HashSet<>(Arrays.asList(clazz.getDeclaredFields()));
-            this.exclude = exclude;
+            this.filter = include;
         }
 
         @Override
         public void edit(FieldAccess f) {
-            if (exclude.test(f)) return;
+            if (filter.test(f)) return;
 
             try {
                 CtField field = f.getField();
@@ -112,4 +112,5 @@ public class Javassist {
             }
         }
     }
+
 }
