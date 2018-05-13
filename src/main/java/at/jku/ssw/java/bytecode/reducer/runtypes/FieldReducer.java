@@ -3,7 +3,6 @@ package at.jku.ssw.java.bytecode.reducer.runtypes;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.utils.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
 
 import java.util.Optional;
@@ -25,15 +24,6 @@ public interface FieldReducer<CLASS, FIELD>
         return optField.map((TFunction<FIELD, Result<FIELD>>) f ->
                 base.toResult(bytecodeFrom(handleField(clazz, f)), f))
                 .orElse(base.toMinimalResult());
-    }
-
-    default byte[] apply(byte[] bytecode) throws Exception {
-        CLASS clazz = classFrom(bytecode);
-
-        eligibleFields(clazz).forEach(
-                (TConsumer<FIELD>) f -> handleField(clazz, f));
-
-        return bytecodeFrom(clazz);
     }
 
     default Result<FIELD> force(byte[] bytecode) throws Exception {

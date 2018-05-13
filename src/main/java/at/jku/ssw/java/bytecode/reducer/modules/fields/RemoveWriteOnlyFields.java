@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
+import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.FieldReducer;
 import javassist.CtClass;
 import javassist.CtField;
@@ -11,6 +12,7 @@ import java.util.stream.Stream;
 
 import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.*;
 
+@Sound
 public class RemoveWriteOnlyFields implements FieldReducer<CtClass, CtField> {
 
     private static final Logger logger = LogManager.getLogger();

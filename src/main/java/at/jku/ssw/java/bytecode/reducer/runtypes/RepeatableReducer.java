@@ -36,7 +36,7 @@ public interface RepeatableReducer<A> extends Reducer {
      * @throws Exception if the byte code access at some point reports errors
      */
     default byte[] getMinimal(byte[] bytecode, Predicate<Result<A>> test) throws Exception {
-        Result<A> res  = force(bytecode);
+        Result<A> res = force(bytecode);
 
         // try forced result (assumed to be minimal)
         if (test.test(res))
@@ -63,4 +63,9 @@ public interface RepeatableReducer<A> extends Reducer {
      * @throws Exception if the byte code is invalid
      */
     Result<A> force(byte[] bytecode) throws Exception;
+
+    @Override
+    default byte[] apply(byte[] bytecode) throws Exception {
+        return force(bytecode).bytecode();
+    }
 }

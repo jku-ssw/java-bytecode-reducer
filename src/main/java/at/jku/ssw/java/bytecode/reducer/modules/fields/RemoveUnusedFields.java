@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
+import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.FieldReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import javassist.CannotCompileException;
@@ -14,6 +15,7 @@ import java.util.stream.Stream;
 
 import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.*;
 
+@Sound
 public class RemoveUnusedFields implements FieldReducer<CtClass, CtField> {
 
     private static final Logger logger = LogManager.getLogger();
@@ -30,7 +32,7 @@ public class RemoveUnusedFields implements FieldReducer<CtClass, CtField> {
 
     @Override
     public Stream<CtField> eligibleFields(CtClass clazz) throws CannotCompileException {
-        return Javassist.unusedFields(clazz, f ->
+        return unusedFields(clazz, f ->
                 isInitializer(f.where()) && isMemberOfClass(f.where(), clazz) && f.isWriter());
     }
 

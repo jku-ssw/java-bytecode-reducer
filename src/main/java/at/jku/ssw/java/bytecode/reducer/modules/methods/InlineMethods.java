@@ -16,9 +16,4 @@ public class InlineMethods implements RepeatableReducer<CtMethod> {
     public Reduction.Result<CtMethod> force(byte[] bytecode) throws Exception {
         return null;
     }
-
-    @Override
-    public byte[] apply(byte[] bytecode) throws Exception {
-        return new byte[0];
-    }
 }
