@@ -14,8 +14,6 @@ public class Types {
             boolean.class, Boolean.FALSE
     );
 
-    // TODO check wrapper class default handling
-
     /**
      * Returns the default value that is automatically a assigned to fields
      * of the given type.
