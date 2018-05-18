@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
-import at.jku.ssw.java.bytecode.reducer.runtypes.FieldReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import javassist.CannotCompileException;
 import javassist.CtClass;
@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.*;
 
 @Sound
-public class RemoveUnusedFields implements FieldReducer<CtClass, CtField> {
+public class RemoveUnusedFields implements MemberReducer<CtClass, CtField> {
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -31,13 +31,13 @@ public class RemoveUnusedFields implements FieldReducer<CtClass, CtField> {
     }
 
     @Override
-    public Stream<CtField> eligibleFields(CtClass clazz) throws CannotCompileException {
+    public Stream<CtField> getMembers(CtClass clazz) throws CannotCompileException {
         return unusedFields(clazz, f ->
                 isInitializer(f.where()) && isMemberOfClass(f.where(), clazz) && f.isWriter());
     }
 
     @Override
-    public CtClass handleField(CtClass clazz, CtField field) throws NotFoundException {
+    public CtClass process(CtClass clazz, CtField field) throws NotFoundException {
         logger.debug("Removing field '{}'", field.getSignature());
         clazz.removeField(field);
         return clazz;

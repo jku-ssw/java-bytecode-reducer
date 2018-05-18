@@ -8,31 +8,31 @@ import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public interface FieldReducer<CLASS, FIELD>
-        extends RepeatableReducer<FIELD> {
+public interface MemberReducer<CLASS, MEMBER>
+        extends RepeatableReducer<MEMBER> {
 
-    default Result<FIELD> apply(Base<FIELD> base) throws Exception {
+    default Result<MEMBER> apply(Base<MEMBER> base) throws Exception {
 
         CLASS clazz = classFrom(base.bytecode());
 
-        // get the first applicable field that was not already attempted
-        Optional<FIELD> optField = eligibleFields(clazz)
+        // get the first applicable member that was not already attempted
+        Optional<MEMBER> optMember = getMembers(clazz)
                 .filter(f -> !base.cache().contains(f))
                 .findFirst();
 
-        // if no applicable field was found, the reduction is minimal
-        return optField.map((TFunction<FIELD, Result<FIELD>>) f ->
-                base.toResult(bytecodeFrom(handleField(clazz, f)), f))
+        // if no applicable member was found, the reduction is minimal
+        return optMember.map((TFunction<MEMBER, Result<MEMBER>>) f ->
+                base.toResult(bytecodeFrom(process(clazz, f)), f))
                 .orElse(base.toMinimalResult());
     }
 
-    default Result<FIELD> force(byte[] bytecode) throws Exception {
+    default Result<MEMBER> force(byte[] bytecode) throws Exception {
         CLASS clazz = classFrom(bytecode);
 
-        Base<FIELD> base = Reduction.of(
+        Base<MEMBER> base = Reduction.of(
                 bytecodeFrom(
-                        eligibleFields(clazz)
-                                .map(f -> (TFunction<CLASS, CLASS>) c -> handleField(c, f))
+                        getMembers(clazz)
+                                .map(f -> (TFunction<CLASS, CLASS>) c -> process(c, f))
                                 .reduce(c -> c, (f1, f2) -> c -> f2.apply(f1.apply(c)))
                                 .apply(clazz)));
 
@@ -43,7 +43,7 @@ public interface FieldReducer<CLASS, FIELD>
 
     byte[] bytecodeFrom(CLASS clazz) throws Exception;
 
-    Stream<FIELD> eligibleFields(CLASS clazz) throws Exception;
+    Stream<MEMBER> getMembers(CLASS clazz) throws Exception;
 
-    CLASS handleField(CLASS clazz, FIELD field) throws Exception;
+    CLASS process(CLASS clazz, MEMBER MEMBER) throws Exception;
 }

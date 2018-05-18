@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.runtypes.FieldReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import javassist.CtClass;
 import javassist.CtField;
@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 @Unsound
-public class RemoveStaticAttributes implements FieldReducer<CtClass, CtField> {
+public class RemoveStaticAttributes implements MemberReducer<CtClass, CtField> {
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -28,13 +28,13 @@ public class RemoveStaticAttributes implements FieldReducer<CtClass, CtField> {
     }
 
     @Override
-    public Stream<CtField> eligibleFields(CtClass clazz) {
+    public Stream<CtField> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredFields())
                 .filter(f -> Modifier.isStatic(f.getModifiers()));
     }
 
     @Override
-    public CtClass handleField(CtClass clazz, CtField field) {
+    public CtClass process(CtClass clazz, CtField field) {
         logger.debug("Removing static modifier or field '{}'", field.getSignature());
 
         field.setModifiers(Modifier.clear(field.getModifiers(), Modifier.STATIC));
