@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
+import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 
@@ -62,7 +63,19 @@ public interface RepeatableReducer<A> extends Reducer {
      * @return a new {@link Result} containing the byte code and attempt log
      * @throws Exception if the byte code is invalid
      */
-    Result<A> force(byte[] bytecode) throws Exception;
+    default Result<A> force(byte[] bytecode) throws Exception {
+        Base<A>   base = Reduction.of(bytecode);
+        Result<A> res;
+
+        for (; ; ) {
+            res = apply(base);
+
+            base = res.accept();
+
+            if (res.isMinimal())
+                return res;
+        }
+    }
 
     @Override
     default byte[] apply(byte[] bytecode) throws Exception {
