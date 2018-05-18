@@ -27,14 +27,14 @@ public class RemoveEmptyMethods implements MemberReducer<CtClass, CtMethod> {
     }
 
     @Override
-    public Stream<CtMethod> getMembers(CtClass clazz) throws Exception {
+    public Stream<CtMethod> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
                 .filter(CtMethod::isEmpty);
     }
 
     @Override
     public CtClass process(CtClass clazz, CtMethod m) throws Exception {
-        logger.debug("Removing unused method '{}'", m.getSignature());
+        logger.debug("Removing empty method '{}'", m.getSignature());
         clazz.removeMethod(m);
         return clazz;
     }
