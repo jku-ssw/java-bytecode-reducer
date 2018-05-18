@@ -3,6 +3,7 @@ package at.jku.ssw.java.bytecode.reducer.utils;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
+import javassist.expr.MethodCall;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -40,6 +41,22 @@ public class Javassist {
      */
     public static boolean isInitializer(CtMember member) {
         return member instanceof CtConstructor;
+    }
+
+    /**
+     * Determines if the given method call is a recursion on the given method.
+     *
+     * @param call The method call
+     * @return {@code true} if the call invokes itself; {@code false} otherwise
+     */
+    public static boolean isRecursion(MethodCall call) {
+        CtBehavior callSite = call.where();
+
+        try {
+            return callSite instanceof CtMethod && call.getMethod().equals(callSite);
+        } catch (NotFoundException e) {
+            return false;
+        }
     }
 
     /**
@@ -89,6 +106,16 @@ public class Javassist {
         return visitor.fields.stream();
     }
 
+    public static Stream<CtMethod> unusedMethods(CtClass clazz, Predicate<MethodCall> include)
+            throws CannotCompileException {
+
+        MethodCallVisitor visitor = new MethodCallVisitor(clazz, include);
+
+        clazz.instrument(visitor);
+
+        return visitor.methods.stream();
+    }
+
     private static class FieldAccessVisitor extends ExprEditor {
         private final Set<CtField>           fields;
         private final Predicate<FieldAccess> filter;
@@ -108,6 +135,29 @@ public class Javassist {
                 fields.remove(field);
             } catch (NotFoundException e) {
                 // should not happen
+                e.printStackTrace();
+            }
+        }
+    }
+
+    private static class MethodCallVisitor extends ExprEditor {
+        private final Set<CtMethod>         methods;
+        private final Predicate<MethodCall> filter;
+
+        MethodCallVisitor(CtClass clazz, Predicate<MethodCall> include) {
+            this.methods = new HashSet<>(Arrays.asList(clazz.getDeclaredMethods()));
+            this.filter = include;
+        }
+
+        @Override
+        public void edit(MethodCall m) throws CannotCompileException {
+            if (filter.test(m)) return;
+
+            try {
+                CtMethod method = m.getMethod();
+
+                methods.remove(method);
+            } catch (NotFoundException e) {
                 e.printStackTrace();
             }
         }
