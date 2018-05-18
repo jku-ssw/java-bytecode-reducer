@@ -1,19 +1,39 @@
 package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
-import at.jku.ssw.java.bytecode.reducer.context.Reduction;
-import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
+import at.jku.ssw.java.bytecode.reducer.annot.Sound;
+import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
+import javassist.CtClass;
 import javassist.CtMethod;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
-// TODO
-public class RemoveUnusedMethods implements RepeatableReducer<CtMethod> {
+import java.util.stream.Stream;
+
+@Sound
+public class RemoveUnusedMethods implements MemberReducer<CtClass, CtMethod> {
+
+    private static final Logger logger = LogManager.getLogger();
 
     @Override
-    public Reduction.Result<CtMethod> apply(Reduction.Base<CtMethod> base) throws Exception {
-        return null;
+    public CtClass classFrom(byte[] bytecode) throws Exception {
+        return Javassist.loadClass(bytecode);
     }
 
     @Override
-    public Reduction.Result<CtMethod> force(byte[] bytecode) throws Exception {
-        return null;
+    public byte[] bytecodeFrom(CtClass clazz) throws Exception {
+        return Javassist.bytecode(clazz);
+    }
+
+    @Override
+    public Stream<CtMethod> getMembers(CtClass clazz) throws Exception {
+        return Javassist.unusedMethods(clazz, Javassist::isRecursion);
+    }
+
+    @Override
+    public CtClass process(CtClass clazz, CtMethod m) throws Exception {
+        logger.debug("Removing method '{}'", m.getSignature());
+        clazz.removeMethod(m);
+        return clazz;
     }
 }
