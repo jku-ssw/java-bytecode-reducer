@@ -3,8 +3,12 @@ package at.jku.ssw.java.bytecode.reducer.support;
 import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
@@ -15,9 +19,23 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * Contains static test utilities for Javassist.
+ * Mixin that can be applied to get Javassist test utility methods.
  */
 public interface Javassist {
+
+    /**
+     * @see at.jku.ssw.java.bytecode.reducer.utils.Javassist#loadClass(byte[])
+     */
+    default CtClass classFromBytecode(byte[] bytecode) throws IOException {
+        return at.jku.ssw.java.bytecode.reducer.utils.Javassist.loadClass(bytecode);
+    }
+
+    /**
+     * @see at.jku.ssw.java.bytecode.reducer.utils.Javassist#bytecode(CtClass)
+     */
+    default byte[] bytecodeFromClass(CtClass clazz) throws IOException, CannotCompileException {
+        return at.jku.ssw.java.bytecode.reducer.utils.Javassist.bytecode(clazz);
+    }
 
     @SuppressWarnings("unchecked")
     default void assertClassEquals(CtClass expected, CtClass actual) throws NotFoundException {
@@ -181,6 +199,9 @@ public interface Javassist {
         assertAnnotationEquals(expected, actual,
                 (TFunction<CtBehavior, Object[]>) CtBehavior::getAnnotations);
 
+        // compare modifiers
+        assertEquals(expected.getModifiers(), actual.getModifiers());
+
         // compare parameter annotations
         try {
             assertAll(IntStream.range(0, expected.getParameterTypes().length)
@@ -205,28 +226,62 @@ public interface Javassist {
             fail(e);
         }
 
+        // detailed comparison based on actual subtype
         if (expected instanceof CtMethod) {
             assertTrue(actual instanceof CtMethod);
             assertMethodEquals((CtMethod) expected, (CtMethod) actual);
         } else if (expected instanceof CtConstructor) {
             assertTrue(actual instanceof CtConstructor);
-            assertConstructorEquals((CtConstructor) expected, (CtConstructor) actual);
+            // no other comparison required for constructors
+        } else {
+            fail(() -> String.format("\'%s\' is unknown %s subtype",
+                    expected.getClass().getName(),
+                    CtBehavior.class.getName()));
         }
+
+        // compare method bodies
+        assertMethodInfoEquals(expected.getMethodInfo(), actual.getMethodInfo());
     }
 
     default void assertMethodEquals(CtMethod expected, CtMethod actual) {
         try {
             // compare return type
-            if (expected.getReturnType() == null)
-                assertNull(actual.getReturnType());
-            else
-                assertEquals(expected.getReturnType().getName(),
-                        actual.getReturnType().getName());
+            // (as void methods return CtClass#voidType, a comparison by name
+            // should be sufficient)
+            assertEquals(expected.getReturnType().getName(),
+                    actual.getReturnType().getName());
         } catch (NotFoundException e) {
             fail(e);
         }
     }
 
-    default void assertConstructorEquals(CtConstructor expected, CtConstructor actual) {
+    private void assertMethodInfoEquals(MethodInfo expected, MethodInfo actual) {
+        CodeIterator itExpected = expected.getCodeAttribute().iterator();
+        CodeIterator itActual   = actual.getCodeAttribute().iterator();
+
+        try {
+            while (itExpected.hasNext()) {
+                // ensure that both have a successor
+                assertTrue(itActual.hasNext());
+
+                // byte code indices
+                int iExpected = itExpected.next();
+                int iActual   = itActual.next();
+
+                // actual op codes
+                int opExpected = itExpected.byteAt(iExpected);
+                int opActual   = itActual.byteAt(iActual);
+
+                // compare operations
+                assertEquals(opExpected, opActual);
+
+                // TODO expand
+            }
+        } catch (BadBytecode e) {
+            fail(e);
+        }
+
+        // ensure that both iterators have been exhausted
+        assertFalse(itActual.hasNext());
     }
 }

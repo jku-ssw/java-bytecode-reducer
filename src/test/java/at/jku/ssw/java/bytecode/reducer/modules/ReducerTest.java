@@ -2,7 +2,6 @@ package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
-import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CtClass;
 
@@ -16,7 +15,7 @@ import java.io.InputStream;
  *
  * @param <T> The type of the {@link Reducer} to test
  */
-public abstract class ReducerTest<T extends Reducer> {
+public abstract class ReducerTest<T extends Reducer> implements at.jku.ssw.java.bytecode.reducer.support.Javassist {
 
     /**
      * The directory name for byte codes.
@@ -102,8 +101,17 @@ public abstract class ReducerTest<T extends Reducer> {
         return getClass().getClassLoader().getResourceAsStream(path);
     }
 
-    protected static CtClass classFromBytecode(byte[] bytecode) throws IOException {
-        return Javassist.loadClass(bytecode);
+    protected void assertReduced(final String className) throws Exception {
+        byte[] original = loadOriginalBytecode(className);
+
+        byte[] expectedBytecode = loadReducedBytecode(className);
+
+        byte[] reducedBytecode = reducer.apply(original);
+
+        CtClass expected = classFromBytecode(expectedBytecode);
+        CtClass actual   = classFromBytecode(reducedBytecode);
+
+        assertClassEquals(expected, actual);
     }
 
 }

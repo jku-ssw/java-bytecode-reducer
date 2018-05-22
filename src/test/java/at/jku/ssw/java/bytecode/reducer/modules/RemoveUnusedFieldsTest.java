@@ -1,27 +1,11 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveUnusedFields;
-import at.jku.ssw.java.bytecode.reducer.support.Javassist;
-import javassist.CtClass;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields>
-        implements Javassist {
-
-    private void assertReduced(final String className) throws Exception {
-        byte[] original = loadOriginalBytecode(className);
-
-        byte[] expectedBytecode = loadReducedBytecode(className);
-
-        byte[] reducedBytecode = reducer.getMinimal(original, __ -> true);
-
-        CtClass expected = classFromBytecode(expectedBytecode);
-        CtClass actual   = classFromBytecode(reducedBytecode);
-
-        assertClassEquals(expected, actual);
-    }
+public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields> {
 
     @BeforeEach
     void setUp() {
