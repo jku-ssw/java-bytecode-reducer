@@ -27,7 +27,8 @@ public class RemoveUnusedMethods implements MemberReducer<CtClass, CtMethod> {
 
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) throws Exception {
-        return Javassist.unusedMethods(clazz, Javassist::isRecursion);
+        return Javassist.unusedMethods(clazz, Javassist::isRecursion)
+                .filter(m -> !Javassist.isMain(m));
     }
 
     @Override

@@ -10,6 +10,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
@@ -18,6 +19,34 @@ import java.util.stream.Stream;
  * Utility class that contains helpers for Javassist.
  */
 public class Javassist {
+    private static final Map<CtClass, String> defaults = Map.of(
+            CtClass.byteType, "(byte) 0",
+            CtClass.shortType, "(short) 0",
+            CtClass.intType, "0",
+            CtClass.longType, "0L",
+            CtClass.floatType, "0.0F",
+            CtClass.doubleType, "0.0",
+            CtClass.charType, "'\0'",
+            CtClass.booleanType, "false"
+    );
+
+    /**
+     * Returns the default value for the given {@link CtClass} instance.
+     * This yields the string representation that can be passed on to the
+     * Javassist compiler
+     *
+     * @param type The type for the default value
+     * @return the default value for the given type
+     */
+    public static String defaults(CtClass type) {
+        return defaults.getOrDefault(type, "null");
+    }
+
+    /**
+     * Signature of the main method.
+     */
+    public static final String MAIN_SIGNATURE = "([Ljava/lang/String;)V";
+
     private Javassist() {
     }
 
@@ -41,6 +70,25 @@ public class Javassist {
      */
     public static boolean isInitializer(CtMember member) {
         return member instanceof CtConstructor;
+    }
+
+    /**
+     * Determines if the given member is a main method.
+     *
+     * @param member The member to analyze
+     * @return {@code true} if the member is a main method; {@code false} if
+     * the member is not a method or lacks the main signature
+     */
+    public static boolean isMain(CtMember member) {
+        if (member == null)
+            return false;
+
+        final int mod = member.getModifiers();
+
+        return member instanceof CtMethod &&
+                Modifier.isStatic(mod) &&
+                Modifier.isPublic(mod) &&
+                MAIN_SIGNATURE.equals(member.getSignature());
     }
 
     /**
@@ -150,7 +198,7 @@ public class Javassist {
         }
 
         @Override
-        public void edit(MethodCall m) throws CannotCompileException {
+        public void edit(MethodCall m) {
             if (filter.test(m)) return;
 
             try {

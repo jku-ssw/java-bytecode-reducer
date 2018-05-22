@@ -7,7 +7,6 @@ import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
-import at.jku.ssw.java.bytecode.reducer.utils.Types;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -33,7 +32,7 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
 
     private static final String PATTERN = "$_ = ";
 
-    private static String replaceWith(Object value) {
+    private static String replaceWith(String value) {
         return PATTERN + value;
     }
 
@@ -55,7 +54,7 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
             return base.toMinimalResult();
 
         CtField field = optField.get();
-        Object  value = Types.defaults(field.getClass());
+        String  value = Javassist.defaults(field.getType());
 
         clazz.instrument(new ExprEditor() {
             @Override
@@ -75,11 +74,11 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
         CtClass clazz = Javassist.loadClass(bytecode);
 
         @SuppressWarnings("unchecked")
-        Map<CtField, Object> fieldsAndDefaults = eligibleFields(clazz)
+        Map<CtField, String> fieldsAndDefaults = eligibleFields(clazz)
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        (TFunction<CtField, Object>) f ->
-                                Types.defaults(f.getType().toClass())));
+                        (TFunction<CtField, String>) f ->
+                                Javassist.defaults(f.getType())));
 
         clazz.instrument(new ExprEditor() {
             @Override
@@ -89,7 +88,7 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
 
                 try {
                     Optional.ofNullable(fieldsAndDefaults.get(f.getField()))
-                            .ifPresent((TConsumer<Object>) v ->
+                            .ifPresent((TConsumer<String>) v ->
                                     f.replace(replaceWith(v)));
                 } catch (NotFoundException e) {
                     e.printStackTrace();
