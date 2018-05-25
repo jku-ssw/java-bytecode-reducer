@@ -19,13 +19,20 @@ javadoc {
 test {
     useJUnitPlatform()
     testLogging {
-        logging.level = LogLevel.INFO
         exceptionFormat = 'full'
     }
 }
 
 wrapper {
     gradleVersion    = '4.7'
+}
+
+sourceSets {
+    test {
+        resources {
+            srcDirs = ['src/test/resources']
+        }
+    }
 }
 
 /* REPOSITORIES ============================================================ */
