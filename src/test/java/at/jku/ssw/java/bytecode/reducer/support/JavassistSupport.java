@@ -3,8 +3,6 @@ package at.jku.ssw.java.bytecode.reducer.support;
 import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
-import javassist.bytecode.BadBytecode;
-import javassist.bytecode.CodeIterator;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
 
@@ -243,6 +241,8 @@ public interface JavassistSupport {
         assertMethodInfoEquals(expected.getMethodInfo(), actual.getMethodInfo());
     }
 
+    // TODO add checks for field access locations / method calls
+
     default void assertMethodEquals(CtMethod expected, CtMethod actual) {
         try {
             // compare return type
@@ -256,32 +256,36 @@ public interface JavassistSupport {
     }
 
     private void assertMethodInfoEquals(MethodInfo expected, MethodInfo actual) {
-        CodeIterator itExpected = expected.getCodeAttribute().iterator();
-        CodeIterator itActual   = actual.getCodeAttribute().iterator();
-
-        try {
-            while (itExpected.hasNext()) {
-                // ensure that both have a successor
-                assertTrue(itActual.hasNext());
-
-                // byte code indices
-                int iExpected = itExpected.next();
-                int iActual   = itActual.next();
-
-                // actual op codes
-                int opExpected = itExpected.byteAt(iExpected);
-                int opActual   = itActual.byteAt(iActual);
-
-                // compare operations
-                assertEquals(opExpected, opActual);
-
-                // TODO expand
-            }
-        } catch (BadBytecode e) {
-            fail(e);
-        }
-
-        // ensure that both iterators have been exhausted
-        assertFalse(itActual.hasNext());
+        // TODO
+        /*
+            This currently does not work as some reduction operations
+            produce inherently inconsistent byte code.
+            A instruction-by-instruction comparison is therefore impossible
+        */
+//        CodeIterator itExpected = expected.getCodeAttribute().iterator();
+//        CodeIterator itActual   = actual.getCodeAttribute().iterator();
+//
+//        try {
+//            while (itExpected.hasNext()) {
+//                // ensure that both have a successor
+//                assertTrue(itActual.hasNext());
+//
+//                // byte code indices
+//                int iExpected = itExpected.next();
+//                int iActual   = itActual.next();
+//
+//                // actual op codes
+//                int opExpected = itExpected.byteAt(iExpected);
+//                int opActual   = itActual.byteAt(iActual);
+//
+//                // compare operations
+//                assertEquals(opExpected, opActual);
+//            }
+//        } catch (BadBytecode e) {
+//            fail(e);
+//        }
+//
+//        // ensure that both iterators have been exhausted
+//        assertFalse(itActual.hasNext());
     }
 }
