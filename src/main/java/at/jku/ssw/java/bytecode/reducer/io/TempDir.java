@@ -84,14 +84,16 @@ public class TempDir {
 
     /**
      * Executes the given procedure in the created temporary directory
-     * and then deletes it.
+     * and then deletes it (if specified).
      *
      * @param task The function to execute. Takes the temporary
      *             directory as a parameter
+     * @param keep Should the created directory (and all its contents)
+     *             be deleted?
      * @return the temporary directory path (then deleted)
      * @throws IOException if the creation or clearing of the directory fails
      */
-    public Path use(Consumer<Path> task) throws IOException {
+    public Path use(Consumer<Path> task, boolean keep) throws IOException {
         return strat.stream()
                 .limit(NamingStrategy.MAX_ATTEMPTS)
                 .map(path::resolve)
@@ -105,14 +107,14 @@ public class TempDir {
                         return false;
                     }
                 })
-                .findFirst()
+                .findAny()
                 .map(p -> {
                     try {
                         logger.debug("Creating temporary directory at {}", p);
                         final Path path = Files.createDirectories(p);
                         task.accept(p);
                         logger.debug("Clearing temporary directory at {}", p);
-                        return FileUtils.delete(path);
+                        return keep ? path : FileUtils.delete(path);
                     } catch (IOException e) {
                         e.printStackTrace();
                         return null;
@@ -121,5 +123,12 @@ public class TempDir {
                 .orElseThrow(() ->
                         new IOException("Could not generate temporary directory at " + path)
                 );
+    }
+
+    /**
+     * @see TempDir#use(Consumer, boolean)
+     */
+    public Path use(Consumer<Path> action) throws IOException {
+        return use(action, false);
     }
 }
