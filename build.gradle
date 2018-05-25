@@ -19,6 +19,7 @@ javadoc {
 test {
     useJUnitPlatform()
     testLogging {
+        logging.level = LogLevel.INFO
         exceptionFormat = 'full'
     }
 }
@@ -28,13 +29,25 @@ wrapper {
 }
 
 sourceSets {
-    test {
+    main {
+        java {
+            srcDir 'src/main/java'
+        }
         resources {
-            srcDirs = ['src/test/resources']
+            srcDir 'src/main/resources'
         }
     }
-}
 
+    test {
+        java {
+            srcDir 'src/test/java'
+        }
+        resources {
+            srcDir 'src/test/resources'
+        }
+
+    }
+}
 /* REPOSITORIES ============================================================ */
 
 repositories {
