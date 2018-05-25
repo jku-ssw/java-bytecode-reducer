@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+import at.jku.ssw.java.bytecode.reducer.support.JavassistSupport;
 import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CtClass;
@@ -15,7 +16,7 @@ import java.io.InputStream;
  *
  * @param <T> The type of the {@link Reducer} to test
  */
-public abstract class ReducerTest<T extends Reducer> implements at.jku.ssw.java.bytecode.reducer.support.Javassist {
+public abstract class ReducerTest<T extends Reducer> implements JavassistSupport {
 
     /**
      * The directory name for byte codes.

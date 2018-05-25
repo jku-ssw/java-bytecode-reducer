@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * Mixin that can be applied to get Javassist test utility methods.
  */
-public interface Javassist {
+public interface JavassistSupport {
 
     /**
      * @see at.jku.ssw.java.bytecode.reducer.utils.Javassist#loadClass(byte[])
@@ -103,7 +103,7 @@ public interface Javassist {
      * @param assertion Function to determine whether an attribute of
      *                  one component is also an attribute of the other
      * @param <T>       The type of the compared attributes
-     * @see Javassist#assertCollectionEquals(Collection, Collection, BiPredicate, BiConsumer)
+     * @see JavassistSupport#assertCollectionEquals(Collection, Collection, BiPredicate, BiConsumer)
      */
     @SuppressWarnings("unchecked")
     private <T> void assertArrayEquals(Object[] a1,
