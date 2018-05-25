@@ -19,6 +19,7 @@ javadoc {
 test {
     useJUnitPlatform()
     testLogging {
+        logging.level = LogLevel.INFO
         exceptionFormat = 'full'
     }
 }
