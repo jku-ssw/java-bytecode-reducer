@@ -18,6 +18,9 @@ javadoc {
 
 test {
     useJUnitPlatform()
+    testLogging {
+        exceptionFormat = 'full'
+    }
 }
 
 wrapper {
