@@ -100,8 +100,6 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * @return an input stream for the resource file
      */
     private InputStream getResourceStream(String path) {
-        System.out.println("CP: " + System.getProperty("java.class.path"));
-        System.out.println("Loading resource: " + path);
         return getClass().getClassLoader().getResourceAsStream(path);
     }
 
