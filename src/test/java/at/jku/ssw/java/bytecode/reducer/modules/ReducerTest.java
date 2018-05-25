@@ -6,6 +6,7 @@ import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CtClass;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -61,9 +62,9 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
         Class<T> reducer = (Class<T>) ClassUtils.getGenericTypes(getClass())[0];
 
         String dirName   = StringUtils.snake_case(reducer.getSimpleName());
-        String resources = BYTE_CODE_DIR_NAME + "/" + dirName + "/";
-        originalResources = resources + ORIGINAL_DIR_NAME + "/";
-        reducedResources = resources + REDUCED_DIR_NAME + "/";
+        String resources = BYTE_CODE_DIR_NAME + File.separator + dirName + File.separator;
+        originalResources = resources + ORIGINAL_DIR_NAME + File.separator;
+        reducedResources = resources + REDUCED_DIR_NAME + File.separator;
     }
 
     /**
