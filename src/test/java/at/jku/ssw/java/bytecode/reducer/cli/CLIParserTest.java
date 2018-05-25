@@ -4,6 +4,7 @@ package at.jku.ssw.java.bytecode.reducer.cli;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.ParseException;
+import org.apache.commons.cli.UnrecognizedOptionException;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
@@ -72,8 +73,8 @@ public class CLIParserTest {
     }
 
     @Test
-    void testUnknownArgument() throws ParseException {
-        assertEquals(emptyContextFactory(), parse("-notanoption"));
+    void testUnknownArgument() {
+        assertThrows(UnrecognizedOptionException.class, () -> parse("-notanoption"));
     }
 
     @Test
