@@ -1,7 +1,10 @@
 package at.jku.ssw.java.bytecode.reducer;
 
 import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
+import at.jku.ssw.java.bytecode.reducer.context.Context;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
+import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
+import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveReadOnlyFields;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveStaticAttributes;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveUnusedFields;
@@ -9,6 +12,7 @@ import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveWriteOnlyFields;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+import at.jku.ssw.java.bytecode.reducer.utils.TConsumer;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -56,7 +60,18 @@ public class JReduce {
 
             // TODO iterate over
             // TODO maybe invoke in ThreadPool
-            new DeltaTest("a01", new RemoveUnusedFields(), contextFactory.createContext()).run();
+
+            Context context = contextFactory.createContext();
+
+            TempDir.at(context.tempDir).use(tempDir -> {
+                modules.forEach((TConsumer<Class<? extends Reducer>>) c -> {
+                    Reducer reducer = c.getDeclaredConstructor().newInstance();
+
+                    TempDir.at(NamingStrategy.ForInstance(reducer), tempDir).use(reducerDir -> {
+                        // TODO
+                    }, context.keepTemp);
+                });
+            }, context.keepTemp);
 
         } catch (ParseException e) {
             logger.fatal(e.getMessage());
