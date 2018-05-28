@@ -48,6 +48,14 @@ sourceSets {
 
     }
 }
+
+task copyTestResources(type: Copy) {
+    from "${projectDir}/src/test/resources"
+    into "${buildDir}/classes/test"
+}
+
+processTestResources.dependsOn copyTestResources
+
 /* REPOSITORIES ============================================================ */
 
 repositories {
