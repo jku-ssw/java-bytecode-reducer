@@ -7,6 +7,8 @@ import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CtClass;
 
 import java.io.*;
+import java.nio.file.*;
+import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Superclass for {@link Reducer} tests.
@@ -99,10 +101,23 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      */
     private InputStream getResourceStream(String path) {
          return getClass().getClassLoader().getResourceAsStream(path);
-//        return new FileInputStream("src" + File.separator + "test" + File.separator + "resources" + File.separator + path);
     }
 
     protected void assertReduced(final String className) throws Exception {
+        Files.walkFileTree(Paths.get("."), new SimpleFileVisitor<Path>() {
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                System.out.println("Directory: " + dir);
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                System.out.println("File: " + file);
+                return FileVisitResult.CONTINUE;
+            }
+        });
+
         byte[] original = loadOriginalBytecode(className);
 
         byte[] expectedBytecode = loadReducedBytecode(className);

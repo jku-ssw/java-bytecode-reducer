@@ -7,7 +7,7 @@ before_install:
  - chmod +x gradlew
 
 before_script:
- - chmod -R +r build/resources/test
+ - chmod -R +r src/test/resources
 
 before_cache:
   - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
