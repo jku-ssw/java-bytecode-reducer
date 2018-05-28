@@ -30,6 +30,8 @@ wrapper {
 
 sourceSets {
     main {
+        output.resourcesDir = "build/classes/main"
+
         java {
             srcDir 'src/main/java'
         }
@@ -39,6 +41,8 @@ sourceSets {
     }
 
     test {
+        output.resourcesDir = "build/classes/test"
+
         java {
             srcDir 'src/test/java'
         }
