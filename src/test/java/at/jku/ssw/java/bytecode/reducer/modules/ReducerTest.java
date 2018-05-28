@@ -6,9 +6,7 @@ import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CtClass;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 
 /**
  * Superclass for {@link Reducer} tests.
@@ -99,8 +97,9 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * @param path The path of the resource
      * @return an input stream for the resource file
      */
-    private InputStream getResourceStream(String path) {
-        return getClass().getClassLoader().getResourceAsStream(path);
+    private InputStream getResourceStream(String path) throws FileNotFoundException {
+        // return getClass().getClassLoader().getResourceAsStream(path);
+        return new FileInputStream("src" + File.separator + "test" + File.separator + "resources" + File.separator + path);
     }
 
     protected void assertReduced(final String className) throws Exception {
