@@ -97,9 +97,9 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * @param path The path of the resource
      * @return an input stream for the resource file
      */
-    private InputStream getResourceStream(String path) throws FileNotFoundException {
-        // return getClass().getClassLoader().getResourceAsStream(path);
-        return new FileInputStream("src" + File.separator + "test" + File.separator + "resources" + File.separator + path);
+    private InputStream getResourceStream(String path) {
+         return getClass().getClassLoader().getResourceAsStream(path);
+//        return new FileInputStream("src" + File.separator + "test" + File.separator + "resources" + File.separator + path);
     }
 
     protected void assertReduced(final String className) throws Exception {
