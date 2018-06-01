@@ -6,7 +6,9 @@ import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CtClass;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 
@@ -100,19 +102,21 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * @return an input stream for the resource file
      */
     private InputStream getResourceStream(String path) {
-         return getClass().getClassLoader().getResourceAsStream(path);
+        System.out.println("Loading " + path + " as class path resource");
+        System.out.println("Current directory is " + Paths.get(".").toAbsolutePath());
+        return getClass().getClassLoader().getResourceAsStream(path);
     }
 
     protected void assertReduced(final String className) throws Exception {
-        Files.walkFileTree(Paths.get("."), new SimpleFileVisitor<Path>() {
+        Files.walkFileTree(Paths.get("."), new SimpleFileVisitor<>() {
             @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
                 System.out.println("Directory: " + dir);
                 return FileVisitResult.CONTINUE;
             }
 
             @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
                 System.out.println("File: " + file);
                 return FileVisitResult.CONTINUE;
             }
@@ -126,6 +130,10 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
 
         CtClass expected = classFromBytecode(expectedBytecode);
         CtClass actual   = classFromBytecode(reducedBytecode);
+
+//        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(Paths.get("").resolve(className + ".class").toFile()))) {
+//            actual.getClassFile().write(out);
+//        }
 
         assertClassEquals(expected, actual);
     }
