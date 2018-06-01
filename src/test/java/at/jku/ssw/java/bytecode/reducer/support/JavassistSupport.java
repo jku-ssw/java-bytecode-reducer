@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.support;
 
-import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.MethodInfo;

@@ -3,7 +3,7 @@ package at.jku.ssw.java.bytecode.reducer.runtypes;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 
 import java.util.Optional;
 import java.util.stream.Stream;

@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.utils;
 
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import javassist.*;
 import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
@@ -12,6 +13,7 @@ import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -136,6 +138,50 @@ public class Javassist {
     }
 
     /**
+     * Performs the given action for each field access of the given class.
+     * Results can be filtered.
+     *
+     * @param clazz  The class under inspection
+     * @param filter Only include field access locations which pass this test
+     * @param action The action to execute for each field access
+     * @throws CannotCompileException if the class cannot be instrumented
+     */
+    public static void forFieldAccesses(CtClass clazz,
+                                        Predicate<FieldAccess> filter,
+                                        Consumer<FieldAccess> action)
+            throws CannotCompileException {
+        clazz.instrument(new ExprEditor() {
+            @Override
+            public void edit(FieldAccess fa) {
+                if (filter.test(fa))
+                    action.accept(fa);
+            }
+        });
+    }
+
+    /**
+     * Performs the given action for each field access of the given class.
+     * Results can be filtered.
+     *
+     * @param clazz  The class under inspection
+     * @param filter Only include method calls that pass this test
+     * @param action The action to execute for each method call
+     * @throws CannotCompileException if the class cannot be instrumented
+     */
+    public static void methodCalls(CtClass clazz,
+                                   Predicate<MethodCall> filter,
+                                   Consumer<MethodCall> action)
+            throws CannotCompileException {
+        clazz.instrument(new ExprEditor() {
+            @Override
+            public void edit(MethodCall mc) {
+                if (filter.test(mc))
+                    action.accept(mc);
+            }
+        });
+    }
+
+    /**
      * Retrieves the unused fields of the given class.
      * Includes those that match a filter criteria.
      *
@@ -147,68 +193,37 @@ public class Javassist {
     public static Stream<CtField> unusedFields(CtClass clazz, Predicate<FieldAccess> include)
             throws CannotCompileException {
 
-        FieldAccessVisitor visitor = new FieldAccessVisitor(clazz, include);
+        Set<CtField> fields = new HashSet<>(Arrays.asList(clazz.getDeclaredFields()));
 
-        clazz.instrument(visitor);
+        forFieldAccesses(
+                clazz,
+                fa -> !include.test(fa),
+                (TConsumer<FieldAccess>) fa -> fields.remove(fa.getField())
+        );
 
-        return visitor.fields.stream();
+        return fields.stream();
     }
 
+    /**
+     * Retrieves the unused methods of the given class.
+     * Includes those that match a filter criteria.
+     *
+     * @param clazz   The containing class
+     * @param include A filter to include called methods under certain conditions
+     * @return a stream of {@link CtMethod}s
+     * @throws CannotCompileException if the class cannot be instrumented
+     */
     public static Stream<CtMethod> unusedMethods(CtClass clazz, Predicate<MethodCall> include)
             throws CannotCompileException {
 
-        MethodCallVisitor visitor = new MethodCallVisitor(clazz, include);
+        Set<CtMethod> methods = new HashSet<>(Arrays.asList(clazz.getDeclaredMethods()));
 
-        clazz.instrument(visitor);
+        methodCalls(
+                clazz,
+                mc -> !include.test(mc),
+                (TConsumer<MethodCall>) mc -> methods.remove(mc.getMethod()));
 
-        return visitor.methods.stream();
-    }
-
-    private static class FieldAccessVisitor extends ExprEditor {
-        private final Set<CtField>           fields;
-        private final Predicate<FieldAccess> filter;
-
-        FieldAccessVisitor(CtClass clazz, Predicate<FieldAccess> include) {
-            this.fields = new HashSet<>(Arrays.asList(clazz.getDeclaredFields()));
-            this.filter = include;
-        }
-
-        @Override
-        public void edit(FieldAccess f) {
-            if (filter.test(f)) return;
-
-            try {
-                CtField field = f.getField();
-
-                fields.remove(field);
-            } catch (NotFoundException e) {
-                // should not happen
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private static class MethodCallVisitor extends ExprEditor {
-        private final Set<CtMethod>         methods;
-        private final Predicate<MethodCall> filter;
-
-        MethodCallVisitor(CtClass clazz, Predicate<MethodCall> include) {
-            this.methods = new HashSet<>(Arrays.asList(clazz.getDeclaredMethods()));
-            this.filter = include;
-        }
-
-        @Override
-        public void edit(MethodCall m) {
-            if (filter.test(m)) return;
-
-            try {
-                CtMethod method = m.getMethod();
-
-                methods.remove(method);
-            } catch (NotFoundException e) {
-                e.printStackTrace();
-            }
-        }
+        return methods.stream();
     }
 
 }

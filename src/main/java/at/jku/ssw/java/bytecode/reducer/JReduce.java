@@ -12,7 +12,7 @@ import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveWriteOnlyFields;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
-import at.jku.ssw.java.bytecode.reducer.utils.TConsumer;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

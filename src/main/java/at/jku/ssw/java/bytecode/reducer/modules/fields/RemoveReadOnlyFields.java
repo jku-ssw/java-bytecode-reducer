@@ -5,13 +5,13 @@ import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
-import at.jku.ssw.java.bytecode.reducer.utils.TConsumer;
-import at.jku.ssw.java.bytecode.reducer.utils.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.NotFoundException;
-import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
 
 import java.util.Map;
@@ -56,15 +56,10 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
         CtField field = optField.get();
         String  value = Javassist.defaults(field.getType());
 
-        clazz.instrument(new ExprEditor() {
-            @Override
-            public void edit(FieldAccess f) throws CannotCompileException {
-                if (f.isWriter())
-                    return;
-
-                f.replace(replaceWith(value));
-            }
-        });
+        Javassist.forFieldAccesses(clazz,
+                fa -> !fa.isWriter(),
+                (TConsumer<FieldAccess>) fa -> fa.replace(replaceWith(value))
+        );
 
         return base.toResult(Javassist.bytecode(clazz), field);
     }
@@ -74,29 +69,19 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
         CtClass clazz = Javassist.loadClass(bytecode);
 
         @SuppressWarnings("unchecked")
-        Map<CtField, String> fieldsAndDefaults = eligibleFields(clazz)
+        Map<CtField, String> defaultValues = eligibleFields(clazz)
                 .collect(Collectors.toMap(
                         Function.identity(),
                         (TFunction<CtField, String>) f ->
                                 Javassist.defaults(f.getType())));
 
-        clazz.instrument(new ExprEditor() {
-            @Override
-            public void edit(FieldAccess f) {
-                if (f.isWriter())
-                    return;
+        Javassist.forFieldAccesses(clazz,
+                (TPredicate<FieldAccess>) fa ->
+                        !fa.isWriter() && defaultValues.containsKey(fa.getField()),
+                (TConsumer<FieldAccess>) fa ->
+                        fa.replace(replaceWith(defaultValues.get(fa.getField()))));
 
-                try {
-                    Optional.ofNullable(fieldsAndDefaults.get(f.getField()))
-                            .ifPresent((TConsumer<String>) v ->
-                                    f.replace(replaceWith(v)));
-                } catch (NotFoundException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-
-        fieldsAndDefaults.keySet().forEach(f -> {
+        defaultValues.keySet().forEach(f -> {
             try {
                 clazz.removeField(f);
             } catch (NotFoundException e) {
