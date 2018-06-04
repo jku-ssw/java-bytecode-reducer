@@ -1,16 +1,22 @@
 package at.jku.ssw.java.bytecode.reducer.support;
 
+import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
+import javassist.expr.ExprEditor;
+import javassist.expr.FieldAccess;
+import javassist.expr.MethodCall;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -22,17 +28,78 @@ import static org.junit.jupiter.api.Assertions.*;
 public interface JavassistSupport {
 
     /**
-     * @see at.jku.ssw.java.bytecode.reducer.utils.Javassist#loadClass(byte[])
+     * @see Javassist#loadClass(byte[])
      */
     default CtClass classFromBytecode(byte[] bytecode) throws IOException {
-        return at.jku.ssw.java.bytecode.reducer.utils.Javassist.loadClass(bytecode);
+        return Javassist.loadClass(bytecode);
     }
 
     /**
-     * @see at.jku.ssw.java.bytecode.reducer.utils.Javassist#bytecode(CtClass)
+     * @see Javassist#bytecode(CtClass)
      */
     default byte[] bytecodeFromClass(CtClass clazz) throws IOException, CannotCompileException {
-        return at.jku.ssw.java.bytecode.reducer.utils.Javassist.bytecode(clazz);
+        return Javassist.bytecode(clazz);
+    }
+
+    default void assertNoFieldAccess(CtClass clazz, String... fields) throws CannotCompileException {
+        Consumer<String> assertNoFieldAccess;
+
+        if (fields.length == 0)
+            assertNoFieldAccess =
+                    fieldName -> assertAll(
+                            Arrays.stream(fields)
+                                    .map(f ->
+                                            () -> assertNotEquals(f, fieldName)));
+        else
+            assertNoFieldAccess = fieldName -> fail(fieldName + "is still accessed");
+
+        clazz.instrument(new ExprEditor() {
+            @Override
+            public void edit(FieldAccess fa) {
+                try {
+                    String fieldName = fa.getField().getName();
+
+                    assertNoFieldAccess.accept(fieldName);
+                } catch (NotFoundException e) {
+                    fail(e);
+                }
+            }
+        });
+    }
+
+    default void assertNoMethodCall(CtClass clazz, String... methods) throws CannotCompileException {
+        Consumer<String> assertNoMethodCall;
+
+        if (methods.length == 0)
+            assertNoMethodCall =
+                    methodSign -> assertAll(
+                            Arrays.stream(methods)
+                                    .map(m ->
+                                            () -> assertNotEquals(m, methodSign)));
+        else
+            assertNoMethodCall = methodName -> fail(methodName + "is still called");
+
+        clazz.instrument(new ExprEditor() {
+            @Override
+            public void edit(MethodCall mc) {
+                try {
+                    String methodSignature = mc.getMethod().getSignature();
+
+                    assertNoMethodCall.accept(methodSignature);
+                } catch (NotFoundException e) {
+                    fail(e);
+                }
+            }
+        });
+    }
+
+    default void assertClassEquals(byte[] expected, byte[] actual)
+            throws NotFoundException, IOException {
+
+        CtClass expectedClass = classFromBytecode(expected);
+        CtClass actualClass   = classFromBytecode(actual);
+
+        assertClassEquals(expectedClass, actualClass);
     }
 
     @SuppressWarnings("unchecked")
@@ -240,8 +307,6 @@ public interface JavassistSupport {
         // compare method bodies
         assertMethodInfoEquals(expected.getMethodInfo(), actual.getMethodInfo());
     }
-
-    // TODO add checks for field access locations / method calls
 
     default void assertMethodEquals(CtMethod expected, CtMethod actual) {
         try {

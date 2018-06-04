@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveUnusedFields;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,7 +30,8 @@ public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields> {
 
     @Test
     void testNoUsedFields() throws Exception {
-        assertReduced("NoUsedFields");
+        assertReduced("NoUsedFields")
+                .and((TConsumer<byte[]>) this::assertNoFieldAccess);
     }
 
     @Test

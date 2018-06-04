@@ -1,10 +1,11 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+import at.jku.ssw.java.bytecode.reducer.support.ContinueAssertion;
 import at.jku.ssw.java.bytecode.reducer.support.JavassistSupport;
 import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
-import javassist.CtClass;
+import javassist.CannotCompileException;
 
 import java.io.File;
 import java.io.IOException;
@@ -107,7 +108,17 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
         return getClass().getClassLoader().getResourceAsStream(path);
     }
 
-    protected void assertReduced(final String className) throws Exception {
+    protected void assertNoFieldAccess(byte[] clazz, String... fields)
+            throws IOException, CannotCompileException {
+        assertNoFieldAccess(classFromBytecode(clazz), fields);
+    }
+
+    protected void assertNoMethodCall(byte[] clazz, String... methods)
+            throws IOException, CannotCompileException {
+        assertNoMethodCall(classFromBytecode(clazz), methods);
+    }
+
+    protected ContinueAssertion assertReduced(final String className) throws Exception {
         Files.walkFileTree(Paths.get("."), new SimpleFileVisitor<>() {
             @Override
             public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
@@ -124,18 +135,21 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
 
         byte[] original = loadOriginalBytecode(className);
 
-        byte[] expectedBytecode = loadReducedBytecode(className);
+        byte[] expected = loadReducedBytecode(className);
 
-        byte[] reducedBytecode = reducer.apply(original);
+        byte[] actual = reducer.apply(original);
 
-        CtClass expected = classFromBytecode(expectedBytecode);
-        CtClass actual   = classFromBytecode(reducedBytecode);
+        // TODO remove
+//        CtClass expected = classFromBytecode(expectedBytecode);
+//        CtClass actual   = classFromBytecode(reducedBytecode);
 
 //        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(Paths.get("").resolve(className + ".class").toFile()))) {
 //            actual.getClassFile().write(out);
 //        }
 
         assertClassEquals(expected, actual);
+
+        return ContinueAssertion.with(actual);
     }
 
 }
