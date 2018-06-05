@@ -14,6 +14,8 @@ import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.loadClass;
 
 public class RemoveAttributes implements MemberReducer<CtClass, CtField> {
 
+    public static final int NO_ATTRIBUTES = 0x0;
+
     private static final Logger logger = LogManager.getLogger();
 
     @Override
@@ -35,7 +37,7 @@ public class RemoveAttributes implements MemberReducer<CtClass, CtField> {
     public CtClass process(CtClass clazz, CtField field) {
         logger.debug("Removing attributes of field '{}'", field.getSignature());
 
-        field.setModifiers(0);
+        field.setModifiers(NO_ATTRIBUTES);
 
         return clazz;
     }
