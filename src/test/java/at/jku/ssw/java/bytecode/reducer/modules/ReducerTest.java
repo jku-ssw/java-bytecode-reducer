@@ -140,11 +140,11 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
         byte[] actual = reducer.apply(original);
 
         // TODO remove
-//        CtClass expected = classFromBytecode(expectedBytecode);
-//        CtClass actual   = classFromBytecode(reducedBytecode);
-
+//        CtClass expectedClass = classFromBytecode(expected);
+//        CtClass actualClass   = classFromBytecode(actual);
+//
 //        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(Paths.get("").resolve(className + ".class").toFile()))) {
-//            actual.getClassFile().write(out);
+//            actualClass.getClassFile().write(out);
 //        }
 
         assertClassEquals(expected, actual);
