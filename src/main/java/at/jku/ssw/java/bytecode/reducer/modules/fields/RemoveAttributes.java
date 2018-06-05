@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
+import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
 import javassist.CtClass;
 import javassist.CtField;
@@ -12,6 +13,7 @@ import java.util.stream.Stream;
 import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.bytecode;
 import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.loadClass;
 
+@Unsound
 public class RemoveAttributes implements MemberReducer<CtClass, CtField> {
 
     public static final int NO_ATTRIBUTES = 0x0;
