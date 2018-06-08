@@ -1,15 +1,15 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
-import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveAttributes;
+import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveFieldAttributes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class RemoveAttributesTest extends ReducerTest<RemoveAttributes> {
+public class RemoveFieldAttributesTest extends ReducerTest<RemoveFieldAttributes> {
 
     @BeforeEach
     void setUp() {
-        reducer = new RemoveAttributes();
+        reducer = new RemoveFieldAttributes();
     }
 
     @AfterEach
