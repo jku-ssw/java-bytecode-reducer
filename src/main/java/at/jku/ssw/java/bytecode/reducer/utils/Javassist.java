@@ -168,9 +168,9 @@ public class Javassist {
      * @param action The action to execute for each method call
      * @throws CannotCompileException if the class cannot be instrumented
      */
-    public static void methodCalls(CtClass clazz,
-                                   Predicate<MethodCall> filter,
-                                   Consumer<MethodCall> action)
+    public static void forMethodCalls(CtClass clazz,
+                                      Predicate<MethodCall> filter,
+                                      Consumer<MethodCall> action)
             throws CannotCompileException {
         clazz.instrument(new ExprEditor() {
             @Override
@@ -218,7 +218,7 @@ public class Javassist {
 
         Set<CtMethod> methods = new HashSet<>(Arrays.asList(clazz.getDeclaredMethods()));
 
-        methodCalls(
+        forMethodCalls(
                 clazz,
                 mc -> !include.test(mc),
                 (TConsumer<MethodCall>) mc -> methods.remove(mc.getMethod()));

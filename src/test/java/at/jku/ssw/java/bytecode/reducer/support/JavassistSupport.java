@@ -71,19 +71,19 @@ public interface JavassistSupport {
         Consumer<String> assertNoMethodCall;
 
         if (methods.length == 0)
+            assertNoMethodCall = methodName -> fail(methodName + "is still called");
+        else
             assertNoMethodCall =
                     methodSign -> assertAll(
                             Arrays.stream(methods)
                                     .map(m ->
                                             () -> assertNotEquals(m, methodSign)));
-        else
-            assertNoMethodCall = methodName -> fail(methodName + "is still called");
 
         clazz.instrument(new ExprEditor() {
             @Override
             public void edit(MethodCall mc) {
                 try {
-                    String methodSignature = mc.getMethod().getSignature();
+                    String methodSignature = mc.getMethod().getLongName();
 
                     assertNoMethodCall.accept(methodSignature);
                 } catch (NotFoundException e) {

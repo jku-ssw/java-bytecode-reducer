@@ -18,7 +18,7 @@ public interface MemberReducer<CLASS, MEMBER>
         // get the first applicable member that was not already attempted
         Optional<MEMBER> optMember = getMembers(clazz)
                 .filter(f -> !base.cache().contains(f))
-                .findFirst();
+                .findAny();
 
         // if no applicable member was found, the reduction is minimal
         return optMember.map((TFunction<MEMBER, Result<MEMBER>>) f ->

@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.support;
 
-import java.util.function.Consumer;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 
 public class ContinueAssertion {
     private final byte[] bytecode;
@@ -13,7 +13,7 @@ public class ContinueAssertion {
         this.bytecode = bytecode;
     }
 
-    public ContinueAssertion and(Consumer<byte[]> assertion) {
+    public ContinueAssertion and(TConsumer<byte[]> assertion) {
         assertion.accept(bytecode);
 
         return this;

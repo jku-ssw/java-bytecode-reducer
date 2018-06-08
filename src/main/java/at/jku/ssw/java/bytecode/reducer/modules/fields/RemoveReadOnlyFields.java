@@ -4,6 +4,7 @@ import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.AssignmentReplacer;
 import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
@@ -11,7 +12,6 @@ import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
-import javassist.NotFoundException;
 import javassist.expr.FieldAccess;
 
 import java.util.Map;
@@ -28,13 +28,7 @@ import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.isMemberOfClass;
  * for each type.
  */
 @Unsound
-public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
-
-    private static final String PATTERN = "$_ = ";
-
-    private static String replaceWith(String value) {
-        return PATTERN + value;
-    }
+public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, AssignmentReplacer {
 
     private Stream<CtField> eligibleFields(CtClass clazz) throws CannotCompileException {
         return Javassist.unusedFields(clazz, f ->
@@ -81,13 +75,8 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
                 (TConsumer<FieldAccess>) fa ->
                         fa.replace(replaceWith(defaultValues.get(fa.getField()))));
 
-        defaultValues.keySet().forEach(f -> {
-            try {
-                clazz.removeField(f);
-            } catch (NotFoundException e) {
-                e.printStackTrace();
-            }
-        });
+        defaultValues.keySet()
+                .forEach((TConsumer<CtField>) clazz::removeField);
 
         Base<CtField> base = Reduction.of(Javassist.bytecode(clazz));
 
