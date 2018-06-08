@@ -44,14 +44,17 @@ public interface JavassistSupport {
     default void assertNoFieldAccess(CtClass clazz, String... fields) throws CannotCompileException {
         Consumer<String> assertNoFieldAccess;
 
-        if (fields.length == 0)
+        if (fields.length == 0) {
+            // fail on any field access
+            assertNoFieldAccess = fieldName -> fail(fieldName + "is still accessed");
+        } else {
+            // fail only when accessing one of the given fields
             assertNoFieldAccess =
                     fieldName -> assertAll(
                             Arrays.stream(fields)
                                     .map(f ->
                                             () -> assertNotEquals(f, fieldName)));
-        else
-            assertNoFieldAccess = fieldName -> fail(fieldName + "is still accessed");
+        }
 
         clazz.instrument(new ExprEditor() {
             @Override
@@ -70,14 +73,17 @@ public interface JavassistSupport {
     default void assertNoMethodCall(CtClass clazz, String... methods) throws CannotCompileException {
         Consumer<String> assertNoMethodCall;
 
-        if (methods.length == 0)
+        if (methods.length == 0) {
+            // no method names given, therefore fail on any invocation
             assertNoMethodCall = methodName -> fail(methodName + "is still called");
-        else
+        } else {
+            // fail only when detecting calls to the given fields
             assertNoMethodCall =
                     methodSign -> assertAll(
                             Arrays.stream(methods)
                                     .map(m ->
                                             () -> assertNotEquals(m, methodSign)));
+        }
 
         clazz.instrument(new ExprEditor() {
             @Override
