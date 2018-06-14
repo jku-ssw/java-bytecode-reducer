@@ -10,8 +10,6 @@ import javassist.CannotCompileException;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.*;
-import java.nio.file.attribute.BasicFileAttributes;
 
 /**
  * Superclass for {@link Reducer} tests.
@@ -103,8 +101,6 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * @return an input stream for the resource file
      */
     private InputStream getResourceStream(String path) {
-        System.out.println("Loading " + path + " as class path resource");
-        System.out.println("Current directory is " + Paths.get(".").toAbsolutePath());
         return getClass().getClassLoader().getResourceAsStream(path);
     }
 
@@ -119,20 +115,6 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
     }
 
     protected ContinueAssertion assertReduced(final String className) throws Exception {
-        Files.walkFileTree(Paths.get("."), new SimpleFileVisitor<>() {
-            @Override
-            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
-                System.out.println("Directory: " + dir);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-                System.out.println("File: " + file);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-
         byte[] original = loadOriginalBytecode(className);
 
         byte[] expected = loadReducedBytecode(className);
