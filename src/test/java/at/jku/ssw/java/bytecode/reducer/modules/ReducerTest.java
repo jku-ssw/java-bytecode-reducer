@@ -60,10 +60,10 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      */
     @SuppressWarnings("unchecked")
     public ReducerTest() {
-        Class<T> reducer = (Class<T>) ClassUtils.getGenericTypes(getClass())[0];
+        var reducer = (Class<T>) ClassUtils.getGenericTypes(getClass())[0];
 
-        String dirName   = StringUtils.snake_case(reducer.getSimpleName()).toLowerCase();
-        String resources = BYTE_CODE_DIR_NAME + File.separator + dirName + File.separator;
+        var dirName   = StringUtils.snake_case(reducer.getSimpleName()).toLowerCase();
+        var resources = BYTE_CODE_DIR_NAME + File.separator + dirName + File.separator;
         originalResources = resources + ORIGINAL_DIR_NAME + File.separator;
         reducedResources = resources + REDUCED_DIR_NAME + File.separator;
     }
@@ -115,11 +115,11 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
     }
 
     protected ContinueAssertion assertReduced(final String className) throws Exception {
-        byte[] original = loadOriginalBytecode(className);
+        var original = loadOriginalBytecode(className);
 
-        byte[] expected = loadReducedBytecode(className);
+        var expected = loadReducedBytecode(className);
 
-        byte[] actual = reducer.apply(original);
+        var actual = reducer.apply(original);
 
         // TODO remove
 //        CtClass expectedClass = classFromBytecode(expected);

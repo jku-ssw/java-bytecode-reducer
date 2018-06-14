@@ -60,7 +60,7 @@ public interface JavassistSupport {
             @Override
             public void edit(FieldAccess fa) {
                 try {
-                    String fieldName = fa.getField().getName();
+                    var fieldName = fa.getField().getName();
 
                     assertNoFieldAccess.accept(fieldName);
                 } catch (NotFoundException e) {
@@ -89,7 +89,7 @@ public interface JavassistSupport {
             @Override
             public void edit(MethodCall mc) {
                 try {
-                    String methodSignature = mc.getMethod().getLongName();
+                    var methodSignature = mc.getMethod().getLongName();
 
                     assertNoMethodCall.accept(methodSignature);
                 } catch (NotFoundException e) {
