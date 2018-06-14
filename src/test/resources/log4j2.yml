@@ -18,10 +18,6 @@ Configuration:
         pattern: "%d{HH:mm:ss.SSS} %d  %p %C{1.} [%t] %m%n"
 
   Loggers:
-    Logger:
-      -
-        name: at.jku.ssw.jreduce
-        level: DEBUG
 
     Root:
       level: ERROR
