@@ -62,7 +62,7 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
     public ReducerTest() {
         Class<T> reducer = (Class<T>) ClassUtils.getGenericTypes(getClass())[0];
 
-        String dirName   = StringUtils.snake_case(reducer.getSimpleName());
+        String dirName   = StringUtils.snake_case(reducer.getSimpleName()).toLowerCase();
         String resources = BYTE_CODE_DIR_NAME + File.separator + dirName + File.separator;
         originalResources = resources + ORIGINAL_DIR_NAME + File.separator;
         reducedResources = resources + REDUCED_DIR_NAME + File.separator;
