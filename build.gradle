@@ -28,31 +28,6 @@ wrapper {
     gradleVersion    = '4.7'
 }
 
-sourceSets {
-    main {
-        output.resourcesDir = "build/classes/main"
-
-        java {
-            srcDir 'src/main/java'
-        }
-        resources {
-            srcDir 'src/main/resources'
-        }
-    }
-
-    test {
-        output.resourcesDir = "build/classes/test"
-
-        java {
-            srcDir 'src/test/java'
-        }
-        resources {
-            srcDir 'src/test/resources'
-        }
-
-    }
-}
-
 /* REPOSITORIES ============================================================ */
 
 repositories {
