@@ -13,7 +13,7 @@ import java.io.InputStream;
 
 /**
  * Superclass for {@link Reducer} tests.
- * Simplifies the access to byte codes / resources and keeps track
+ * Simplifies the access to bytecodes / resources and keeps track
  * of a reducer's individual resources.
  *
  * @param <T> The type of the {@link Reducer} to test
@@ -21,17 +21,17 @@ import java.io.InputStream;
 public abstract class ReducerTest<T extends Reducer> implements JavassistSupport {
 
     /**
-     * The directory name for byte codes.
+     * The directory name for bytecodes.
      */
     public final String BYTE_CODE_DIR_NAME = "bytecodes";
 
     /**
-     * The directory name for the source byte codes.
+     * The directory name for the source bytecodes.
      */
     public final String ORIGINAL_DIR_NAME = "original";
 
     /**
-     * The directory name for reduced / expected result byte codes.
+     * The directory name for reduced / expected result bytecodes.
      */
     public final String REDUCED_DIR_NAME = "reduced";
 
@@ -72,7 +72,7 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * Load the original class identified by the given name.
      *
      * @param name The class name
-     * @return the byte code of the requested class
+     * @return the bytecode of the requested class
      * @throws IOException if the file cannot be found
      */
     protected final byte[] loadOriginalBytecode(String name) throws IOException {
@@ -85,7 +85,7 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
      * Load the expected reduced class identified by the given name.
      *
      * @param name The class name
-     * @return the byte code of the requested class
+     * @return the bytecode of the requested class
      * @throws IOException if the file cannot be found
      */
     protected final byte[] loadReducedBytecode(String name) throws IOException {
