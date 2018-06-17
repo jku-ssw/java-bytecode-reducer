@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.CtMethod;
 import org.apache.logging.log4j.LogManager;
@@ -11,8 +11,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.bytecode;
-import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.loadClass;
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecode;
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.loadClass;
 
 @Unsound
 public class RemoveMethodAttributes implements MemberReducer<CtClass, CtMethod> {
@@ -34,7 +34,7 @@ public class RemoveMethodAttributes implements MemberReducer<CtClass, CtMethod> 
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> !Javassist.isMain(m));
+                .filter(m -> !Members.isMain(m));
     }
 
     @Override

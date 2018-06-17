@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.support;
 
-import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
@@ -330,7 +330,7 @@ public interface JavassistSupport {
         // TODO
         /*
             This currently does not work as some reduction operations
-            produce inherently inconsistent byte code.
+            produce inherently inconsistent bytecode.
             A instruction-by-instruction comparison is therefore impossible
         */
 //        CodeIterator itExpected = expected.getCodeAttribute().iterator();
@@ -341,7 +341,7 @@ public interface JavassistSupport {
 //                // ensure that both have a successor
 //                assertTrue(itActual.hasNext());
 //
-//                // byte code indices
+//                // bytecode indices
 //                int iExpected = itExpected.next();
 //                int iActual   = itActual.next();
 //

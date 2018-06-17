@@ -18,10 +18,10 @@ public interface RepeatableReducer<A> extends Reducer {
      * Apply the transformation on the given base and return a
      * contextual result.
      *
-     * @param base The base that contains the byte code and attempt log
-     * @return the new byte code and attempted objects in a
+     * @param base The base that contains the bytecode and attempt log
+     * @return the new bytecode and attempted objects in a
      * {@link Result} object
-     * @throws Exception if the byte code is invalid
+     * @throws Exception if the bytecode is invalid
      */
     Result<A> apply(Base<A> base) throws Exception;
 
@@ -30,38 +30,41 @@ public interface RepeatableReducer<A> extends Reducer {
      * Success or failure of a particular reduction is tested via the
      * given {@link Predicate}.
      *
-     * @param bytecode The byte code to reduce
+     * @param bytecode The bytecode to reduce
      * @param test     The function that determines whether the resulting
-     *                 byte code is valid
-     * @return the minimal byte code
-     * @throws Exception if the byte code access at some point reports errors
+     *                 bytecode is valid
+     * @return the minimal bytecode
+     * @throws Exception if the bytecode access at some point reports errors
      */
-    default byte[] getMinimal(byte[] bytecode, Predicate<Result<A>> test) throws Exception {
-        Result<A> res = force(bytecode);
+    @Override
+    default byte[] apply(byte[] bytecode, Predicate<byte[]> test) throws Exception {
+        var res     = force(bytecode);
+        var reduced = res.bytecode();
 
         // try forced result (assumed to be minimal)
-        if (test.test(res))
-            return res.bytecode();
+        if (test.test(bytecode))
+            return reduced;
 
-        Base<A> base = res.reject();
+        var base = res.reject();
 
         // otherwise try iterative approach
         do {
             res = apply(base);
+            reduced = res.bytecode();
 
-            base = test.test(res) ? res.accept() : res.reject();
+            base = test.test(reduced) ? res.accept() : res.reject();
         } while (!res.isMinimal());
 
-        return res.bytecode();
+        return reduced;
     }
 
     /**
      * Forces a minimal version of the reduction.
      * This may fail and require an iterative approach (with attempt log)
      *
-     * @param bytecode The byte code
-     * @return a new {@link Result} containing the byte code and attempt log
-     * @throws Exception if the byte code is invalid
+     * @param bytecode The bytecode
+     * @return a new {@link Result} containing the bytecode and attempt log
+     * @throws Exception if the bytecode is invalid
      */
     default Result<A> force(byte[] bytecode) throws Exception {
         Base<A>   base = Reduction.of(bytecode);

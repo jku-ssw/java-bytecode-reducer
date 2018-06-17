@@ -5,10 +5,12 @@ import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.runtypes.AssignmentReplacer;
-import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -20,8 +22,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.isInitializer;
-import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.isMemberOfClass;
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Members.isInitializer;
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Members.isMemberOfClass;
 
 /**
  * Removes read-only fields and replaces their accessors with the default value
@@ -31,7 +33,7 @@ import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.isMemberOfClass;
 public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, AssignmentReplacer {
 
     private Stream<CtField> eligibleFields(CtClass clazz) throws CannotCompileException {
-        return Javassist.unusedFields(clazz, f ->
+        return Instrumentation.unusedFields(clazz, f ->
                 f.isReader()
                         || isInitializer(f.where())
                         && isMemberOfClass(f.where(), clazz)
@@ -48,9 +50,9 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
             return base.toMinimalResult();
 
         CtField field = optField.get();
-        String  value = Javassist.defaults(field.getType());
+        String  value = Expressions.defaults(field.getType());
 
-        Javassist.forFieldAccesses(clazz,
+        Instrumentation.forFieldAccesses(clazz,
                 fa -> !fa.isWriter(),
                 (TConsumer<FieldAccess>) fa -> fa.replace(replaceWith(value))
         );
@@ -67,9 +69,9 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
                 .collect(Collectors.toMap(
                         Function.identity(),
                         (TFunction<CtField, String>) f ->
-                                Javassist.defaults(f.getType())));
+                                Expressions.defaults(f.getType())));
 
-        Javassist.forFieldAccesses(clazz,
+        Instrumentation.forFieldAccesses(clazz,
                 (TPredicate<FieldAccess>) fa ->
                         !fa.isWriter() && defaultValues.containsKey(fa.getField()),
                 (TConsumer<FieldAccess>) fa ->

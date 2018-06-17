@@ -5,10 +5,12 @@ import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.runtypes.AssignmentReplacer;
-import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import javassist.CtClass;
 import javassist.expr.MethodCall;
 import org.apache.logging.log4j.LogManager;
@@ -28,7 +30,7 @@ public class ReplaceMethodCalls implements RepeatableReducer<MethodCall>, Assign
 
         final AtomicReference<MethodCall> call = new AtomicReference<>();
 
-        Javassist.forMethodCalls(
+        Instrumentation.forMethodCalls(
                 clazz,
                 (TPredicate<MethodCall>) c ->
                         !c.getMethod().getReturnType().equals(CtClass.voidType) &&
@@ -37,7 +39,7 @@ public class ReplaceMethodCalls implements RepeatableReducer<MethodCall>, Assign
                 (TConsumer<MethodCall>) c -> {
                     CtClass type = c.getMethod().getReturnType();
 
-                    c.replace(replaceWith(Javassist.defaults(type)));
+                    c.replace(replaceWith(Expressions.defaults(type)));
                 }
         );
 

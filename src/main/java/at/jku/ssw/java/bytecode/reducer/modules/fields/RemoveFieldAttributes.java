@@ -10,8 +10,8 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
-import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.bytecode;
-import static at.jku.ssw.java.bytecode.reducer.utils.Javassist.loadClass;
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecode;
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.loadClass;
 
 @Unsound
 public class RemoveFieldAttributes implements MemberReducer<CtClass, CtField> {

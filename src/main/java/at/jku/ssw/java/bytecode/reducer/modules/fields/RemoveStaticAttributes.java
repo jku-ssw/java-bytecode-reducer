@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.Javassist;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.Modifier;
