@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 public abstract class Reduction<T> {
 
     /**
-     * The current byte code.
+     * The current bytecode.
      */
     protected final byte[] bytecode;
 
@@ -31,9 +31,9 @@ public abstract class Reduction<T> {
     public final int run;
 
     /**
-     * Instantiate a new object with the given byte code and attempt cache.
+     * Instantiate a new object with the given bytecode and attempt cache.
      *
-     * @param bytecode The byte code that represents this base / result
+     * @param bytecode The bytecode that represents this base / result
      * @param cache    The initial cache (empty if null)
      * @param run      The run number (default 0)
      */
@@ -51,9 +51,9 @@ public abstract class Reduction<T> {
     }
 
     /**
-     * Instantiate a base from the given byte code
+     * Instantiate a base from the given bytecode
      *
-     * @param bytecode The byte code describing the class
+     * @param bytecode The bytecode describing the class
      * @param <U>      The type of the the cached attempts
      * @return a new reduction base
      */
@@ -62,7 +62,7 @@ public abstract class Reduction<T> {
     }
 
     /**
-     * Returns the byte code.
+     * Returns the bytecode.
      *
      * @return a byte array describing a class
      */
@@ -81,7 +81,7 @@ public abstract class Reduction<T> {
 
     /**
      * Represents the base of a reduction.
-     * Stores the source byte code and any previous attempt.
+     * Stores the source bytecode and any previous attempt.
      *
      * @param <T> The type of the stored attempts
      */
@@ -110,13 +110,13 @@ public abstract class Reduction<T> {
 
         /**
          * Transforms the base into a new {@link Result}
-         * that stores this base's byte code and the result of a
+         * that stores this base's bytecode and the result of a
          * {@link at.jku.ssw.java.bytecode.reducer.runtypes.Reducer}.
          * Also appends the new attempts.
          *
-         * @param bytecode The reduced byte code (probably invalid)
+         * @param bytecode The reduced bytecode (probably invalid)
          * @param attempts The updates that led to this result
-         * @return a new result that stores the current and reduced byte codes
+         * @return a new result that stores the current and reduced bytecodes
          */
         public final Result<T> toResult(byte[] bytecode, Set<T> attempts) {
             return new Result<>(this, bytecode, attempts);
@@ -132,11 +132,11 @@ public abstract class Reduction<T> {
 
         /**
          * Transforms the base into a new {@link Result}
-         * that stores this base's byte code and the result of a
+         * that stores this base's bytecode and the result of a
          * {@link at.jku.ssw.java.bytecode.reducer.runtypes.Reducer}.
          * Also appends the new attempts.
          *
-         * @return a new result that stores the current and reduced byte codes
+         * @return a new result that stores the current and reduced bytecodes
          */
         public final Result<T> toMinimalResult() {
             return new Result<>(this, bytecode, Set.of(), true);
@@ -145,14 +145,14 @@ public abstract class Reduction<T> {
 
     /**
      * Represents the result of a reduction.
-     * Stores the source and transformed byte codes and the attempt cache.
+     * Stores the source and transformed bytecodes and the attempt cache.
      *
      * @param <T> The type of the stored attempts
      */
     public static final class Result<T> extends Reduction<T> {
 
         /**
-         * The byte code that produced this result.
+         * The bytecode that produced this result.
          * Is stored in order to revert back to this in
          * case of invalid results.
          */
@@ -165,10 +165,10 @@ public abstract class Reduction<T> {
 
         /**
          * Create a new result based on the given {@link Base}
-         * in combination with the new byte code and additional attempts.
+         * in combination with the new bytecode and additional attempts.
          *
          * @param base     The base that produced this result
-         * @param bytecode The resulting byte code
+         * @param bytecode The resulting bytecode
          * @param attempts The additional updates
          * @param min      Indicates whether the result is minimal
          */
@@ -182,10 +182,10 @@ public abstract class Reduction<T> {
 
         /**
          * Creates a new (non-minimal) result based on the given {@link Base}
-         * in combination with the new byte code and additional attempts
+         * in combination with the new bytecode and additional attempts
          *
          * @param base     The base that produced this result
-         * @param bytecode The resulting byte code
+         * @param bytecode The resulting bytecode
          * @param attempts The additional updates
          */
         private Result(Base<T> base, byte[] bytecode, Set<T> attempts) {
@@ -193,10 +193,10 @@ public abstract class Reduction<T> {
         }
 
         /**
-         * Accepts the given byte code changes as a new valid base
+         * Accepts the given bytecode changes as a new valid base
          * and resets the attempt cache.
          *
-         * @return a new reduction base with the new byte code and the default
+         * @return a new reduction base with the new bytecode and the default
          * attempt log
          */
         public Base<T> accept() {
@@ -204,10 +204,10 @@ public abstract class Reduction<T> {
         }
 
         /**
-         * Rejects the given byte code changes and returns a new base
-         * consisting of the previous byte code and the cached attempts.
+         * Rejects the given bytecode changes and returns a new base
+         * consisting of the previous bytecode and the cached attempts.
          *
-         * @return a new reduction base consisting of the source byte code
+         * @return a new reduction base consisting of the source bytecode
          * and the cached attempts
          */
         public Base<T> reject() {
