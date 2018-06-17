@@ -1,5 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer;
 
+import at.jku.ssw.java.bytecode.reducer.annot.Sound;
+import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
 import at.jku.ssw.java.bytecode.reducer.context.Context;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
@@ -38,12 +40,13 @@ public class JReduce {
         try {
             ContextFactory contextFactory = cliParser.parseArguments(args);
 
-            // No context received - exit
+            // no context received - exit
             if (contextFactory == null)
                 System.exit(EXIT_SUCCESS);
 
             // TODO invoke by loading class path files or specify otherwise
-            final List<Class<? extends Reducer>> modules = List.of(
+            // all available reduction operations
+            final var modules = List.of(
                     RemoveUnusedFields.class,
                     RemoveUnusedMethods.class,
                     RemoveWriteOnlyFields.class,
@@ -52,20 +55,55 @@ public class JReduce {
                     RemoveStaticAttributes.class
             );
 
-            final List<Class<? extends Reducer>> l = modules.stream()
-                    .sorted(Reducer.ORDERING)
+            final var pre = modules.stream()
+                    .filter(c -> c.isAnnotationPresent(Sound.class))
                     .collect(Collectors.toList());
 
-            // TODO relocate to other class / make reusable ("better")
+            final var core = modules.stream()
+                    .filter(c -> c.isAnnotationPresent(Unsound.class))
+                    .collect(Collectors.toList());
 
-            // TODO iterate over
-            // TODO maybe invoke in ThreadPool
+            // TODO determine if actually useful
+            /*
+            Running order: apply sound operations first,
+            then try experimental ones that may remove significant portions
+            of the code and then run sound ones again to reduce assets that
+            may have been affected by the core transformations.
+            */
+            final var stages = List.of(pre, core, pre);
 
+            // initialize the context
             Context context = contextFactory.createContext();
 
+//            var cache = context.classFiles.stream()
+//                .((TFunction<Path, byte[]>)Files::readAllBytes)
+//                    .
+
+            // instantiate the temporary directory at the given location
             TempDir.at(context.tempDir).use(tempDir -> {
+                stages.forEach(stage -> {
+                    stage.forEach((TConsumer<Class<? extends Reducer>>) module -> {
+//                        context.classFiles.forEach(file -> {
+//                            try {
+//                                //
+//                                var bytes = Files.readAllBytes(file);
+//
+//
+//                            } catch (IOException e) {
+//                                e.printStackTrace();
+//                            }
+//                        });
+
+                        var reducer = module.getDeclaredConstructor().newInstance();
+
+                        // TODO reducer.apply(bytecode)
+//                        if (reducer instanceof RepeatableReducer) {
+//                            var bytecode = ((RepeatableReducer) reducer).
+//                        }
+                    });
+                });
                 modules.forEach((TConsumer<Class<? extends Reducer>>) c -> {
-                    Reducer reducer = c.getDeclaredConstructor().newInstance();
+                    var reducer = c.getDeclaredConstructor().newInstance();
 
                     TempDir.at(NamingStrategy.ForInstance(reducer), tempDir).use(reducerDir -> {
                         // TODO
