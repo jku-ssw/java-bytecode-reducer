@@ -121,7 +121,7 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
 
         var actual = reducer.apply(original);
 
-        // TODO remove
+        // TODO remove after debugging
 //        CtClass expectedClass = classFromBytecode(expected);
 //        CtClass actualClass   = classFromBytecode(actual);
 //
