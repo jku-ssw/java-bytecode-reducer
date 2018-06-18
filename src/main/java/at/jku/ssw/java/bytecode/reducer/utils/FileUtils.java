@@ -3,6 +3,8 @@ package at.jku.ssw.java.bytecode.reducer.utils;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Objects;
+import java.util.stream.Stream;
 
 public final class FileUtils {
     private FileUtils() {
@@ -50,5 +52,24 @@ public final class FileUtils {
         try (DirectoryStream<Path> dirStream = Files.newDirectoryStream(path)) {
             return !dirStream.iterator().hasNext();
         }
+    }
+
+    /**
+     * Copies the given files to the given target directory.
+     *
+     * @param src The source files that have to be copied
+     * @param out The destination path
+     * @return a stream containing the resulting file copies
+     */
+    public static Stream<Path> copy(Stream<Path> src, Path out) {
+        return src
+                .map(p -> {
+                    try {
+                        return Files.copy(p, out.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+                    } catch (IOException e) {
+                        return null;
+                    }
+                })
+                .filter(Objects::nonNull);
     }
 }
