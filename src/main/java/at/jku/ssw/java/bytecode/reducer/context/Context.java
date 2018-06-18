@@ -1,25 +1,25 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
+import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
+
+import java.io.IOException;
 import java.nio.file.Path;
-import java.util.List;
+import java.util.Set;
 
+/**
+ * Stores properties of the current execution context.
+ * Every information that the runner needs in order to work properly is
+ * contained here.
+ * The field {@link #cache} directly stores the current bytecodes of the
+ * respective files.
+ */
 public class Context {
-
-    /**
-     * The class files that should be reduced.
-     */
-    public final List<Path> classFiles;
 
     /**
      * The individual test scripts that have to be passed
      * in order for a reduction result to be "interesting"-
      */
-    public final List<Path> iTests;
-
-    /**
-     * The directory in which the task is done.
-     */
-    public final Path workingDir;
+    public final Set<Path> iTests;
 
     /**
      * Directory to write the output files.
@@ -36,18 +36,22 @@ public class Context {
      */
     public final boolean keepTemp;
 
-    Context(List<Path> classFiles,
-            List<Path> iTests,
-            Path workingDir,
+    /**
+     * Holds the current file to bytecode mapping
+     */
+    public final Cache cache;
+
+    Context(Set<Path> classFiles,
+            Set<Path> iTests,
             Path outDir,
             Path tempDir,
-            boolean keepTemp) {
+            boolean keepTemp)
+            throws IOException, DuplicateClassException {
 
-        this.classFiles = classFiles;
         this.iTests = iTests;
-        this.workingDir = workingDir;
         this.outDir = outDir;
         this.tempDir = tempDir;
         this.keepTemp = keepTemp;
+        this.cache = Cache.of(classFiles);
     }
 }

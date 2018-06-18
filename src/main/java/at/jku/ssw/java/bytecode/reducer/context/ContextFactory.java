@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
+import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
 import at.jku.ssw.java.bytecode.reducer.utils.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -7,8 +8,8 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -166,29 +167,28 @@ public class ContextFactory {
      *
      * @return the new context
      */
-    public Context createContext() throws IOException {
-        Path workingDir = Files.createDirectories(Paths.get(this.workingDir));
-        Path outDir     = Files.createDirectories(workingDir.resolve(this.outDir));
-        Path tempDir    = Files.createDirectories(workingDir.resolve(this.tempDir));
+    public Context createContext()
+            throws IOException, DuplicateClassException {
 
-        List<Path> classFiles = validateAndCopy(
+        Path workingDir = Paths.get(this.workingDir);
+        Path outDir     = workingDir.resolve(this.outDir);
+        Path tempDir    = workingDir.resolve(this.tempDir);
+
+        Set<Path> classFiles = validate(
                 workingDir,
                 this.classFiles,
-                outDir,
                 classMatcher
         );
 
-        List<Path> iTests = validateAndCopy(
+        Set<Path> iTests = validate(
                 workingDir,
                 this.iTests,
-                outDir,
                 scriptMatcher
         );
 
         return new Context(
                 classFiles,
                 iTests,
-                workingDir,
                 outDir,
                 tempDir,
                 keepTemp
@@ -200,19 +200,17 @@ public class ContextFactory {
     // region Utility methods
 
     /**
-     * Validates the given file names and copies them to the output directory.
+     * Validates the given file names.
      *
      * @param workingDir The working directory (default reference for relative paths)
      * @param files      The files to analyze
-     * @param out        The target directory
      * @param matcher    The required file ending
      * @return the filtered and verified list of files
      * @throws IOException if the file handlers run into problems
      */
-    private List<Path> validateAndCopy(Path workingDir,
-                                       String[] files,
-                                       Path out,
-                                       PathMatcher matcher)
+    private Set<Path> validate(Path workingDir,
+                               String[] files,
+                               PathMatcher matcher)
             throws IOException {
 
         final Stream<Path> paths;
@@ -222,8 +220,7 @@ public class ContextFactory {
         else
             paths = resolve(workingDir, files, matcher);
 
-        return copy(paths, out)
-                .collect(Collectors.toList());
+        return paths.collect(Collectors.toSet());
     }
 
     /**
@@ -270,26 +267,6 @@ public class ContextFactory {
         return Files.list(workingDir)
                 .filter(Files::isRegularFile)
                 .filter(matcher::matches);
-    }
-
-    /**
-     * Copies the given files to the given target directory.
-     *
-     * @param src The source files that have to be copied
-     * @param out The destination path
-     * @return a stream containing the resulting file copies
-     */
-    private Stream<Path> copy(Stream<Path> src, Path out) {
-        return src
-                .map(p -> {
-                    try {
-                        return Files.copy(p, out.resolve(p.getFileName()), StandardCopyOption.REPLACE_EXISTING);
-                    } catch (IOException e) {
-                        logger.fatal("Could not copy {} to output directory {}: {}", p, out, e.getMessage());
-                        return null;
-                    }
-                })
-                .filter(Objects::nonNull);
     }
 
     // endregion
