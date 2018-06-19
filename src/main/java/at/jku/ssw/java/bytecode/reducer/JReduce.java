@@ -141,7 +141,17 @@ public class JReduce {
 
                                                 if (isValid) {
                                                     context.cache.update(fileName, result);
-                                                    // TODO write intermediate result to output directory
+                                                    // write all files to the temporary directory
+                                                    context.cache.classes().forEach(c -> {
+                                                        var p = context.outDir.resolve(c);
+                                                        var b = context.cache.bytecode(c);
+
+                                                        try {
+                                                            Files.write(p, b);
+                                                        } catch (IOException e) {
+                                                            logger.fatal(e);
+                                                        }
+                                                    });
                                                 }
 
                                                 return isValid;
