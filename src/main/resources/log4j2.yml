@@ -11,10 +11,6 @@ Configuration:
       name: CONSOLE
       PatternLayout:
         Pattern: "%highlight{[%-5p]} %m%n%throwable"
-    Console:
-      name: CONSOLE_VERBOSE
-      PatternLayout:
-        Pattern: "%c{1} %highlight{[%-5p]} %m%n%throwable"
     File:
       name: FILE
       fileName: ${filename}
@@ -26,11 +22,6 @@ Configuration:
       -
         name: at.jku.ssw.jreduce.utils
         level: DEBUG
-      -
-        name: at.jku.ssw.jreduce.modules
-        level: TRACE
-        AppenderRef:
-          - ref: CONSOLE_VERBOSE
       -
         name: at.jku.ssw.jreduce
         level: DEBUG # TODO change for production
