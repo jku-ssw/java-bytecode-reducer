@@ -21,8 +21,6 @@ public class CLIParser {
         if (cmd == null)
             return null;
 
-        int nThreads = 0; // TODO set default
-
         if (cmd.hasOption(CLIOptions.VERBOSE))
             Configurator.setAllLevels(
                     LogManager.getRootLogger().getName(),
