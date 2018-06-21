@@ -32,12 +32,13 @@ public class RemoveFieldAttributes implements MemberReducer<CtClass, CtField> {
 
     @Override
     public Stream<CtField> getMembers(CtClass clazz) {
-        return Arrays.stream(clazz.getDeclaredFields());
+        return Arrays.stream(clazz.getDeclaredFields())
+                .filter(f -> f.getModifiers() != NO_ATTRIBUTES);
     }
 
     @Override
     public CtClass process(CtClass clazz, CtField field) {
-        logger.debug("Removing attributes of field '{}'", field.getSignature());
+        logger.debug("Removing attributes of field '{}'", field.getName());
 
         field.setModifiers(NO_ATTRIBUTES);
 

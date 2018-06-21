@@ -34,7 +34,8 @@ public class RemoveMethodAttributes implements MemberReducer<CtClass, CtMethod> 
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> !Members.isMain(m));
+                .filter(m -> !Members.isMain(m))
+                .filter(m -> m.getModifiers() != NO_ATTRIBUTES);
     }
 
     @Override

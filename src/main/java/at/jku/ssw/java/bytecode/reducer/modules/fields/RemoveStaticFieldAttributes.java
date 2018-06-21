@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 @Unsound
-public class RemoveStaticAttributes implements MemberReducer<CtClass, CtField> {
+public class RemoveStaticFieldAttributes implements MemberReducer<CtClass, CtField> {
 
     private static final Logger logger = LogManager.getLogger();
 
