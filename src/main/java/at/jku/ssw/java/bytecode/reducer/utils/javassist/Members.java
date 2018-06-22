@@ -53,6 +53,7 @@ public final class Members {
         return member instanceof CtMethod &&
                 Modifier.isStatic(mod) &&
                 Modifier.isPublic(mod) &&
+                member.getName().equals("main") &&
                 MAIN_SIGNATURE.equals(member.getSignature());
     }
 }
