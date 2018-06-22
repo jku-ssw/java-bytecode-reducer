@@ -110,10 +110,10 @@ public class TempDir {
                 .findAny()
                 .map(p -> {
                     try {
-                        logger.debug("Creating temporary directory at {}", p);
+                        logger.trace("Creating temporary directory at {}", p);
                         final Path path = Files.createDirectories(p);
                         task.accept(p);
-                        logger.debug("Clearing temporary directory at {}", p);
+                        logger.trace("Clearing temporary directory at {}", p);
                         return keep ? path : FileUtils.delete(path);
                     } catch (IOException e) {
                         e.printStackTrace();
