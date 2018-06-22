@@ -71,10 +71,14 @@ public interface RepeatableReducer<A> extends Reducer {
         Result<A> res;
 
         for (; ; ) {
+            // apply the reduction operation
             res = apply(base);
 
+            // and "accept" the result / assume it to be correct
             base = res.accept();
 
+            // only return on a minimal result
+            // TODO maybe set MAX_ITERATION or similar check to prevent infinite loop on bad / lacking implementation
             if (res.isMinimal())
                 return res;
         }
@@ -82,6 +86,8 @@ public interface RepeatableReducer<A> extends Reducer {
 
     @Override
     default byte[] apply(byte[] bytecode) throws Exception {
+        // the default implementation of the reducer
+        // without providing a check simply forces a result
         return force(bytecode).bytecode();
     }
 }
