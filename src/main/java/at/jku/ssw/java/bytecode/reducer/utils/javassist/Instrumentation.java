@@ -84,7 +84,7 @@ public final class Instrumentation {
 
         forFieldAccesses(
                 clazz,
-                fa -> !include.test(fa),
+                include.negate(),
                 (TConsumer<FieldAccess>) fa -> fields.remove(fa.getField())
         );
 
@@ -107,7 +107,7 @@ public final class Instrumentation {
 
         forMethodCalls(
                 clazz,
-                mc -> !include.test(mc),
+                include.negate(),
                 (TConsumer<MethodCall>) mc -> methods.remove(mc.getMethod()));
 
         return methods.stream();
