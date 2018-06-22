@@ -34,7 +34,7 @@ public class RemoveEmptyMethods implements MemberReducer<CtClass, CtMethod> {
 
     @Override
     public CtClass process(CtClass clazz, CtMethod m) throws Exception {
-        logger.debug("Removing empty method '{}'", m.getSignature());
+        logger.debug("Removing empty method '{}'", m.getLongName());
         clazz.removeMethod(m);
         return clazz;
     }

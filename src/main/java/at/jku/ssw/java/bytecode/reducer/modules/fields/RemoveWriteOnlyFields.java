@@ -35,7 +35,7 @@ public class RemoveWriteOnlyFields implements MemberReducer<CtClass, CtField> {
 
     @Override
     public CtClass process(CtClass clazz, CtField field) throws Exception {
-        logger.debug("Removing field '{}'", field.getSignature());
+        logger.debug("Removing field '{}'", field.getName());
         clazz.removeField(field);
         return clazz;
     }

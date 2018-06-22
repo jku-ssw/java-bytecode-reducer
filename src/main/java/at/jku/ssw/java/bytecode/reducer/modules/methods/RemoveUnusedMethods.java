@@ -36,7 +36,7 @@ public class RemoveUnusedMethods implements MemberReducer<CtClass, CtMethod> {
 
     @Override
     public CtClass process(CtClass clazz, CtMethod m) throws Exception {
-        logger.debug("Removing method '{}'", m.getSignature());
+        logger.debug("Removing method '{}'", m.getLongName());
         clazz.removeMethod(m);
         return clazz;
     }

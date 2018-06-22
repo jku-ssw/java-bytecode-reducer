@@ -35,7 +35,7 @@ public class RemoveStaticFieldAttributes implements MemberReducer<CtClass, CtFie
 
     @Override
     public CtClass process(CtClass clazz, CtField field) {
-        logger.debug("Removing static modifier or field '{}'", field.getSignature());
+        logger.debug("Removing static modifier for field '{}'", field.getName());
 
         field.setModifiers(Modifier.clear(field.getModifiers(), Modifier.STATIC));
 

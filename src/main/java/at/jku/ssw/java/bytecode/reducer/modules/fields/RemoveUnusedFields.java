@@ -43,7 +43,7 @@ public class RemoveUnusedFields implements MemberReducer<CtClass, CtField> {
 
     @Override
     public CtClass process(CtClass clazz, CtField field) throws NotFoundException, CannotCompileException {
-        logger.debug("Removing field '{}'", field.getSignature());
+        logger.debug("Removing field '{}'", field.getName());
 
         // replaces field access in constructors with local variables
         Instrumentation.forFieldAccesses(
