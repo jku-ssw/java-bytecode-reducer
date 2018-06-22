@@ -14,6 +14,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Objects;
 
 import static javassist.bytecode.Opcode.NOP;
@@ -30,6 +31,8 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
     @Override
     public Reduction.Result<CodePosition> apply(Reduction.Base<CodePosition> base) throws Exception {
         final var clazz = Javassist.loadClass(base.bytecode());
+        final var constPool = clazz.getClassFile().getConstPool();
+
         return Arrays.stream(clazz.getDeclaredMethods())
                 .map(CtBehavior::getMethodInfo)
                 .map((TFunction<MethodInfo, CodePosition>) m -> {
@@ -39,6 +42,12 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
 
                     var ca = m.getCodeAttribute();
                     var it = ca.iterator();
+
+                    // store the markings at which the stack size is zero
+                    var zeroIndices = new HashSet<Integer>();
+
+                    // stores index positions that contain "special" instructions
+                    var specIndices = new HashSet<Integer>();
 
                     // index of the first instruction in a potentially
                     // removable sequence
@@ -75,6 +84,7 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                         // discarded or the loop just started
                         if (stackSize == 0 && code != NOP) {
                             begin = index;
+                            zeroIndices.add(index);
                         }
 
                         /*
@@ -102,6 +112,10 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                         if (Code.isSpecial(code)) {
                             begin = -1;
                             stackSize = 0;
+                            zeroIndices.add(index);
+
+
+
                         } else {
 
                             // if the stack is empty (again), the instruction
