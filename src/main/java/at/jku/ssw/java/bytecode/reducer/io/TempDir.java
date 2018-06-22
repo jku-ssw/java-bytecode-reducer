@@ -55,7 +55,7 @@ public class TempDir {
      */
     public static TempDir at(Path path)
             throws IOException {
-        return at(NamingStrategy.Static(path.getFileName().toString()), path);
+        return at(NamingStrategy.Static(path.getFileName().toString()), path.getParent());
     }
 
     /**

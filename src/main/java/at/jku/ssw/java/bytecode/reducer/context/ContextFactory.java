@@ -25,13 +25,6 @@ public class ContextFactory {
     private static final Logger logger = LogManager.getLogger();
 
     /**
-     * Number of threads that are usually run concurrently in order to
-     * process the given input files with different reducer modules.
-     * TODO reasonable default value
-     */
-    public static final int DEFAULT_THREAD_NUM = 5;
-
-    /**
      * The default output directory for the intermediate
      * and final result files.
      */
@@ -41,11 +34,6 @@ public class ContextFactory {
      * The default place to put the test's working directories.
      */
     public static final String DEFAULT_TEMP = ".tmp";
-    /**
-     * The maximum number of threads to operate at the same time.
-     * TODO set reasonable max
-     */
-    public static final int    MAX_THREADS  = 10;
 
     // endregion
     //-------------------------------------------------------------------------
@@ -170,9 +158,10 @@ public class ContextFactory {
     public Context createContext()
             throws IOException, DuplicateClassException {
 
-        Path workingDir = Paths.get(this.workingDir);
-        Path outDir     = workingDir.resolve(this.outDir);
-        Path tempDir    = workingDir.resolve(this.tempDir);
+        // retrieve the working / output directories as absolute paths
+        Path workingDir = Paths.get(this.workingDir).toAbsolutePath();
+        Path outDir     = workingDir.resolve(this.outDir).toAbsolutePath();
+        Path tempDir    = workingDir.resolve(this.tempDir).toAbsolutePath();
 
         Set<Path> classFiles = validate(
                 workingDir,
@@ -244,8 +233,7 @@ public class ContextFactory {
                     } else if (Files.notExists(p)) {
                         logger.warn("Skipping {} - file not found.", p);
                         return false;
-                    } else if (!matcher.matches(p)) {
-                        logger.warn(p.getFileName());
+                    } else if (!matcher.matches(p.getFileName())) {
                         logger.warn("Skipping {} - file does not match the required extension (\"{}\").", p, matcher);
                         return false;
                     }
