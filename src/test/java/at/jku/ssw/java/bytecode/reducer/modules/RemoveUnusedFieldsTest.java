@@ -33,18 +33,4 @@ public class RemoveUnusedFieldsTest extends ReducerTest<RemoveUnusedFields> {
                 .and(this::assertNoFieldAccess);
     }
 
-    @Test
-    void testStaticFields() throws Exception {
-        // TODO
-    }
-
-    @Test
-    void testPrivateFields() throws Exception {
-        // TODO
-    }
-
-    @Test
-    void testPublicFields() {
-        // TODO
-    }
 }
