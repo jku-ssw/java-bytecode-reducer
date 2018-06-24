@@ -37,17 +37,16 @@ public class ScriptRunner {
      * the process is complete.
      *
      * @param script The script to execute
-     * @return {@code true} if the process ran successfully;
-     * {@code false} otherwise
+     * @return the exit code of the process
      * @throws IOException          if the process initiation fails
      * @throws InterruptedException if the thread is interrupted while
      *                              waiting for the result
      * @see ScriptRunner#exec(Path)
      */
-    public boolean execBlocking(Path script)
+    public int execBlocking(Path script)
             throws IOException, InterruptedException {
 
-        return exec(script).waitFor() == EXIT_SUCCESS;
+        return exec(script).waitFor();
     }
 
     /**

@@ -30,20 +30,35 @@ public class TestSuite {
         scriptRunner = new ScriptRunner();
     }
 
+    /**
+     * Runs all contained tests in the given directory.
+     * This method first copies all test files and then executes them
+     * in order.
+     *
+     * @param testDir The working directory of the tests
+     * @return {@code true} if all tests succeeded, {@code false} if any test
+     * fails
+     */
     public final boolean test(Path testDir) {
         return FileUtils.copy(iTests.stream(), testDir)
                 .allMatch(itest -> {
+                    var file = itest.getFileName();
+
                     try {
-                        if (scriptRunner.execBlocking(itest))
+                        var exitCode = scriptRunner.execBlocking(itest);
+
+                        if (exitCode == ScriptRunner.EXIT_SUCCESS) {
+                            logger.trace("Test {} succeeded", file);
                             return true;
+                        }
 
-                        logger.info("Test " + itest.getFileName() + " failed");
+                        logger.info("Test {} failed with exit code {}", file, exitCode);
 
-                        return false;
                     } catch (IOException | InterruptedException e) {
                         logger.fatal(e);
-                        return false;
                     }
+
+                    return false;
                 });
     }
 }
