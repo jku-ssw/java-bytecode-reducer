@@ -34,7 +34,12 @@ public class TestSuite {
         return FileUtils.copy(iTests.stream(), testDir)
                 .allMatch(itest -> {
                     try {
-                        return scriptRunner.execBlocking(itest);
+                        if (scriptRunner.execBlocking(itest))
+                            return true;
+
+                        logger.info("Test " + itest.getFileName() + " failed");
+
+                        return false;
                     } catch (IOException | InterruptedException e) {
                         logger.fatal(e);
                         return false;
