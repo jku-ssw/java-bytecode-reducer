@@ -30,7 +30,7 @@ public class CLIParser {
             Configurator.setAllLevels(
                     LogManager.getRootLogger().getName(),
                     Level.FATAL
-            ); // TODO maybe change to 'OFF'?
+            );
 
         String out        = getArg(cmd, CLIOptions.OUT);
         String tmp        = getArg(cmd, CLIOptions.TEMP);
@@ -51,12 +51,6 @@ public class CLIParser {
             iTests = new String[]{fileArgs[0]};
             classFiles = Arrays.copyOfRange(fileArgs, 1, fileArgs.length);
         }
-
-        // TODO remove after testing
-        System.out.println("out = " + out);
-        System.out.println("tmp = " + tmp);
-        System.out.println("classFiles = " + Arrays.toString(classFiles));
-        System.out.println("iTests = " + Arrays.toString(iTests));
 
         return new ContextFactory(
                 classFiles,
@@ -91,13 +85,11 @@ public class CLIParser {
     }
 
     private void showHelp(Options options) {
-        // TODO print additional usage information
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("jreduce", options);
     }
 
     private void showVersion() {
-        // TODO either set constant or emit by Gradle
         final String version = "*0.1*";
         logger.info("Java Bytecode Reducer");
         logger.info("Version: {}", version);
@@ -119,32 +111,6 @@ public class CLIParser {
                 .hasArg(false)
                 .required(false)
                 .build();
-
-        // TODO would this be useful?
-//        Option time = Option.builder("t")
-//                .desc("Limit execution time (maximum duration in seconds)")
-//                .longOpt("time")
-//                .hasArg(true)
-//                .required(false)
-//                .numberOfArgs(1)
-//                .type(Integer.class)
-//                .build();
-
-        // TODO would this be useful?
-//        Option size = Option.builder("s")
-//                .desc("The target size for reduced files (in bytes). " +
-//                        "If a reduction result is valid (interesting) and " +
-//                        "does not exceed this limit, the run will end. " +
-//                        "If more than one argument is specified, the given " +
-//                        "limits are taken for the individual class files " +
-//                        "(e.g. the first limit corresponds to the first file). " +
-//                        "If the file size should be specified in another unit, " +
-//                        "a simple modifier (kb, kB, MB etc. - case-insensitive) " +
-//                        "can be appended to the numeric value")
-//                .longOpt("size")
-//                .hasArgs()
-//                .required(false)
-//                .build();
 
         Option iTest = Option.builder(CLIOptions.I_TESTS)
                 .desc("The interestingness test file (test.{sh,bat} is assumed if no argument is supplied)")
