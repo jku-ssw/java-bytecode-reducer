@@ -24,11 +24,31 @@ public class ScriptRunner {
      * @throws IOException if the process initiation fails
      */
     public Process exec(Path script) throws IOException {
+        // TODO somehow prevent detailed command output
+
         return new ProcessBuilder()
                 .command(getCommand(script.getFileName().toString()))
                 .directory(script.getParent().toFile())
                 .inheritIO()
                 .start();
+    }
+
+    /**
+     * Runs the file at the given path and blocks until
+     * the process is complete.
+     *
+     * @param script The script to execute
+     * @return {@code true} if the process ran successfully;
+     * {@code false} otherwise
+     * @throws IOException          if the process initiation fails
+     * @throws InterruptedException if the thread is interrupted while
+     *                              waiting for the result
+     * @see ScriptRunner#exec(Path)
+     */
+    public boolean execBlocking(Path script)
+            throws IOException, InterruptedException {
+
+        return exec(script).waitFor() == EXIT_SUCCESS;
     }
 
     /**
