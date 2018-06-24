@@ -6,14 +6,12 @@ import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
 import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
-import at.jku.ssw.java.bytecode.reducer.io.ScriptRunner;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveMethodAttributes;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
-import at.jku.ssw.java.bytecode.reducer.utils.FileUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
@@ -21,6 +19,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -67,99 +66,66 @@ public class JReduce {
                     .filter(c -> c.isAnnotationPresent(Unsound.class))
                     .collect(Collectors.toList());
 
-            // TODO determine if actually useful
             /*
             Running order: apply sound operations first,
             then try experimental ones that may remove significant portions
             of the code and then run sound ones again to reduce assets that
             may have been affected by the core transformations.
             */
-            final var stages = List.of(pre, core, pre);
+            final var stages = List.of(pre, core, pre).stream()
+                    .flatMap(Collection::stream);
 
             // initialize the context
             final var context = contextFactory.createContext();
 
-            final var runner = new ScriptRunner();
+
+            // initialize the test suite
+            final var testSuite = contextFactory.getTestSuite();
+
+            // init the cache
+            final var cache = contextFactory.initCache();
 
             // instantiate the temporary directory at the given location
             TempDir.at(context.tempDir).use(tempDir ->
-                    stages.forEach(stage ->
-                            stage.forEach((TConsumer<Class<? extends Reducer>>) module -> {
-                                final var reducer = module.getDeclaredConstructor().newInstance();
 
-                                logger.info("Initializing reducer " + module.getName());
+                    // iterate all stages
+                    stages.forEach((TConsumer<Class<? extends Reducer>>) module -> {
+                        final var reducer = module.getDeclaredConstructor().newInstance();
 
-                                TempDir.at(NamingStrategy.ForInstance(reducer), tempDir).use(reducerDir ->
-                                        context.cache.classes().forEach((TConsumer<String>) fileName -> {
-                                            logger.info("Reducing file " + fileName);
+                        logger.info("Initializing reducer " + module.getName());
 
-                                            // write all other files to the temporary directory
-                                            context.cache.classes().stream()
-                                                    .filter(c -> !c.equals(fileName))
-                                                    .forEach(c -> {
-                                                        var path     = context.outDir.resolve(c);
-                                                        var bytecode = context.cache.bytecode(c);
+                        TempDir.at(NamingStrategy.ForInstance(reducer), tempDir).use(reducerDir ->
+                                cache.classes().forEach((TConsumer<String>) fileName -> {
+                                    logger.info("Reducing file " + fileName);
 
-                                                        try {
-                                                            Files.write(path, bytecode);
-                                                        } catch (IOException e) {
-                                                            logger.fatal(e);
-                                                        }
-                                                    });
+                                    // write all other files to the temporary directory
+                                    cache.write(reducerDir);
 
-                                            var bytecode = context.cache.bytecode(fileName);
+                                    var bytecode = cache.bytecode(fileName);
 
-                                            bytecode = reducer.apply(bytecode, result -> {
-                                                var path = context.outDir.resolve(fileName);
+                                    bytecode = reducer.apply(bytecode, result -> {
+                                        var path = reducerDir.resolve(fileName);
 
-                                                try {
-                                                    Files.write(path, result);
-                                                } catch (IOException e) {
-                                                    logger.fatal(e);
-                                                }
+                                        try {
+                                            Files.write(path, result);
+                                        } catch (IOException e) {
+                                            logger.fatal(e);
+                                        }
 
-                                                // copy interestingness tests
-                                                // and run them
-                                                var isValid = FileUtils.copy(context.iTests.stream(), context.outDir)
-                                                        .map(itest -> {
-                                                            try {
-                                                                return runner.exec(itest);
-                                                            } catch (IOException e) {
-                                                                logger.fatal(e);
-                                                                return null;
-                                                            }
-                                                        })
-                                                        .allMatch(p ->
-                                                        {
-                                                            try {
-                                                                return p != null && p.waitFor() == ScriptRunner.EXIT_SUCCESS;
-                                                            } catch (InterruptedException e) {
-                                                                logger.fatal(e);
-                                                                return false;
-                                                            }
-                                                        });
+                                        // check bytecode validity
+                                        var isValid = testSuite.test(reducerDir);
 
-                                                if (isValid) {
-                                                    context.cache.update(fileName, result);
-                                                    // write all files to the temporary directory
-                                                    context.cache.classes().forEach(c -> {
-                                                        var p = context.outDir.resolve(c);
-                                                        var b = context.cache.bytecode(c);
+                                        if (isValid) {
+                                            cache.update(fileName, result)
+                                                    .write(context.outDir);
+                                        }
 
-                                                        try {
-                                                            Files.write(p, b);
-                                                        } catch (IOException e) {
-                                                            logger.fatal(e);
-                                                        }
-                                                    });
-                                                }
+                                        return isValid;
+                                    });
 
-                                                return isValid;
-                                            });
-
-                                            context.cache.update(fileName, bytecode);
-                                        }), context.keepTemp);
-                            })), context.keepTemp);
+                                    cache.update(fileName, bytecode);
+                                }), context.keepTemp);
+                    }), context.keepTemp);
 
         } catch (ParseException e) {
             logger.fatal(e);

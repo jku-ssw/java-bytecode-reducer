@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 /**
  * Factory that is initialized with properties and file paths
  * in order to generate a valid test context.
- * TODO refactor
  */
 public class ContextFactory {
     //-------------------------------------------------------------------------
@@ -155,33 +154,40 @@ public class ContextFactory {
      *
      * @return the new context
      */
-    public Context createContext()
-            throws IOException, DuplicateClassException {
+    public Context createContext() {
 
         // retrieve the working / output directories as absolute paths
         Path workingDir = Paths.get(this.workingDir).toAbsolutePath();
         Path outDir     = workingDir.resolve(this.outDir).toAbsolutePath();
         Path tempDir    = workingDir.resolve(this.tempDir).toAbsolutePath();
 
-        Set<Path> classFiles = validate(
-                workingDir,
-                this.classFiles,
-                classMatcher
-        );
-
-        Set<Path> iTests = validate(
-                workingDir,
-                this.iTests,
-                scriptMatcher
-        );
-
         return new Context(
-                classFiles,
-                iTests,
                 outDir,
                 tempDir,
                 keepTemp
         );
+    }
+
+    public BytecodeCache initCache()
+            throws IOException, DuplicateClassException {
+
+        Set<Path> classFiles = validate(
+                Paths.get(workingDir).toAbsolutePath(),
+                this.classFiles,
+                classMatcher
+        );
+
+        return new BytecodeCache(classFiles);
+    }
+
+    public TestSuite getTestSuite() throws IOException {
+        Set<Path> iTests = validate(
+                Paths.get(this.workingDir).toAbsolutePath(),
+                this.iTests,
+                scriptMatcher
+        );
+
+        return new TestSuite(iTests);
     }
 
     // endregion
