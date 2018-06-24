@@ -24,12 +24,11 @@ public class ScriptRunner {
      * @throws IOException if the process initiation fails
      */
     public Process exec(Path script) throws IOException {
-        // TODO somehow prevent detailed command output
-
         return new ProcessBuilder()
                 .command(getCommand(script.getFileName().toString()))
                 .directory(script.getParent().toFile())
                 .inheritIO()
+                .redirectOutput(ProcessBuilder.Redirect.DISCARD)
                 .start();
     }
 
