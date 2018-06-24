@@ -116,7 +116,7 @@ public class TempDir {
                         logger.trace("Clearing temporary directory at {}", p);
                         return keep ? path : FileUtils.delete(path);
                     } catch (IOException e) {
-                        e.printStackTrace();
+                        logger.fatal(e);
                         return null;
                     }
                 })
