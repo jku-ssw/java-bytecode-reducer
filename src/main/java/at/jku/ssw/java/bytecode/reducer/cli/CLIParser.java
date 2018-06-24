@@ -148,7 +148,7 @@ public class CLIParser {
 
         options.addOption(CLIOptions.HELP, "Display information about application usage")
                 .addOption(CLIOptions.VERSION, "Print program version")
-                .addOption(CLIOptions.KEEP_TEMP, "keep-temp", false, "Keep temporary test directories and files")
+                .addOption(CLIOptions.KEEP_TEMP, "keep", false, "Keep temporary test directories and files")
                 .addOption(workingDir)
                 .addOption(outDir)
                 .addOption(tempDir)
