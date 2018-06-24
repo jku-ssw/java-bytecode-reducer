@@ -9,7 +9,7 @@ import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveMethodAttributes;
+import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveAllMethodAttributes;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
@@ -55,7 +55,7 @@ public class JReduce {
                     RemoveReadOnlyFields.class,
                     RemoveStaticFieldAttributes.class,
                     RemoveAllFieldAttributes.class,
-                    RemoveMethodAttributes.class
+                    RemoveAllMethodAttributes.class
             );
 
             final var pre = modules.stream()

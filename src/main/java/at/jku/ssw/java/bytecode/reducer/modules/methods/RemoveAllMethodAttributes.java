@@ -13,7 +13,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 @Unsound
-public class RemoveMethodAttributes
+public class RemoveAllMethodAttributes
         implements MemberReducer<CtClass, CtMethod>, JavassistHelper {
 
     public static final int NO_ATTRIBUTES = 0x0;
@@ -29,7 +29,7 @@ public class RemoveMethodAttributes
 
     @Override
     public CtClass process(CtClass clazz, CtMethod method) {
-        logger.debug("Removing attributes of method '{}'", method.getLongName());
+        logger.debug("Removing all attributes of method '{}'", method.getLongName());
 
         method.setModifiers(NO_ATTRIBUTES);
 

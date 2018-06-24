@@ -1,15 +1,15 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveMethodAttributes;
+import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveAllMethodAttributes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class RemoveMethodAttributesTest extends ReducerTest<RemoveMethodAttributes> {
+public class RemoveAllMethodAttributesTest extends ReducerTest<RemoveAllMethodAttributes> {
 
     @BeforeEach
     void setUp() {
-        reducer = new RemoveMethodAttributes();
+        reducer = new RemoveAllMethodAttributes();
     }
 
     @AfterEach
