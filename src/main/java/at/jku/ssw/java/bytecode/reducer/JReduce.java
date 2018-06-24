@@ -54,7 +54,7 @@ public class JReduce {
                     RemoveEmptyMethods.class,
                     RemoveReadOnlyFields.class,
                     RemoveStaticFieldAttributes.class,
-                    RemoveFieldAttributes.class,
+                    RemoveAllFieldAttributes.class,
                     RemoveMethodAttributes.class
             );
 

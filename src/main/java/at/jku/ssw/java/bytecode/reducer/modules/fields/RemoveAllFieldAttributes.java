@@ -11,8 +11,11 @@ import org.apache.logging.log4j.Logger;
 import java.util.Arrays;
 import java.util.stream.Stream;
 
+/**
+ * Attempts to remove all attributes / modifiers from a class' fields.
+ */
 @Unsound
-public class RemoveFieldAttributes
+public class RemoveAllFieldAttributes
         implements MemberReducer<CtClass, CtField>, JavassistHelper {
 
     public static final int NO_ATTRIBUTES = 0x0;
@@ -27,7 +30,7 @@ public class RemoveFieldAttributes
 
     @Override
     public CtClass process(CtClass clazz, CtField field) {
-        logger.debug("Removing attributes of field '{}'", field.getName());
+        logger.debug("Removing all attributes of field '{}'", field.getName());
 
         field.setModifiers(NO_ATTRIBUTES);
 
