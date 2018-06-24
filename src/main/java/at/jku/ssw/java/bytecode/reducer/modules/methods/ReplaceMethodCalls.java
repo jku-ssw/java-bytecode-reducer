@@ -20,7 +20,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
 @Sound
-public class ReplaceMethodCalls implements RepeatableReducer<MethodCall>, AssignmentReplacer {
+public class ReplaceMethodCalls
+        implements RepeatableReducer<MethodCall>, AssignmentReplacer {
 
     private static final Logger logger = LogManager.getLogger();
 

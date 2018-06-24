@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  *                 (e.g. implementations for fields, methods)
  */
 public interface MemberReducer<CLASS, MEMBER>
-        extends RepeatableReducer<MEMBER> {
+        extends RepeatableReducer<MEMBER>, BytecodeTransformer<CLASS> {
 
     @Override
     default Result<MEMBER> apply(Base<MEMBER> base) throws Exception {
@@ -49,25 +49,6 @@ public interface MemberReducer<CLASS, MEMBER>
 
         return base.toMinimalResult();
     }
-
-    /**
-     * Loads the given bytecode as an instance of the class type.
-     *
-     * @param bytecode The bytecode that describes the class to reduce
-     * @return a new instance of the class type representing the bytecode
-     * @throws Exception if the bytecode is invalid or the object
-     *                   cannot be instantiated
-     */
-    CLASS classFrom(byte[] bytecode) throws Exception;
-
-    /**
-     * Retrieves the bytecode from the given instance of the class type.
-     *
-     * @param clazz The instance of the class type
-     * @return the bytecode describing the class
-     * @throws Exception if the bytecode cannot be extracted
-     */
-    byte[] bytecodeFrom(CLASS clazz) throws Exception;
 
     /**
      * Retrieves potentially applicable members that should be attempted.
