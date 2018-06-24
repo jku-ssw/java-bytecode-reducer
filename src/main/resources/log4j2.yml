@@ -21,10 +21,10 @@ Configuration:
     Logger:
       -
         name: at.jku.ssw.jreduce.utils
-        level: DEBUG
+        level: ERROR
       -
         name: at.jku.ssw.jreduce
-        level: DEBUG # TODO change for production
+        level: INFO
 
     Root:
       level: INFO
