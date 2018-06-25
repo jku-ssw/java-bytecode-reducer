@@ -42,7 +42,7 @@ public interface RepeatableReducer<A> extends Reducer {
         var reduced = res.bytecode();
 
         // try forced result (assumed to be minimal)
-        if (test.test(bytecode))
+        if (test.test(reduced))
             return reduced;
 
         var base = res.reject();
@@ -70,18 +70,20 @@ public interface RepeatableReducer<A> extends Reducer {
         Base<A>   base = Reduction.of(bytecode);
         Result<A> res;
 
-        for (; ; ) {
+        do {
             // apply the reduction operation
             res = apply(base);
 
             // and "accept" the result / assume it to be correct
             base = res.accept();
 
-            // only return on a minimal result
             // TODO maybe set MAX_ITERATION or similar check to prevent infinite loop on bad / lacking implementation
-            if (res.isMinimal())
-                return res;
-        }
+            // only return on a minimal result
+        } while (!res.isMinimal());
+
+        // create a new reduction result that has the "unforced" bytecode
+        // as a previous result
+        return Reduction.<A>of(bytecode).toResult(res.bytecode());
     }
 
     @Override
