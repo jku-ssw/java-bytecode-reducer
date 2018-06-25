@@ -46,7 +46,6 @@ public class JReduce {
             if (contextFactory == null)
                 System.exit(EXIT_SUCCESS);
 
-            // TODO invoke by loading class path files or specify otherwise
             // all available reduction operations
             final var modules = List.of(
                     RemoveUnusedFields.class,
@@ -80,7 +79,6 @@ public class JReduce {
             // initialize the context
             final var context = contextFactory.createContext();
 
-
             // initialize the test suite
             final var testSuite = contextFactory.getTestSuite();
 
@@ -105,7 +103,19 @@ public class JReduce {
 
                                     var bytecode = cache.bytecode(fileName);
 
+                                    /*
+                                    This call applies the given reduction
+                                    until the result is minimal.
+                                    The result then is the last valid bytecode.
+                                    */
                                     bytecode = reducer.apply(bytecode, result -> {
+                                        /*
+                                        this method is called for every
+                                        intermediate result attempt,
+                                        where "result" holds a potentially
+                                        conflicting bytecode
+                                        */
+
                                         var path = reducerDir.resolve(fileName);
 
                                         try {
@@ -118,6 +128,12 @@ public class JReduce {
                                         var isValid = testSuite.test(reducerDir);
 
                                         if (isValid) {
+                                            /*
+                                            if the tests ran correctly, update
+                                            the cached bytecode and write the
+                                            intermediate result to the output
+                                            directory
+                                            */
                                             cache.update(fileName, result)
                                                     .write(context.outDir);
                                         }
@@ -125,6 +141,8 @@ public class JReduce {
                                         return isValid;
                                     });
 
+                                    // place the (now valid) bytecode
+                                    // in the cache
                                     cache.update(fileName, bytecode);
                                 }), context.keepTemp);
                     }), context.keepTemp);
