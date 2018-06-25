@@ -16,10 +16,14 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecode;
 import static javassist.bytecode.Opcode.NOP;
 
 /**
@@ -30,8 +34,6 @@ import static javassist.bytecode.Opcode.NOP;
 public class RemoveInstructionSequences implements RepeatableReducer<CodePosition> {
 
     private static final Logger logger = LogManager.getLogger();
-
-    private final Random rand = new Random();
 
     /**
      * Reduces the given class at the given code position by
@@ -51,35 +53,36 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
         As this always returns a single method, the Optional result is simply
         forced.
         */
-        var method = Arrays.stream(clazz.getDeclaredBehaviors())
+        return Arrays.stream(clazz.getDeclaredBehaviors())
                 .filter(m -> m.getLongName().equals(codePosition.method))
                 .findAny()
-                .get();
+                .map(method -> {
 
-        var methodInfo = method.getMethodInfo();
+                    var methodInfo = method.getMethodInfo();
 
-        var ca = methodInfo.getCodeAttribute();
-        var it = ca.iterator();
+                    var ca = methodInfo.getCodeAttribute();
+                    var it = ca.iterator();
 
-        var begin = codePosition.begin;
-        var end   = codePosition.end;
+                    var begin = codePosition.begin;
+                    var end   = codePosition.end;
 
-        logger.debug(
-                "Removing instructions of behaviour '{}' from index {} to {}",
-                method.getLongName(),
-                begin,
-                end
-        );
+                    logger.debug(
+                            "Removing instructions of behaviour '{}' from index {} to {}",
+                            method.getLongName(),
+                            begin,
+                            end
+                    );
 
-        // replace the determined byte range with NOPs
-        IntStream.range(begin, end)
-                .forEach(i -> it.writeByte(NOP, i));
+                    // replace the determined byte range with NOPs
+                    IntStream.range(begin, end)
+                            .forEach(i -> it.writeByte(NOP, i));
 
-        try {
-            return base.toResult(Javassist.bytecode(clazz), codePosition);
-        } catch (IOException e) {
-            return null;
-        }
+                    try {
+                        return base.toResult(bytecode(clazz), codePosition);
+                    } catch (IOException e) {
+                        return null;
+                    }
+                }).orElse(null);
     }
 
     @Override
