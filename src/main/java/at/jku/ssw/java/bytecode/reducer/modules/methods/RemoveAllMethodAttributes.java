@@ -23,7 +23,7 @@ public class RemoveAllMethodAttributes
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
-                .filter(m -> !Members.isMain(m))
+                .filter(Members::isNotMain)
                 .filter(m -> m.getModifiers() != NO_ATTRIBUTES);
     }
 

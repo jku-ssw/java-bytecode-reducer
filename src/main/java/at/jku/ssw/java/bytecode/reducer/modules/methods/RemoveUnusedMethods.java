@@ -22,7 +22,7 @@ public class RemoveUnusedMethods
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) throws Exception {
         return Instrumentation.unusedMethods(clazz, Expressions::isRecursion)
-                .filter(m -> !Members.isMain(m));
+                .filter(Members::isNotMain);
     }
 
     @Override

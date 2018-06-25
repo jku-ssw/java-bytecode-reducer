@@ -5,7 +5,6 @@ import javassist.*;
 /**
  * Javassist utilities for members - those can either be (static) fields,
  * methods, (static) initializers or constructors.
- *
  */
 public final class Members {
     /**
@@ -13,7 +12,8 @@ public final class Members {
      */
     public static final String MAIN_SIGNATURE = "([Ljava/lang/String;)V";
 
-    private Members() {}
+    private Members() {
+    }
 
     /**
      * Determine if the given member is declared in the given class.
@@ -55,5 +55,12 @@ public final class Members {
                 Modifier.isPublic(mod) &&
                 member.getName().equals("main") &&
                 MAIN_SIGNATURE.equals(member.getSignature());
+    }
+
+    /**
+     * @see Members#isMain(CtMember)
+     */
+    public static boolean isNotMain(CtMember member) {
+        return !isMain(member);
     }
 }
