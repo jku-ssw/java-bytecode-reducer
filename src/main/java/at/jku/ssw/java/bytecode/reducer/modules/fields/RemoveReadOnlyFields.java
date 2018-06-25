@@ -3,14 +3,14 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.runtypes.AssignmentReplacer;
-import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
-import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
+import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -64,7 +64,6 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
     public Reduction.Result<CtField> force(byte[] bytecode) throws Exception {
         CtClass clazz = Javassist.loadClass(bytecode);
 
-        @SuppressWarnings("unchecked")
         Map<CtField, String> defaultValues = eligibleFields(clazz)
                 .collect(Collectors.toMap(
                         Function.identity(),
