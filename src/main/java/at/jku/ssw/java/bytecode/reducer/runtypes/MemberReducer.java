@@ -33,7 +33,7 @@ public interface MemberReducer<CLASS, MEMBER>
         // if no applicable member was found, the reduction is minimal
         return optMember.map((TFunction<MEMBER, Result<MEMBER>>) f ->
                 base.toResult(bytecodeFrom(process(clazz, f)), f))
-                .orElse(base.toMinimalResult());
+                .orElseGet(base::toMinimalResult);
     }
 
     @Override

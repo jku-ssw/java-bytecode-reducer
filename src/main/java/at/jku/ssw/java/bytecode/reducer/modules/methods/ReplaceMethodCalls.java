@@ -48,6 +48,6 @@ public class ReplaceMethodCalls
         return Optional.ofNullable(call.get())
                 .map((TFunction<MethodCall, Result<MethodCall>>) f ->
                         base.toResult(Javassist.bytecode(clazz), f))
-                .orElse(base.toMinimalResult());
+                .orElseGet(base::toMinimalResult);
     }
 }
