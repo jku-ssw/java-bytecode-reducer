@@ -1,5 +1,8 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
+import javassist.bytecode.CodeIterator;
+import javassist.bytecode.Descriptor;
+
 import java.util.Set;
 
 import static javassist.bytecode.Opcode.*;
@@ -48,6 +51,11 @@ public final class Code {
      */
     private static final Set<Integer> special;
 
+    /**
+     * Contains opcodes that clear the stack (or most of it).
+     */
+    private static final Set<Integer> clear;
+
     static {
         plus1 = Set.of(
                 ACONST_NULL,
@@ -56,12 +64,14 @@ public final class Code {
                 ALOAD_1,
                 ALOAD_2,
                 ALOAD_3,
+                ARETURN,
                 BIPUSH,
                 DLOAD,
                 DLOAD_0,
                 DLOAD_1,
                 DLOAD_2,
                 DLOAD_3,
+                DRETURN,
                 DUP,
                 DUP_X1,
                 DUP_X2,
@@ -73,6 +83,7 @@ public final class Code {
                 FLOAD_1,
                 FLOAD_2,
                 FLOAD_3,
+                FRETURN,
                 ICONST_M1,
                 ICONST_0,
                 ICONST_1,
@@ -85,6 +96,7 @@ public final class Code {
                 ILOAD_1,
                 ILOAD_2,
                 ILOAD_3,
+                IRETURN,
                 JSR,
                 JSR_W,
                 LCONST_0,
@@ -172,6 +184,7 @@ public final class Code {
                 LCMP,
                 LDIV,
                 LMUL,
+                LOOKUPSWITCH,
                 LOR,
                 LREM,
                 LSHL,
@@ -189,7 +202,8 @@ public final class Code {
                 POP,
                 PUTSTATIC,
                 SALOAD,
-                SIPUSH
+                SIPUSH,
+                TABLESWITCH
         );
 
         min2 = Set.of(
@@ -216,6 +230,16 @@ public final class Code {
                 SASTORE
         );
 
+        clear = Set.of(
+                ARETURN,
+                ATHROW,
+                DRETURN,
+                FRETURN,
+                IRETURN,
+                LRETURN,
+                RETURN
+        );
+
         neutral = Set.of(
                 ANEWARRAY,
                 ARRAYLENGTH,
@@ -229,6 +253,8 @@ public final class Code {
                 F2L,
                 FNEG,
                 GETFIELD,
+                GOTO,
+                GOTO_W,
                 I2B,
                 I2C,
                 I2D,
@@ -244,6 +270,7 @@ public final class Code {
                 LNEG,
                 NEWARRAY,
                 NOP,
+                RET,
                 SWAP
         );
 
@@ -257,6 +284,7 @@ public final class Code {
                 INVOKEDYNAMIC,
                 INVOKEINTERFACE,
                 INVOKESPECIAL,
+                INVOKESTATIC,
                 INVOKEVIRTUAL,
                 IRETURN,
                 LOOKUPSWITCH, // removes 1 but jumps to address
@@ -271,30 +299,6 @@ public final class Code {
     }
 
     private Code() {
-    }
-
-    /**
-     * Checks whether the operation indicated by the given {@link javassist.bytecode.Opcode}
-     * increases the stack size.
-     *
-     * @param opcode The opcode of the current operation
-     * @return {@code true} if the operation puts values on the stack;
-     * {@code false} if the stack is reduced or invariant
-     */
-    public static boolean isStackPush(int opcode) {
-        return getStackLevelChange(opcode) > 0;
-    }
-
-    /**
-     * Checks whether the operation indicated by the given {@link javassist.bytecode.Opcode}
-     * decreases the stack size.
-     *
-     * @param opcode The opcode of the current operation
-     * @return {@code true} if the operation removes values from the stack;
-     * {@code false} if the stack is increased or invariant
-     */
-    public static boolean isStackPop(int opcode) {
-        return getStackLevelChange(opcode) < 0;
     }
 
     /**
@@ -328,10 +332,12 @@ public final class Code {
      * the given {@link javassist.bytecode.Opcode} implies.
      *
      * @param opcode The opcode of the current operation
+     * @param i      The current instruction index
+     * @param it     The code iterator
      * @return a positive value if the stack is increased, a negative value
      * if the stack is reduced; 0 if the stack remains invariant
      */
-    public static int getStackLevelChange(int opcode) {
+    public static int getStackLevelChange(int opcode, int i, CodeIterator it) {
         if (plus1.contains(opcode))
             return 1;
         if (plus2.contains(opcode))
@@ -342,7 +348,65 @@ public final class Code {
             return -2;
         if (min3.contains(opcode))
             return -3;
+        if (special.contains(opcode)) {
+            final var constPool = it.get().getConstPool();
+            switch (opcode) {
+                case INVOKEINTERFACE:
+                    var arg = it.s16bitAt(i + 1);
+                    var desc = constPool.getInterfaceMethodrefType(arg);
+
+                    // removes the object reference and returns a single value
+                    // and reduces the stack by n values
+                    // where n is the number of parameters
+                    return Descriptor.numOfParameters(desc);
+                case INVOKESPECIAL:
+                case INVOKEVIRTUAL:
+                    arg = it.s16bitAt(i + 1);
+                    desc = constPool.getMethodrefType(arg);
+
+                    // removes the object reference and returns a single value
+                    // and reduces the stack by n values
+                    return Descriptor.numOfParameters(desc);
+                case INVOKEDYNAMIC:
+                case INVOKESTATIC:
+                    arg = it.s16bitAt(i + 1);
+                    desc = constPool.getMethodrefType(arg);
+
+                    // removes n values and puts the result on the stack
+                    return 1 - Descriptor.numOfParameters(desc);
+                case MULTIANEWARRAY:
+                    /*
+                    1 byte for instruction
+                    2 bytes for index argument
+                    3rd byte is number of dimensions
+                    (number of arguments to remove)
+
+                    This count is subtracted from 1
+                    which is the returned array reference
+                    */
+                    return 1 - it.byteAt(i + 3);
+                default:
+                    break;
+            }
+        }
 
         return 0;
+    }
+
+    /**
+     * Calculates the new stack level based on the current level
+     * and the given opcode that represents the next instruction.
+     *
+     * @param stackLevel The current stack level
+     * @param opcode     The current operation
+     * @param i          The current instruction index
+     * @param it         The code iterator
+     * @return the new stack level
+     */
+    public static int newStackLevel(int stackLevel, int opcode, int i, CodeIterator it) {
+        if (clear.contains(opcode))
+            return 0;
+
+        return stackLevel + getStackLevelChange(opcode, i, it);
     }
 }

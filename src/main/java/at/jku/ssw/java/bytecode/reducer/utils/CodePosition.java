@@ -1,11 +1,13 @@
 package at.jku.ssw.java.bytecode.reducer.utils;
 
-public class CodePosition {
-    private final String method;
-    private final int    begin;
-    private final int    end;
+import javassist.bytecode.MethodInfo;
 
-    public CodePosition(String method, int begin, int end) {
+public class CodePosition {
+    public final MethodInfo method;
+    public final int        begin;
+    public final int        end;
+
+    public CodePosition(MethodInfo method, int begin, int end) {
         this.method = method;
         this.begin = begin;
         this.end = end;

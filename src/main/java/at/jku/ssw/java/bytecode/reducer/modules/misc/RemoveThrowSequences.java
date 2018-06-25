@@ -64,7 +64,7 @@ public class RemoveThrowSequences implements RepeatableReducer<CodePosition> {
                         }
                     }
 
-                    return new CodePosition("", 0, 0);
+                    return new CodePosition(m, 0, 0);
                 })
                 .findFirst()
                 .map(cp -> base.toResult(bytecode, cp))

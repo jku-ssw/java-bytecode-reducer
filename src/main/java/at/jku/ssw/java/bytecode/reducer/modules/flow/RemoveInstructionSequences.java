@@ -1,21 +1,25 @@
 package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.context.Reduction;
+import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
-import javassist.CtBehavior;
+import javassist.bytecode.ClassFile;
 import javassist.bytecode.MethodInfo;
 import javassist.bytecode.Mnemonic;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Objects;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
+import java.util.stream.IntStream;
 
 import static javassist.bytecode.Opcode.NOP;
 
@@ -28,37 +32,68 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
 
     private static final Logger logger = LogManager.getLogger();
 
+    /**
+     * Reduces the given class at the given code position by
+     * replacing all instructions withing the given range by NOPs.
+     *
+     * @param base         The reduction base
+     * @param clazz        The class to reduce
+     * @param codePosition The determined code position
+     * @return the reduction result
+     */
+    private Result<CodePosition> process(Base<CodePosition> base,
+                                         ClassFile clazz,
+                                         CodePosition codePosition) {
+
+        var ca = codePosition.method.getCodeAttribute();
+        var it = ca.iterator();
+
+        var begin = codePosition.begin;
+        var end   = codePosition.end;
+
+        logger.info(
+                "Removing instructions of method '{}' from index {} to {}",
+                codePosition.method.getName(),
+                begin,
+                end
+        );
+
+        // replace the determined byte range with NOPs
+        IntStream.range(begin, end)
+                .forEach(i -> it.writeByte(NOP, i));
+
+        clazz.compact();
+
+        try {
+            return base.toResult(Javassist.bytecode(clazz), codePosition);
+        } catch (IOException e) {
+            return null;
+        }
+    }
+
     @Override
-    public Reduction.Result<CodePosition> apply(Reduction.Base<CodePosition> base) throws Exception {
-        final var clazz = Javassist.loadClass(base.bytecode());
-        final var constPool = clazz.getClassFile().getConstPool();
+    public Result<CodePosition> apply(Base<CodePosition> base) throws Exception {
+        final var clazz = Javassist.loadClass(base.bytecode()).getClassFile();
 
-        return Arrays.stream(clazz.getDeclaredMethods())
-                .map(CtBehavior::getMethodInfo)
-                .map((TFunction<MethodInfo, CodePosition>) m -> {
-                    final var methodName = m.getName();
+        @SuppressWarnings("unchecked") final var methods = (List<MethodInfo>) clazz.getMethods();
 
-                    logger.debug(methodName);
+        return methods.stream()
+                .map((TFunction<MethodInfo, Optional<CodePosition>>) m -> {
+                    logger.trace(m.getName() + m.getDescriptor());
 
-                    var ca = m.getCodeAttribute();
-                    var it = ca.iterator();
+                    final var ca = m.getCodeAttribute();
+                    final var it = ca.iterator();
 
                     // store the markings at which the stack size is zero
-                    var zeroIndices = new HashSet<Integer>();
+                    // and that are not NOPs
+                    var beginIndices = new ArrayList<Integer>();
 
-                    // stores index positions that contain "special" instructions
-                    var specIndices = new HashSet<Integer>();
-
-                    // index of the first instruction in a potentially
-                    // removable sequence
-                    int begin = -1;
+                    // store the markings at which the stack size is zero
+                    // which may be NOPs
+                    var endIndices = new ArrayList<Integer>();
 
                     // the current number of items on the stack
                     var stackSize = 0;
-
-                    // flag to check whether the current instructions
-                    // are within a potentially removable sequence
-                    var seqDetected = false;
 
                     /*
                         Every constructor code begins with
@@ -70,7 +105,6 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                         two instructions are therefore skipped,
                         as the stack is again empty after this sequence.
                     */
-
                     it.skipConstructor();
 
                     while (it.hasNext()) {
@@ -83,23 +117,15 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                         // instruction, either a previous sequence was
                         // discarded or the loop just started
                         if (stackSize == 0 && code != NOP) {
-                            begin = index;
-                            zeroIndices.add(index);
+                            beginIndices.add(index);
                         }
-
-                        /*
-                            If a "special" instruction is found, the range is
-                            reset.
-                            This should prevent control flow instructions from
-                            being removed (e.g. sets of instructions that lead
-                            to and include a conditional jump).
-                        */
 
                         var oldStackSize = stackSize;
 
-                        stackSize += Code.getStackLevelChange(code);
+                        // calculate the new stack level
+                        stackSize = Code.newStackLevel(oldStackSize, code, index, it);
 
-                        logger.debug(String.format(
+                        logger.trace(String.format(
                                 "%d: %-40s // Stack: %d -> %d",
                                 index,
                                 Mnemonic.OPCODE[code],
@@ -107,44 +133,26 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                                 stackSize
                         ));
 
-                        // reset stack size and range start in
-                        // case of "special" instructions
-                        if (Code.isSpecial(code)) {
-                            begin = -1;
-                            stackSize = 0;
-                            zeroIndices.add(index);
-
-
-
-                        } else {
-
-                            // if the stack is empty (again), the instruction
-                            // sequence may be valid
-                            if (stackSize == 0 && begin != -1) {
-                                var cp = new CodePosition(methodName, begin, index);
-
-                                if (!base.cache().contains(cp)) {
-                                    // IntStream.range()
-
-                                    // TODO determine
-                                    return cp;
-                                }
-
-                                begin = -1;
-                            }
-                        }
+                        // if the stack is empty (again), remember the next index
+                        // as this may be a potential end of a removable sequence
+                        if (stackSize == 0)
+                            endIndices.add(it.lookAhead());
                     }
 
-                    return null;
+                    return beginIndices.stream()
+                            .flatMap(i ->
+                                    endIndices.stream()
+                                            .filter(j -> j > i)
+                                            .map(j -> new CodePosition(m, i, j))
+                            )
+                            .filter(cp -> !base.cache().contains(cp))
+                            .findAny();
                 })
-                .filter(Objects::nonNull)
-                .filter(cp -> !base.cache().contains(cp))
+                .filter(Optional::isPresent)
                 .findAny()
-                .map(cp -> base.toMinimalResult())
-                .orElse(null);
-//                .map(cp -> base.toResult(base.bytecode(), cp))
-//                .orElse(base.toMinimalResult());
-
+                .flatMap(Function.identity())
+                .map(cp -> process(base, clazz, cp))
+                .orElse(base.toMinimalResult());
     }
 
 }
