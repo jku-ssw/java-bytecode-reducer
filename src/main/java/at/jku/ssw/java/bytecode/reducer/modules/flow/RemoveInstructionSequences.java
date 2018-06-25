@@ -8,16 +8,15 @@ import at.jku.ssw.java.bytecode.reducer.utils.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
-import javassist.bytecode.ClassFile;
-import javassist.bytecode.MethodInfo;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
+import javassist.CtBehavior;
+import javassist.CtClass;
 import javassist.bytecode.Mnemonic;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
@@ -32,6 +31,8 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
 
     private static final Logger logger = LogManager.getLogger();
 
+    private final Random rand = new Random();
+
     /**
      * Reduces the given class at the given code position by
      * replacing all instructions withing the given range by NOPs.
@@ -42,18 +43,30 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
      * @return the reduction result
      */
     private Result<CodePosition> process(Base<CodePosition> base,
-                                         ClassFile clazz,
+                                         CtClass clazz,
                                          CodePosition codePosition) {
 
-        var ca = codePosition.method.getCodeAttribute();
+        /*
+        Fetch the method that is referenced in the code position.
+        As this always returns a single method, the Optional result is simply
+        forced.
+        */
+        var method = Arrays.stream(clazz.getDeclaredBehaviors())
+                .filter(m -> m.getLongName().equals(codePosition.method))
+                .findAny()
+                .get();
+
+        var methodInfo = method.getMethodInfo();
+
+        var ca = methodInfo.getCodeAttribute();
         var it = ca.iterator();
 
         var begin = codePosition.begin;
         var end   = codePosition.end;
 
-        logger.info(
-                "Removing instructions of method '{}' from index {} to {}",
-                codePosition.method.getName(),
+        logger.debug(
+                "Removing instructions of behaviour '{}' from index {} to {}",
+                method.getLongName(),
                 begin,
                 end
         );
@@ -61,8 +74,6 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
         // replace the determined byte range with NOPs
         IntStream.range(begin, end)
                 .forEach(i -> it.writeByte(NOP, i));
-
-        clazz.compact();
 
         try {
             return base.toResult(Javassist.bytecode(clazz), codePosition);
@@ -73,13 +84,19 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
 
     @Override
     public Result<CodePosition> apply(Base<CodePosition> base) throws Exception {
-        final var clazz = Javassist.loadClass(base.bytecode()).getClassFile();
+        final var clazz = Javassist.loadClass(base.bytecode());
 
-        @SuppressWarnings("unchecked") final var methods = (List<MethodInfo>) clazz.getMethods();
+        // iterate all "behaviours" (which includes methods and initializers)
+        // except the main method
+        return Arrays.stream(clazz.getDeclaredBehaviors())
+                .filter(Members::isNotMain)
+                .map((TFunction<CtBehavior, Optional<CodePosition>>) method -> {
+                    var m = method.getMethodInfo();
 
-        return methods.stream()
-                .map((TFunction<MethodInfo, Optional<CodePosition>>) m -> {
-                    logger.trace(m.getName() + m.getDescriptor());
+                    // the key that uniquely identifies this method
+                    var name = method.getLongName();
+
+                    logger.trace(name);
 
                     final var ca = m.getCodeAttribute();
                     final var it = ca.iterator();
@@ -116,9 +133,8 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                         // If the stacksize is zero BEFORE the current
                         // instruction, either a previous sequence was
                         // discarded or the loop just started
-                        if (stackSize == 0 && code != NOP) {
+                        if (stackSize == 0 && code != NOP)
                             beginIndices.add(index);
-                        }
 
                         var oldStackSize = stackSize;
 
@@ -142,8 +158,9 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                     return beginIndices.stream()
                             .flatMap(i ->
                                     endIndices.stream()
+                                            .sorted(Comparator.reverseOrder())
                                             .filter(j -> j > i)
-                                            .map(j -> new CodePosition(m, i, j))
+                                            .map(j -> new CodePosition(name, i, j))
                             )
                             .filter(cp -> !base.cache().contains(cp))
                             .findAny();
@@ -152,7 +169,7 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                 .findAny()
                 .flatMap(Function.identity())
                 .map(cp -> process(base, clazz, cp))
-                .orElse(base.toMinimalResult());
+                .orElseGet(base::toMinimalResult);
     }
 
 }

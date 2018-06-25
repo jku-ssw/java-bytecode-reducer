@@ -6,8 +6,7 @@ import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
-import javassist.CtBehavior;
-import javassist.bytecode.MethodInfo;
+import javassist.CtMethod;
 import javassist.bytecode.Opcode;
 
 import java.util.Arrays;
@@ -41,8 +40,9 @@ public class RemoveThrowSequences implements RepeatableReducer<CodePosition> {
         final var constPool = clazz.getClassFile().getConstPool();
 
         return Arrays.stream(clazz.getDeclaredMethods())
-                .map(CtBehavior::getMethodInfo)
-                .map((TFunction<MethodInfo, CodePosition>) m -> {
+                .map((TFunction<CtMethod, CodePosition>) method -> {
+                    var m = method.getMethodInfo();
+
                     var ca = m.getCodeAttribute();
                     var it = ca.iterator();
 
@@ -64,10 +64,10 @@ public class RemoveThrowSequences implements RepeatableReducer<CodePosition> {
                         }
                     }
 
-                    return new CodePosition(m, 0, 0);
+                    return new CodePosition(method.getLongName(), 0, 0);
                 })
                 .findFirst()
                 .map(cp -> base.toResult(bytecode, cp))
-                .orElse(base.toMinimalResult());
+                .orElseGet(base::toMinimalResult);
     }
 }
