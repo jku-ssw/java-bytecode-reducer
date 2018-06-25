@@ -28,7 +28,8 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
-                false
+                false,
+                -1L
         );
     }
 
@@ -87,7 +88,8 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
-                false
+                false,
+                -1L
         );
 
         assertEquals(expected, parse(args));

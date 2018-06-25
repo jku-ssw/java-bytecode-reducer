@@ -34,6 +34,11 @@ public class ContextFactory {
      */
     public static final String DEFAULT_TEMP = ".tmp";
 
+    /**
+     * The default timeout in seconds.
+     */
+    public static final long DEFAULT_TIMEOUT = 10;
+
     // endregion
     //-------------------------------------------------------------------------
     // region Properties
@@ -86,6 +91,11 @@ public class ContextFactory {
      */
     private final PathMatcher classMatcher;
 
+    /**
+     * Timeout for interestingness test runs.
+     */
+    private final long timeout;
+
     // endregion
     //-------------------------------------------------------------------------
     // region Initialization
@@ -95,7 +105,8 @@ public class ContextFactory {
                           String workingDir,
                           String outDir,
                           String tempDir,
-                          boolean keepTemp) {
+                          boolean keepTemp,
+                          long timeout) {
 
         this.classFiles = classFiles;
         this.iTests = iTests;
@@ -103,6 +114,7 @@ public class ContextFactory {
         this.outDir = outDir == null ? DEFAULT_OUT : outDir;
         this.tempDir = tempDir == null ? DEFAULT_TEMP : tempDir;
         this.keepTemp = keepTemp;
+        this.timeout = timeout == -1 ? DEFAULT_TIMEOUT : timeout;
 
         String scriptPattern = OSUtils.isWindows() ? "glob:*.bat" : "glob:*.sh";
         scriptMatcher = FileSystems.getDefault().getPathMatcher(scriptPattern);
@@ -187,7 +199,7 @@ public class ContextFactory {
                 scriptMatcher
         );
 
-        return new TestSuite(iTests);
+        return new TestSuite(iTests, timeout);
     }
 
     // endregion

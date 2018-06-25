@@ -5,6 +5,7 @@ import at.jku.ssw.java.bytecode.reducer.utils.OSUtils;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Class that handles batch and shell scripts and enables those file types'
@@ -13,6 +14,14 @@ import java.util.List;
 public class ScriptRunner {
 
     public static final int EXIT_SUCCESS = 0;
+
+    public static final int EXIT_TIMEOUT = 9;
+
+    private final long timeout;
+
+    public ScriptRunner(long timeout) {
+        this.timeout = timeout;
+    }
 
     /**
      * Initializes a process to execute the script that is located at the given
@@ -46,7 +55,12 @@ public class ScriptRunner {
     public int execBlocking(Path script)
             throws IOException, InterruptedException {
 
-        return exec(script).waitFor();
+        var process = exec(script);
+
+        if (!process.waitFor(timeout, TimeUnit.SECONDS))
+            return EXIT_TIMEOUT;
+
+        return process.exitValue();
     }
 
     /**

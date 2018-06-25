@@ -43,6 +43,11 @@ public class CLIParser {
                 .ofNullable((String[]) getArg(cmd, CLIOptions.I_TESTS))
                 .orElse(new String[0]);
 
+        long timeout = Optional
+                .ofNullable((Number) cmd.getParsedOptionValue(CLIOptions.TIMEOUT))
+                .map(Number::longValue)
+                .orElse(-1L);
+
         boolean keepTemp = cmd.hasOption(CLIOptions.KEEP_TEMP);
 
         // if no explicit tests are provided with the option,
@@ -58,7 +63,8 @@ public class CLIParser {
                 workingDir,
                 out,
                 tmp,
-                keepTemp
+                keepTemp,
+                timeout
         );
     }
 
@@ -146,6 +152,14 @@ public class CLIParser {
                 .addOption(quiet);
         logging.setRequired(false);
 
+        Option timeout = Option.builder(CLIOptions.TIMEOUT)
+                .desc("The timeout in seconds until runs of the test files are interrupted (to prevent infinite loops)")
+                .longOpt("timeout")
+                .hasArg(true)
+                .required(false)
+                .type(Number.class)
+                .build();
+
         options.addOption(CLIOptions.HELP, "Display information about application usage")
                 .addOption(CLIOptions.VERSION, "Print program version")
                 .addOption(CLIOptions.KEEP_TEMP, "keep", false, "Keep temporary test directories and files")
@@ -153,7 +167,8 @@ public class CLIParser {
                 .addOption(outDir)
                 .addOption(tempDir)
                 .addOptionGroup(logging)
-                .addOption(iTest);
+                .addOption(iTest)
+                .addOption(timeout);
 
         return options;
     }

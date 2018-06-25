@@ -25,9 +25,9 @@ public class TestSuite {
 
     private final ScriptRunner scriptRunner;
 
-    TestSuite(Set<Path> iTests) {
+    TestSuite(Set<Path> iTests, long timeout) {
         this.iTests = iTests;
-        scriptRunner = new ScriptRunner();
+        scriptRunner = new ScriptRunner(timeout);
     }
 
     /**
