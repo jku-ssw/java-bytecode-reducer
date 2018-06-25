@@ -48,11 +48,11 @@ public class TestSuite {
                         var exitCode = scriptRunner.execBlocking(itest);
 
                         if (exitCode == ScriptRunner.EXIT_SUCCESS) {
-                            logger.trace("Test {} succeeded", file);
+                            logger.info("Test '{}' succeeded", file);
                             return true;
                         }
 
-                        logger.info("Test {} failed with exit code {}", file, exitCode);
+                        logger.info("Test '{}' failed with exit code {}", file, exitCode);
 
                     } catch (IOException | InterruptedException e) {
                         logger.fatal(e);
