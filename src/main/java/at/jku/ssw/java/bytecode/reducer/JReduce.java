@@ -8,8 +8,9 @@ import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
 import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
+import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveAllMethodAttributes;
+import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
@@ -55,7 +56,8 @@ public class JReduce {
                     RemoveReadOnlyFields.class,
                     RemoveStaticFieldAttributes.class,
                     RemoveAllFieldAttributes.class,
-                    RemoveAllMethodAttributes.class
+                    RemoveAllMethodAttributes.class,
+                    RemoveInstructionSequences.class
             );
 
             final var pre = modules.stream()
