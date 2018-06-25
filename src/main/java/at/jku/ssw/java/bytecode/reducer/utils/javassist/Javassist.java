@@ -1,6 +1,5 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
-import javassist.CannotCompileException;
 import javassist.ClassPool;
 import javassist.CtClass;
 import javassist.bytecode.ClassFile;
@@ -29,18 +28,18 @@ public class Javassist {
     }
 
     /**
-     * Retrieves the bytecode of the given class without locking the instance.
+     * Retrieves the bytecode of the given class.
      *
      * @param clazz The class whose bytecode is retrieved
      * @return the bytecode that represents the given class
-     * @throws IOException            if the bytecode cannot be generated
-     * @throws CannotCompileException if the class does not compile
+     * @throws IOException if the bytecode cannot be generated
      */
-    public static byte[] bytecode(CtClass clazz)
-            throws IOException, CannotCompileException {
-        byte[] bytecode = clazz.toBytecode();
-        clazz.defrost();
-        return bytecode;
+    public static byte[] bytecode(CtClass clazz) throws IOException {
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            clazz.getClassFile().write(new DataOutputStream(out));
+
+            return out.toByteArray();
+        }
     }
 
     /**
