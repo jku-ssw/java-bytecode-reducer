@@ -8,9 +8,18 @@ Configuration:
 
   Appenders:
     Console:
-      name: CONSOLE
-      PatternLayout:
-        Pattern: "%highlight{[%-5p]} %m%n%throwable"
+      - name: CONSOLE_DEFAULT
+        ThresholdFilter:
+          level: ERROR
+          onMatch: deny
+          onMismatch: accept
+        PatternLayout:
+          Pattern: "%d{HH:mm:ss.SSS} %m%n%throwable"
+      - name: CONSOLE_WARN
+        ThresholdFilter:
+          level: WARN
+        PatternLayout:
+          Pattern: "%highlight{%d{HH:mm:ss.SSS} [%-5p] %m%n%throwable}"
     File:
       name: FILE
       fileName: ${filename}
@@ -29,5 +38,6 @@ Configuration:
     Root:
       level: INFO
       AppenderRef:
-        - ref: CONSOLE
+        - ref: CONSOLE_DEFAULT
+        - ref: CONSOLE_WARN
         - ref: FILE
