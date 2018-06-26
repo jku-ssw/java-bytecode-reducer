@@ -54,7 +54,7 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
         forced.
         */
         return Arrays.stream(clazz.getDeclaredBehaviors())
-                .filter(m -> m.getLongName().equals(codePosition.method))
+                .filter(m -> m.getLongName().equals(codePosition.member))
                 .findAny()
                 .map(method -> {
 
