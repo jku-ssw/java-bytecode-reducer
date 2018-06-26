@@ -2,11 +2,46 @@ package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
 import javassist.*;
 
+import java.util.Random;
+import java.util.stream.Stream;
+
 /**
  * Javassist utilities for members - those can either be (static) fields,
  * methods, (static) initializers or constructors.
  */
 public final class Members {
+
+    public enum Attribute {
+        PUBLIC(Modifier.PUBLIC),
+        PRIVATE(Modifier.PRIVATE),
+        PROTECTED(Modifier.PROTECTED),
+        STATIC(Modifier.STATIC),
+        FINAL(Modifier.FINAL),
+        SYNCHRONIZED(Modifier.SYNCHRONIZED),
+        VOLATILE(Modifier.VOLATILE),
+        VARARGS(Modifier.VARARGS),
+        TRANSIENT(Modifier.TRANSIENT),
+        NATIVE(Modifier.NATIVE),
+        INTERFACE(Modifier.INTERFACE),
+        ABSTRACT(Modifier.ABSTRACT),
+        STRICT(Modifier.STRICT),
+        ANNOTATION(Modifier.ANNOTATION),
+        ENUM(Modifier.ENUM);
+
+        public final int flag;
+
+        Attribute(int flag) {
+            this.flag = flag;
+        }
+
+        public static Stream<Attribute> randStream() {
+            var rand = new Random();
+
+            return rand.ints(0, values().length)
+                    .mapToObj(i -> values()[i]);
+        }
+    }
+
     /**
      * Signature of the main method.
      */
