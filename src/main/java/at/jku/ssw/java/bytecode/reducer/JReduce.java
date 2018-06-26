@@ -11,7 +11,9 @@ import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveAllMethodAttributes;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
+import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveMethodAttributes;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
+import at.jku.ssw.java.bytecode.reducer.modules.misc.ShrinkConstantPool;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import org.apache.commons.cli.ParseException;
@@ -56,7 +58,10 @@ public class JReduce {
                     RemoveStaticFieldAttributes.class,
                     RemoveAllFieldAttributes.class,
                     RemoveAllMethodAttributes.class,
-                    RemoveInstructionSequences.class
+                    RemoveInstructionSequences.class,
+                    ShrinkConstantPool.class,
+                    RemoveMethodAttributes.class,
+                    RemoveFieldAttributes.class
             );
 
             final var pre = modules.stream()
