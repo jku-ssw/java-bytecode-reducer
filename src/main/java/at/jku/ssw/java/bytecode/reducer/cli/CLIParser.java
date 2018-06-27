@@ -6,6 +6,7 @@ import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.apache.logging.log4j.core.config.Configurator;
+import org.apache.logging.log4j.io.IoBuilder;
 
 import java.util.Arrays;
 import java.util.Optional;
@@ -20,6 +21,16 @@ public class CLIParser {
         // Command line already handled - exit
         if (cmd == null)
             return null;
+
+        if (cmd.hasOption(CLIOptions.HELP)) {
+            showHelp(options);
+            return null;
+        }
+
+        if (cmd.hasOption(CLIOptions.VERSION)) {
+            showVersion();
+            return null;
+        }
 
         if (cmd.hasOption(CLIOptions.VERBOSE))
             Configurator.setAllLevels(
@@ -40,11 +51,11 @@ public class CLIParser {
         String[] classFiles = fileArgs;
 
         String[] iTests = Optional
-                .ofNullable((String[]) getArg(cmd, CLIOptions.I_TESTS))
+                .ofNullable(cmd.getOptionValues(CLIOptions.I_TESTS))
                 .orElse(new String[0]);
 
         long timeout = Optional
-                .ofNullable((Number) cmd.getParsedOptionValue(CLIOptions.TIMEOUT))
+                .ofNullable((Number) getArg(cmd, CLIOptions.TIMEOUT))
                 .map(Number::longValue)
                 .orElse(-1L);
 
@@ -92,7 +103,17 @@ public class CLIParser {
 
     private void showHelp(Options options) {
         HelpFormatter formatter = new HelpFormatter();
-        formatter.printHelp("jreduce", options);
+        formatter.printHelp(
+                IoBuilder.forLogger(logger).setLevel(Level.INFO).buildPrintWriter(),
+                100,
+                "jreduce",
+                "",
+                options,
+                10,
+                5,
+                "",
+                true
+        );
     }
 
     private void showVersion() {
@@ -160,8 +181,8 @@ public class CLIParser {
                 .type(Number.class)
                 .build();
 
-        options.addOption(CLIOptions.HELP, "Display information about application usage")
-                .addOption(CLIOptions.VERSION, "Print program version")
+        options.addOption(CLIOptions.HELP, CLIOptions.HELP, false, "Display information about application usage")
+                .addOption(CLIOptions.VERSION, CLIOptions.VERSION, false, "Print program version")
                 .addOption(CLIOptions.KEEP_TEMP, "keep", false, "Keep temporary test directories and files")
                 .addOption(workingDir)
                 .addOption(outDir)

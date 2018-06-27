@@ -28,11 +28,9 @@ Configuration:
 
   Loggers:
     Logger:
-      -
-        name: at.jku.ssw.jreduce.utils
+      - name: at.jku.ssw.jreduce.utils
         level: ERROR
-      -
-        name: at.jku.ssw.jreduce
+      - name: at.jku.ssw.jreduce
         level: INFO
 
     Root:
