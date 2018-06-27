@@ -4,6 +4,6 @@ public interface AssignmentReplacer {
     String PATTERN = "$_ = ";
 
     default String replaceWith(String value) {
-        return "{" + PATTERN + value + "; }";
+        return "{ " + PATTERN + value + "; }";
     }
 }

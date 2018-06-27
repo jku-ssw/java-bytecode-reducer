@@ -15,14 +15,14 @@ public final class Expressions {
     private Expressions() {
     }
 
-    private static final Map<CtClass, String> defaults = Map.of(
+    private static final Map<CtClass, String> DEFAULTS = Map.of(
             CtClass.byteType, "(byte) 0",
             CtClass.shortType, "(short) 0",
             CtClass.intType, "0",
             CtClass.longType, "0L",
             CtClass.floatType, "0.0F",
             CtClass.doubleType, "0.0",
-            CtClass.charType, "'\0'",
+            CtClass.charType, "'\\0'",
             CtClass.booleanType, "false"
     );
 
@@ -35,7 +35,7 @@ public final class Expressions {
      * @return the default value for the given type
      */
     public static String defaults(CtClass type) {
-        return defaults.getOrDefault(type, "null");
+        return DEFAULTS.getOrDefault(type, "null");
     }
 
     /**
