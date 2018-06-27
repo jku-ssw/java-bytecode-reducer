@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
+import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
@@ -8,7 +9,6 @@ import at.jku.ssw.java.bytecode.reducer.utils.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
-import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtBehavior;
 import javassist.CtClass;
 import javassist.bytecode.Mnemonic;
@@ -19,17 +19,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Optional;
-import java.util.function.Function;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecode;
 import static javassist.bytecode.Opcode.NOP;
 
 /**
  * Removes sequences of instructions that are neutral to the stack
- * (e.g. delete as many stack-pushs as stack-pops).
+ * (e.g. delete as many stack-pushes as stack-pops).
  */
+@Expensive
 @Unsound
 public class RemoveInstructionSequences implements RepeatableReducer<CodePosition> {
 
@@ -73,7 +73,7 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                             end
                     );
 
-                    // replace the determined byte range with NOPs
+                    // replace the determined instruction range with NOPs
                     IntStream.range(begin, end)
                             .forEach(i -> it.writeByte(NOP, i));
 
@@ -90,16 +90,14 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
         final var clazz = Javassist.loadClass(base.bytecode());
 
         // iterate all "behaviours" (which includes methods and initializers)
-        // except the main method
         return Arrays.stream(clazz.getDeclaredBehaviors())
-                .filter(Members::isNotMain)
-                .map((TFunction<CtBehavior, Optional<CodePosition>>) method -> {
+                .flatMap((TFunction<CtBehavior, Stream<CodePosition>>) method -> {
                     var m = method.getMethodInfo();
 
                     // the key that uniquely identifies this method
                     var name = method.getLongName();
 
-                    logger.trace(name);
+                    logger.info(name);
 
                     final var ca = m.getCodeAttribute();
                     final var it = ca.iterator();
@@ -142,10 +140,16 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                         var oldStackSize = stackSize;
 
                         // calculate the new stack level
-                        stackSize = Code.newStackLevel(oldStackSize, code, index, it);
+                        stackSize = Code.newStackLevel(
+                                method,
+                                oldStackSize,
+                                code,
+                                index,
+                                it
+                        );
 
-                        logger.trace(String.format(
-                                "%d: %-40s // Stack: %d -> %d",
+                        logger.info(String.format(
+                                "%6d: %-40s // Stack: %d -> %d",
                                 index,
                                 Mnemonic.OPCODE[code],
                                 oldStackSize,
@@ -167,12 +171,9 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                                             .filter(j -> j > i)
                                             .map(j -> new CodePosition(name, i, j))
                             )
-                            .filter(cp -> !base.cache().contains(cp))
-                            .findAny();
+                            .filter(cp -> !base.cache().contains(cp));
                 })
-                .filter(Optional::isPresent)
                 .findAny()
-                .flatMap(Function.identity())
                 .map(cp -> process(base, clazz, cp))
                 .orElseGet(base::toMinimalResult);
     }

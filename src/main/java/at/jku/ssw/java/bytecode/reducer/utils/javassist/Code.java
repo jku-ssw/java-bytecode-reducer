@@ -1,7 +1,11 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
+import javassist.CtBehavior;
+import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Descriptor;
+import javassist.bytecode.analysis.Analyzer;
+import javassist.bytecode.analysis.Type;
 
 import java.util.Set;
 
@@ -64,14 +68,12 @@ public final class Code {
                 ALOAD_1,
                 ALOAD_2,
                 ALOAD_3,
-                ARETURN,
                 BIPUSH,
                 DLOAD,
                 DLOAD_0,
                 DLOAD_1,
                 DLOAD_2,
                 DLOAD_3,
-                DRETURN,
                 DUP,
                 DUP_X1,
                 DUP_X2,
@@ -83,7 +85,7 @@ public final class Code {
                 FLOAD_1,
                 FLOAD_2,
                 FLOAD_3,
-                FRETURN,
+                GETSTATIC,
                 ICONST_M1,
                 ICONST_0,
                 ICONST_1,
@@ -96,9 +98,6 @@ public final class Code {
                 ILOAD_1,
                 ILOAD_2,
                 ILOAD_3,
-                IRETURN,
-                JSR,
-                JSR_W,
                 LCONST_0,
                 LCONST_1,
                 LDC,
@@ -109,7 +108,8 @@ public final class Code {
                 LLOAD_1,
                 LLOAD_2,
                 LLOAD_3,
-                NEW
+                NEW,
+                SIPUSH
         );
 
         plus2 = Set.of(
@@ -152,7 +152,6 @@ public final class Code {
                 FSTORE_2,
                 FSTORE_3,
                 FSUB,
-                GETSTATIC,
                 IADD,
                 IALOAD,
                 IAND,
@@ -202,7 +201,6 @@ public final class Code {
                 POP,
                 PUTSTATIC,
                 SALOAD,
-                SIPUSH,
                 TABLESWITCH
         );
 
@@ -215,7 +213,6 @@ public final class Code {
                 IF_ICMPLE,
                 IF_ICMPLT,
                 IF_ICMPNE,
-                POP2,
                 PUTFIELD
         );
 
@@ -278,6 +275,9 @@ public final class Code {
                 ARETURN,
                 ATHROW,
                 DRETURN,
+                DUP2,
+                DUP2_X1,
+                DUP2_X2,
                 FRETURN,
                 GOTO,
                 GOTO_W,
@@ -287,9 +287,12 @@ public final class Code {
                 INVOKESTATIC,
                 INVOKEVIRTUAL,
                 IRETURN,
-                LOOKUPSWITCH, // removes 1 but jumps to address
+                JSR,                // place address on stack but also jumps
+                JSR_W,              // same as above
+                LOOKUPSWITCH,       // removes 1 but jumps to address
                 LRETURN,
                 MULTIANEWARRAY,
+                POP2,
                 RET,
                 RETURN,
                 TABLESWITCH,
@@ -299,6 +302,33 @@ public final class Code {
     }
 
     private Code() {
+    }
+
+    /**
+     * Determines whether the top of the stack at the current position in the
+     * method is a double word length value (double or long).
+     *
+     * @param method The current method
+     * @param index  The index of the position to analyze
+     * @return {@code true} if the stack top is of size double word,
+     * {@code false} otherwise
+     * @throws BadBytecode if the current bytecode is flawed
+     */
+    private static boolean stackTopIsDWORD(CtBehavior method, int index)
+            throws BadBytecode {
+
+        var analyzer = new Analyzer();
+        var frames = analyzer.analyze(
+                method.getDeclaringClass(),
+                method.getMethodInfo()
+        );
+
+        var frame = frames[index];
+
+        // fetch type of the top element#
+        var top = frame.getStack(frame.getTopIndex() - 1);
+
+        return top == Type.DOUBLE || top == Type.LONG;
     }
 
     /**
@@ -331,13 +361,18 @@ public final class Code {
      * Calculates the change in stack level, that the operation indicated by
      * the given {@link javassist.bytecode.Opcode} implies.
      *
+     * @param method The current method
      * @param opcode The opcode of the current operation
      * @param i      The current instruction index
      * @param it     The code iterator
      * @return a positive value if the stack is increased, a negative value
      * if the stack is reduced; 0 if the stack remains invariant
+     * @throws BadBytecode if the current bytecode is flawed
      */
-    public static int getStackLevelChange(int opcode, int i, CodeIterator it) {
+    public static int getStackLevelChange(CtBehavior method,
+                                          int opcode,
+                                          int i,
+                                          CodeIterator it) throws BadBytecode {
         if (plus1.contains(opcode))
             return 1;
         if (plus2.contains(opcode))
@@ -351,6 +386,14 @@ public final class Code {
         if (special.contains(opcode)) {
             final var constPool = it.get().getConstPool();
             switch (opcode) {
+                case DUP2:
+                case DUP2_X1:
+                case DUP2_X2:
+                    // those opcodes treat DWORD values differently
+                    return stackTopIsDWORD(method, i) ? +1 : +2;
+                case POP2:
+                    // for DWORDs the stack is only decreased by 1
+                    return stackTopIsDWORD(method, i) ? -1 : -2;
                 case INVOKEINTERFACE:
                     var arg = it.s16bitAt(i + 1);
                     var desc = constPool.getInterfaceMethodrefType(arg);
@@ -358,7 +401,7 @@ public final class Code {
                     // removes the object reference and returns a single value
                     // and reduces the stack by n values
                     // where n is the number of parameters
-                    return Descriptor.numOfParameters(desc);
+                    return -Descriptor.numOfParameters(desc);
                 case INVOKESPECIAL:
                 case INVOKEVIRTUAL:
                     arg = it.s16bitAt(i + 1);
@@ -366,7 +409,7 @@ public final class Code {
 
                     // removes the object reference and returns a single value
                     // and reduces the stack by n values
-                    return Descriptor.numOfParameters(desc);
+                    return -Descriptor.numOfParameters(desc);
                 case INVOKEDYNAMIC:
                 case INVOKESTATIC:
                     arg = it.s16bitAt(i + 1);
@@ -397,16 +440,23 @@ public final class Code {
      * Calculates the new stack level based on the current level
      * and the given opcode that represents the next instruction.
      *
+     * @param method     The current method
      * @param stackLevel The current stack level
      * @param opcode     The current operation
      * @param i          The current instruction index
      * @param it         The code iterator
      * @return the new stack level
+     * @throws BadBytecode if the current bytecode is flawed
      */
-    public static int newStackLevel(int stackLevel, int opcode, int i, CodeIterator it) {
+    public static int newStackLevel(CtBehavior method,
+                                    int stackLevel,
+                                    int opcode,
+                                    int i,
+                                    CodeIterator it) throws BadBytecode {
+        // if an instruction clears the stack, simply return 0
         if (clear.contains(opcode))
             return 0;
 
-        return stackLevel + getStackLevelChange(opcode, i, it);
+        return stackLevel + getStackLevelChange(method, opcode, i, it);
     }
 }
