@@ -1,9 +1,5 @@
 public class RecursiveCalls {
 
-    private void aMethod() {
-        aMethod();
-    }
-
     static void aThirdMethod() {
     }
 
