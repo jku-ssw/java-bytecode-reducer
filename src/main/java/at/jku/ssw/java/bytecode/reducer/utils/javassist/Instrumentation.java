@@ -5,9 +5,7 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.CtMethod;
-import javassist.expr.ExprEditor;
-import javassist.expr.FieldAccess;
-import javassist.expr.MethodCall;
+import javassist.expr.*;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -64,6 +62,50 @@ public final class Instrumentation {
             public void edit(MethodCall mc) {
                 if (filter.test(mc))
                     action.accept(mc);
+            }
+        });
+    }
+
+    /**
+     * Performs the given action for each constructor call
+     * (e.g. {@code super()}, {@code this()} while filtering the results.
+     *
+     * @param clazz  The class to instrument
+     * @param filter Only include constructor calls that pass this test
+     * @param action The action to execute for each constructor call
+     * @throws CannotCompileException if the class cannot be instrumented
+     */
+    public static void forConstructorCalls(CtClass clazz,
+                                           Predicate<ConstructorCall> filter,
+                                           Consumer<ConstructorCall> action)
+            throws CannotCompileException {
+        clazz.instrument(new ExprEditor() {
+            @Override
+            public void edit(ConstructorCall c) {
+                if (filter.test(c))
+                    action.accept(c);
+            }
+        });
+    }
+
+    /**
+     * Performs the given action for each {@code new} expression that
+     * passes the given filter.
+     *
+     * @param clazz  The class to instrument
+     * @param filter Only include expressions that pass this test
+     * @param action The action to execute for each such expression
+     * @throws CannotCompileException if the class cannot be instrumented
+     */
+    public static void forNewExpressions(CtClass clazz,
+                                         Predicate<NewExpr> filter,
+                                         Consumer<NewExpr> action)
+            throws CannotCompileException {
+        clazz.instrument(new ExprEditor() {
+            @Override
+            public void edit(NewExpr e) {
+                if (filter.test(e))
+                    action.accept(e);
             }
         });
     }
