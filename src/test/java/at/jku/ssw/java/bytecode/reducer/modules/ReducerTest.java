@@ -121,14 +121,6 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
 
         var actual = reducer.apply(original);
 
-        // TODO remove after debugging
-//        CtClass expectedClass = classFromBytecode(expected);
-//        CtClass actualClass   = classFromBytecode(actual);
-//
-//        try (DataOutputStream out = new DataOutputStream(new FileOutputStream(Paths.get("").resolve(className + ".class").toFile()))) {
-//            actualClass.getClassFile().write(out);
-//        }
-
         assertClassEquals(expected, actual);
 
         return ContinueAssertion.with(actual);
