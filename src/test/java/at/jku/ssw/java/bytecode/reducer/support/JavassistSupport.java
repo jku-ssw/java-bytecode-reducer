@@ -1,10 +1,9 @@
 package at.jku.ssw.java.bytecode.reducer.support;
 
-import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
-import javassist.bytecode.MethodInfo;
 import javassist.bytecode.annotation.Annotation;
 import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
@@ -37,10 +36,20 @@ public interface JavassistSupport {
     /**
      * @see Javassist#bytecode(CtClass)
      */
-    default byte[] bytecodeFromClass(CtClass clazz) throws IOException, CannotCompileException {
+    default byte[] bytecodeFromClass(CtClass clazz) throws IOException {
         return Javassist.bytecode(clazz);
     }
 
+    /**
+     * Assertion that verifies that the given field(s) are not accessed within
+     * the given class. If no fields are given, any field access is treated as
+     * a violation.
+     *
+     * @param clazz  The class to verify
+     * @param fields The fields that must not be accessed
+     * @throws CannotCompileException if the class instrumentation
+     *                                (for the checks) fails
+     */
     default void assertNoFieldAccess(CtClass clazz, String... fields) throws CannotCompileException {
         Consumer<String> assertNoFieldAccess;
 
@@ -53,7 +62,13 @@ public interface JavassistSupport {
                     fieldName -> assertAll(
                             Arrays.stream(fields)
                                     .map(f ->
-                                            () -> assertNotEquals(f, fieldName)));
+                                            () -> assertNotEquals(
+                                                    f,
+                                                    fieldName,
+                                                    "The given field must not be accessed"
+                                            )
+                                    )
+                    );
         }
 
         clazz.instrument(new ExprEditor() {
@@ -70,6 +85,16 @@ public interface JavassistSupport {
         });
     }
 
+    /**
+     * Assertion that verifies that the given method(s) are not called within
+     * the given class. If no methods are given, any method call is treated
+     * as a violation.
+     *
+     * @param clazz   The class to verify
+     * @param methods The methods that must not be called
+     * @throws CannotCompileException if the class instrumentation
+     *                                (for the checks) fails
+     */
     default void assertNoMethodCall(CtClass clazz, String... methods) throws CannotCompileException {
         Consumer<String> assertNoMethodCall;
 
@@ -82,7 +107,13 @@ public interface JavassistSupport {
                     methodSign -> assertAll(
                             Arrays.stream(methods)
                                     .map(m ->
-                                            () -> assertNotEquals(m, methodSign)));
+                                            () -> assertNotEquals(
+                                                    m,
+                                                    methodSign,
+                                                    "The given method must not be called"
+                                            )
+                                    )
+                    );
         }
 
         clazz.instrument(new ExprEditor() {
@@ -99,6 +130,17 @@ public interface JavassistSupport {
         });
     }
 
+    /**
+     * Verifies that the given bytecodes contain "the same" class.
+     * Classes are treated as equal if their whole structure matches.
+     * A line by line comparison of method / constructor bodies
+     * is NOT performed.
+     *
+     * @param expected The expected bytecode
+     * @param actual   The actual reduction result
+     * @throws NotFoundException if the bytecodes contain an invalid class
+     * @throws IOException       if the bytecodes cannot be read
+     */
     default void assertClassEquals(byte[] expected, byte[] actual)
             throws NotFoundException, IOException {
 
@@ -108,58 +150,93 @@ public interface JavassistSupport {
         assertClassEquals(expectedClass, actualClass);
     }
 
+    /**
+     * @see JavassistSupport#assertClassEquals(byte[], byte[])
+     */
     @SuppressWarnings("unchecked")
-    default void assertClassEquals(CtClass expected, CtClass actual) throws NotFoundException {
-        assertNotNull(expected);
-        assertNotNull(actual);
+    default void assertClassEquals(CtClass expected, CtClass actual)
+            throws NotFoundException {
+        assertNotNull(expected, "The class pattern must not be null");
+        assertNotNull(actual, "The reduced class must not be null");
 
         // compare class names
-        assertEquals(expected.getName(), actual.getName());
+        assertEquals(expected.getName(), actual.getName(), "The class names must match");
 
         // compare extended classes
         CtClass expectedDeclaringClass = expected.getDeclaringClass();
         CtClass actualDeclaringClass   = actual.getDeclaringClass();
 
         if (expectedDeclaringClass == null)
-            assertNull(actualDeclaringClass);
+            assertNull(actualDeclaringClass, "The reduced class is declared in another class while the pattern is not");
         else
-            assertEquals(expectedDeclaringClass.getName(), actualDeclaringClass.getName());
+            assertEquals(
+                    expectedDeclaringClass.getName(),
+                    actualDeclaringClass.getName(),
+                    "The declaring classes must be equal"
+            );
 
         // compare inherited classes
-        assertEquals(expected.getSuperclass().getName(), actual.getSuperclass().getName());
+        assertEquals(
+                expected.getSuperclass().getName(),
+                actual.getSuperclass().getName(),
+                "The superclasses must match"
+        );
 
         // compare inner / nested classes
-        assertArrayEquals(expected.getDeclaredClasses(), actual.getDeclaredClasses(),
+        assertArrayEquals(
+                expected.getDeclaredClasses(),
+                actual.getDeclaredClasses(),
                 (CtClass a, CtClass b) -> a.getName().equals(b.getName()),
-                (a, b) -> assertEquals(a.getName(), b.getName()));
+                (a, b) -> {
+                    assertNotNull(b, () -> "Inner class " + a.getName() + " must also exist in the reduced class");
+                    assertEquals(a.getName(), b.getName(), "The inner classes must be equal");
+                }
+        );
 
         // compare interfaces
-        assertArrayEquals(expected.getInterfaces(), actual.getInterfaces(),
+        assertArrayEquals(
+                expected.getInterfaces(),
+                actual.getInterfaces(),
                 (CtClass a, CtClass b) -> a.getName().equals(b.getName()),
-                (a, b) -> assertEquals(a.getName(), b.getName()));
+                (a, b) -> {
+                    assertNotNull(b, () -> "Interface " + a.getName() + " must also be implemented in the reduced class");
+                    assertEquals(a.getName(), b.getName(), "The implemented interfaces must match");
+                }
+        );
 
         // compare annotations
-        assertAnnotationEquals(expected, actual,
-                (TFunction<CtClass, Object[]>) CtClass::getAnnotations);
+        assertAnnotationEquals(
+                expected,
+                actual,
+                (TFunction<CtClass, Object[]>) CtClass::getAnnotations
+        );
 
         // compare attributes
         assertCollectionEquals(
                 expected.getClassFile().getAttributes(),
                 actual.getClassFile().getAttributes(),
                 (AttributeInfo a, AttributeInfo b) -> a.getName().equals(b.getName()),
-                (a, b) -> assertEquals(a.getName(), b.getName()));
+                (a, b) -> {
+                    assertNotNull(b, () -> "Attribute " + a.getName() + " must also be valid for the reduced class");
+                    assertEquals(a.getName(), b.getName(), "The class attributes must match");
+                }
+        );
 
+        // compare fields
         assertArrayEquals(
                 expected.getDeclaredFields(),
                 actual.getDeclaredFields(),
                 (CtField a, CtField b) -> a.getName().equals(b.getName()),
-                this::assertFieldEquals);
+                this::assertFieldEquals
+        );
 
+        // compare "behaviours" (initializers and constructors)
         assertArrayEquals(
                 expected.getDeclaredBehaviors(),
                 actual.getDeclaredBehaviors(),
                 (CtBehavior a, CtBehavior b) -> a.getLongName().equals(b.getLongName()),
-                this::assertBehaviourEquals);
+                this::assertBehaviourEquals
+        );
     }
 
     /**
@@ -215,32 +292,53 @@ public interface JavassistSupport {
         ));
     }
 
-
+    /**
+     * Ensures that the given fields are equal.
+     *
+     * @param expected The expected field
+     * @param actual   The actually resulting field
+     */
     @SuppressWarnings("unchecked")
     default void assertFieldEquals(CtField expected, CtField actual) {
+        var fieldName = expected.getName();
 
-        assertEquals(expected.getName(), actual.getName());
+        assertNotNull(actual, () -> "Field " + fieldName + " must exist in the reduced class");
+        assertEquals(fieldName, actual.getName(), "The field names must match");
 
         try {
-            assertEquals(expected.getType(), actual.getType());
+            assertEquals(expected.getType(), actual.getType(), () -> "The types of field " + fieldName + " must match");
         } catch (NotFoundException e) {
             fail(e);
         }
 
-        assertEquals(expected.getConstantValue(), actual.getConstantValue());
+        assertEquals(expected.getConstantValue(), actual.getConstantValue(), "Constant values of field " + fieldName + " have to be equal");
 
-        assertEquals(expected.getModifiers(), actual.getModifiers());
+        assertEquals(expected.getModifiers(), actual.getModifiers(), () -> "The modifiers of field " + fieldName + " have to be equal");
 
         assertCollectionEquals(
                 expected.getFieldInfo().getAttributes(),
                 expected.getFieldInfo().getAttributes(),
                 (AttributeInfo a, AttributeInfo b) -> a.getName().equals(b.getName()),
-                (a, b) -> assertEquals(a.getName(), b.getName()));
+                (a, b) -> {
+                    assertNotNull(b, () -> "Field attribute " + a.getName() + " of field " + fieldName + " must also be present in the reduced class");
+                    assertEquals(a.getName(), b.getName(), () -> "The field attributes of field " + fieldName + " have to match");
+                }
+        );
 
-        assertAnnotationEquals(expected, actual,
-                (TFunction<CtField, Object[]>) CtField::getAnnotations);
+        assertAnnotationEquals(
+                expected,
+                actual,
+                (TFunction<CtField, Object[]>) CtField::getAnnotations
+        );
     }
 
+    /**
+     * Ensures that annotations (of fields, methods, classes) and their
+     * parameters match.
+     *
+     * @param expected The expected annotation
+     * @param actual   The actual annotation object
+     */
     default void assertAnnotationEquals(Annotation expected, Annotation actual) {
         assertEquals(expected.getTypeName(), actual.getTypeName());
 
@@ -248,9 +346,16 @@ public interface JavassistSupport {
                 expected.getMemberNames(),
                 actual.getMemberNames(),
                 String::equals,
-                (a, b) -> assertEquals(expected.getMemberValue(a), actual.getMemberValue(b)));
+                (a, b) -> {
+                    assertNotNull(b, () -> "Member " + a + " of annotation " + expected.toString() + " must also be present in the reduced class");
+                    assertEquals(expected.getMemberValue(a), actual.getMemberValue(b), () -> "The values of member " + a + " of annotation " + expected.toString() + " have to be equal");
+                }
+        );
     }
 
+    /**
+     * @see JavassistSupport#assertAnnotationEquals(Annotation, Annotation)
+     */
     private <T> void assertAnnotationEquals(T a, T b, Function<T, Object[]> prop) {
 
         assertArrayEquals(prop.apply(a), prop.apply(b),
@@ -259,28 +364,52 @@ public interface JavassistSupport {
         );
     }
 
+    /**
+     * Compares the given class behaviours (methods, initializers).
+     *
+     * @param expected The expected behaviour
+     * @param actual   The actually resulting behaviour
+     */
     default void assertBehaviourEquals(CtBehavior expected, CtBehavior actual) {
+        var behavName = expected.getLongName();
+
         // compare names
-        assertEquals(expected.getLongName(), actual.getLongName());
+        assertEquals(
+                behavName,
+                actual.getLongName(),
+                "The behaviour names have to be equal"
+        );
 
         // compare signature
-        assertEquals(expected.getSignature(), actual.getSignature());
+        assertEquals(
+                expected.getSignature(),
+                actual.getSignature(),
+                () -> "The signatures of behaviour " + behavName + " must be equal"
+        );
 
         // compare method annotations
-        assertAnnotationEquals(expected, actual,
-                (TFunction<CtBehavior, Object[]>) CtBehavior::getAnnotations);
+        assertAnnotationEquals(
+                expected,
+                actual,
+                (TFunction<CtBehavior, Object[]>) CtBehavior::getAnnotations
+        );
 
         // compare modifiers
-        assertEquals(expected.getModifiers(), actual.getModifiers());
+        assertEquals(
+                expected.getModifiers(),
+                actual.getModifiers(),
+                () -> "The modifiers of behaviour " + behavName + " must be equal"
+        );
 
         // compare parameter annotations
         try {
-            assertAll(IntStream.range(0, expected.getParameterTypes().length)
-                    .mapToObj(i ->
-                            () -> assertAnnotationEquals(
-                                    expected.getParameterAnnotations(),
-                                    actual.getParameterAnnotations(),
-                                    (TFunction<Object[][], Object[]>) arr -> arr[i]))
+            assertAll(
+                    IntStream.range(0, expected.getParameterTypes().length)
+                            .mapToObj(i ->
+                                    () -> assertAnnotationEquals(
+                                            expected.getParameterAnnotations(),
+                                            actual.getParameterAnnotations(),
+                                            (TFunction<Object[][], Object[]>) arr -> arr[i]))
             );
         } catch (NotFoundException e) {
             fail(e);
@@ -292,71 +421,62 @@ public interface JavassistSupport {
                     expected.getExceptionTypes(),
                     actual.getExceptionTypes(),
                     (CtClass a, CtClass b) -> a.getName().equals(b.getName()),
-                    (a, b) -> assertEquals(a.getName(), b.getName()));
+                    (a, b) -> {
+                        assertNotNull(b, () -> "Exception " + a.getName() + " thrown by behaviour " + behavName + " must also be thrown in reduced class");
+                        assertEquals(a.getName(), b.getName(), () -> "The thrown exceptions of behaviour " + behavName + " must be equal");
+                    });
         } catch (NotFoundException e) {
             fail(e);
         }
 
-        // detailed comparison based on actual subtype
+        // detailed comparison based on actual behaviour type
         if (expected instanceof CtMethod) {
-            assertTrue(actual instanceof CtMethod);
+            // both must be methods
+            assertTrue(actual instanceof CtMethod, () -> "Behaviour " + behavName + " must be a method in both classes");
             assertMethodEquals((CtMethod) expected, (CtMethod) actual);
         } else if (expected instanceof CtConstructor) {
-            assertTrue(actual instanceof CtConstructor);
-            // no other comparison required for constructors
+            // both must be initializers (static or constructor)
+
+            assertTrue(actual instanceof CtConstructor, () -> "Behaviour " + behavName + " must be an initializer in both classes");
+            var expectedConstructor = (CtConstructor) expected;
+            var actualConstructor   = (CtConstructor) actual;
+
+            // compare initializer types
+            if (expectedConstructor.isClassInitializer())
+                assertTrue(
+                        actualConstructor.isClassInitializer(),
+                        () -> "Initializer " + behavName + " must be a static initializer"
+                );
+            else if (expectedConstructor.isConstructor())
+                assertTrue(
+                        actualConstructor.isConstructor(),
+                        () -> "Initializer " + behavName + " must be a constructor"
+                );
         } else {
             fail(() -> String.format("\'%s\' is unknown %s subtype",
                     expected.getClass().getName(),
                     CtBehavior.class.getName()));
         }
-
-        // compare method bodies
-        assertMethodInfoEquals(expected.getMethodInfo(), actual.getMethodInfo());
     }
 
+    /**
+     * Compares the given methods.
+     *
+     * @param expected The expected method
+     * @param actual   The actual method
+     */
     default void assertMethodEquals(CtMethod expected, CtMethod actual) {
         try {
             // compare return type
             // (as void methods return CtClass#voidType, a comparison by name
             // should be sufficient)
-            assertEquals(expected.getReturnType().getName(),
-                    actual.getReturnType().getName());
+            assertEquals(
+                    expected.getReturnType().getName(),
+                    actual.getReturnType().getName(),
+                    () -> "The return types of method " + expected.getLongName() + " must be equal"
+            );
         } catch (NotFoundException e) {
             fail(e);
         }
-    }
-
-    private void assertMethodInfoEquals(MethodInfo expected, MethodInfo actual) {
-        // TODO
-        /*
-            This currently does not work as some reduction operations
-            produce inherently inconsistent bytecode.
-            A instruction-by-instruction comparison is therefore impossible
-        */
-//        CodeIterator itExpected = expected.getCodeAttribute().iterator();
-//        CodeIterator itActual   = actual.getCodeAttribute().iterator();
-//
-//        try {
-//            while (itExpected.hasNext()) {
-//                // ensure that both have a successor
-//                assertTrue(itActual.hasNext());
-//
-//                // bytecode indices
-//                int iExpected = itExpected.next();
-//                int iActual   = itActual.next();
-//
-//                // actual op codes
-//                int opExpected = itExpected.byteAt(iExpected);
-//                int opActual   = itActual.byteAt(iActual);
-//
-//                // compare operations
-//                assertEquals(opExpected, opActual);
-//            }
-//        } catch (BadBytecode e) {
-//            fail(e);
-//        }
-//
-//        // ensure that both iterators have been exhausted
-//        assertFalse(itActual.hasNext());
     }
 }
