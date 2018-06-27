@@ -53,7 +53,7 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
         String  value = Expressions.defaults(field.getType());
 
         Instrumentation.forFieldAccesses(clazz,
-                fa -> !fa.isWriter(),
+                (TPredicate<FieldAccess>) fa -> fa.getField().equals(field),
                 (TConsumer<FieldAccess>) fa -> fa.replace(replaceWith(value))
         );
 
@@ -72,7 +72,7 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
 
         Instrumentation.forFieldAccesses(clazz,
                 (TPredicate<FieldAccess>) fa ->
-                        !fa.isWriter() && defaultValues.containsKey(fa.getField()),
+                        defaultValues.containsKey(fa.getField()),
                 (TConsumer<FieldAccess>) fa ->
                         fa.replace(replaceWith(defaultValues.get(fa.getField()))));
 
