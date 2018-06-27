@@ -9,12 +9,11 @@ import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveAllMethodAttributes;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveMethodAttributes;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveUnusedMethods;
+import at.jku.ssw.java.bytecode.reducer.modules.initializers.RemoveInitializers;
+import at.jku.ssw.java.bytecode.reducer.modules.methods.*;
 import at.jku.ssw.java.bytecode.reducer.modules.misc.ShrinkConstantPool;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+import at.jku.ssw.java.bytecode.reducer.utils.Reducers;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +23,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collection;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JReduce {
@@ -49,7 +49,7 @@ public class JReduce {
                 System.exit(EXIT_SUCCESS);
 
             // all available reduction operations
-            final var modules = List.of(
+            final var modules = Set.of(
                     RemoveUnusedFields.class,
                     RemoveUnusedMethods.class,
                     RemoveWriteOnlyFields.class,
@@ -61,16 +61,20 @@ public class JReduce {
                     RemoveInstructionSequences.class,
                     ShrinkConstantPool.class,
                     RemoveMethodAttributes.class,
-                    RemoveFieldAttributes.class
+                    RemoveFieldAttributes.class,
+                    RemoveInitializers.class,
+                    ReplaceMethodCalls.class
             );
 
-            final var pre = modules.stream()
-                    .filter(c -> c.isAnnotationPresent(Sound.class))
-                    .collect(Collectors.toList());
+            final var pre = Reducers.sort(
+                    modules.stream()
+                            .filter(c -> c.isAnnotationPresent(Sound.class))
+            ).collect(Collectors.toList());
 
-            final var core = modules.stream()
-                    .filter(c -> c.isAnnotationPresent(Unsound.class))
-                    .collect(Collectors.toList());
+            final var core = Reducers.sort(
+                    modules.stream()
+                            .filter(c -> c.isAnnotationPresent(Unsound.class))
+            ).collect(Collectors.toList());
 
             /*
             Running order: apply sound operations first,
@@ -97,7 +101,7 @@ public class JReduce {
                     stages.forEach((TConsumer<Class<? extends Reducer>>) module -> {
                         final var reducer = module.getDeclaredConstructor().newInstance();
 
-                        logger.info("Initializing reducer " + module.getName());
+                        logger.info("Initializing reducer " + module.getSimpleName());
 
                         TempDir.at(NamingStrategy.ForInstance(reducer), tempDir).use(reducerDir ->
                                 cache.classes().forEach((TConsumer<String>) fileName -> {
