@@ -26,9 +26,9 @@ public class RemoveUnusedMethods
     }
 
     @Override
-    public CtClass process(CtClass clazz, CtMethod m) throws Exception {
-        logger.debug("Removing method '{}'", m.getLongName());
-        clazz.removeMethod(m);
+    public CtClass process(CtClass clazz, CtMethod method) throws Exception {
+        logger.debug("Removing method '{}'", method.getLongName());
+        clazz.removeMethod(method);
         return clazz;
     }
 }
