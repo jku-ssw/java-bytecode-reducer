@@ -1,6 +1,5 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 
@@ -38,16 +37,10 @@ public interface RepeatableReducer<A> extends Reducer {
      */
     @Override
     default byte[] apply(byte[] bytecode, Predicate<byte[]> test) throws Exception {
-        var res     = force(bytecode);
-        var reduced = res.bytecode();
+        Base<A>   base = Base.of(bytecode);
+        Result<A> res;
+        byte[]    reduced;
 
-        // try forced result (assumed to be minimal)
-        if (test.test(reduced))
-            return reduced;
-
-        var base = res.reject();
-
-        // otherwise try iterative approach
         do {
             res = apply(base);
             reduced = res.bytecode();
@@ -58,38 +51,10 @@ public interface RepeatableReducer<A> extends Reducer {
         return reduced;
     }
 
-    /**
-     * Forces a minimal version of the reduction.
-     * This may fail and require an iterative approach (with attempt log)
-     *
-     * @param bytecode The bytecode
-     * @return a new {@link Result} containing the bytecode and attempt log
-     * @throws Exception if the bytecode is invalid
-     */
-    default Result<A> force(byte[] bytecode) throws Exception {
-        Base<A>   base = Reduction.of(bytecode);
-        Result<A> res;
-
-        do {
-            // apply the reduction operation
-            res = apply(base);
-
-            // and "accept" the result / assume it to be correct
-            base = res.accept();
-
-            // TODO maybe set MAX_ITERATION or similar check to prevent infinite loop on bad / lacking implementation
-            // only return on a minimal result
-        } while (!res.isMinimal());
-
-        // create a new reduction result that has the "unforced" bytecode
-        // as a previous result
-        return Reduction.<A>of(bytecode).toResult(res.bytecode());
-    }
-
     @Override
     default byte[] apply(byte[] bytecode) throws Exception {
         // the default implementation of the reducer
         // without providing a check simply forces a result
-        return force(bytecode).bytecode();
+        return apply(bytecode, __ -> true);
     }
 }

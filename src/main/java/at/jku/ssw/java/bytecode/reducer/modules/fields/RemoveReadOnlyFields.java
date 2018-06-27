@@ -3,7 +3,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.ForcableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
@@ -31,7 +31,7 @@ import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Members.isMemberO
  * for each type.
  */
 @Unsound
-public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
+public class RemoveReadOnlyFields implements ForcableReducer<CtField> {
 
     private static final Logger logger = LogManager.getLogger();
 

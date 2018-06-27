@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  *                 (e.g. implementations for fields, methods)
  */
 public interface MemberReducer<CLASS, MEMBER>
-        extends RepeatableReducer<MEMBER>, BytecodeTransformer<CLASS> {
+        extends ForcableReducer<MEMBER>, BytecodeTransformer<CLASS> {
 
     @Override
     default Result<MEMBER> apply(Base<MEMBER> base) throws Exception {
