@@ -97,7 +97,7 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                     // the key that uniquely identifies this method
                     var name = method.getLongName();
 
-                    logger.info(name);
+                    logger.trace(name);
 
                     final var ca = m.getCodeAttribute();
                     final var it = ca.iterator();
@@ -148,7 +148,7 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                                 it
                         );
 
-                        logger.info(String.format(
+                        logger.trace(String.format(
                                 "%6d: %-40s // Stack: %d -> %d",
                                 index,
                                 Mnemonic.OPCODE[code],
