@@ -50,6 +50,9 @@ public class TestSuite {
                         if (exitCode == ScriptRunner.EXIT_SUCCESS) {
                             logger.info("Test '{}' succeeded", file);
                             return true;
+                        } else if (exitCode == ScriptRunner.EXIT_TIMEOUT) {
+                            logger.info("Test '{}' timed out", file);
+                            return false;
                         }
 
                         logger.info("Test '{}' failed with exit code {}", file, exitCode);
