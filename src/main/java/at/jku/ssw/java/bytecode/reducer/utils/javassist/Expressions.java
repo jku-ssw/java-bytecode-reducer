@@ -1,10 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
-import javassist.CtBehavior;
 import javassist.CtClass;
-import javassist.CtMethod;
-import javassist.NotFoundException;
-import javassist.expr.MethodCall;
 
 import java.util.Map;
 
@@ -38,19 +34,5 @@ public final class Expressions {
         return DEFAULTS.getOrDefault(type, "null");
     }
 
-    /**
-     * Determines if the given method call is a recursion on the given method.
-     *
-     * @param call The method call
-     * @return {@code true} if the call invokes itself; {@code false} otherwise
-     */
-    public static boolean isRecursion(MethodCall call) {
-        CtBehavior callSite = call.where();
 
-        try {
-            return callSite instanceof CtMethod && call.getMethod().equals(callSite);
-        } catch (NotFoundException e) {
-            return false;
-        }
-    }
 }

@@ -3,7 +3,6 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
@@ -21,7 +20,7 @@ public class RemoveUnusedMethods
 
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) throws Exception {
-        return Instrumentation.unusedMethods(clazz, Expressions::isRecursion)
+        return Instrumentation.unusedMethods(clazz, Members::isRecursion)
                 .filter(Members::isNotMain);
     }
 

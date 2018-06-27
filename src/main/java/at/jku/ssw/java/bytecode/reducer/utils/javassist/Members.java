@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
 import javassist.*;
+import javassist.expr.MethodCall;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -102,5 +103,21 @@ public final class Members {
      */
     public static boolean isNotMain(CtMember member) {
         return !isMain(member);
+    }
+
+    /**
+     * Determines if the given method call is a recursion on the given method.
+     *
+     * @param call The method call
+     * @return {@code true} if the call invokes itself; {@code false} otherwise
+     */
+    public static boolean isRecursion(MethodCall call) {
+        CtBehavior callSite = call.where();
+
+        try {
+            return callSite instanceof CtMethod && call.getMethod().equals(callSite);
+        } catch (NotFoundException e) {
+            return false;
+        }
     }
 }
