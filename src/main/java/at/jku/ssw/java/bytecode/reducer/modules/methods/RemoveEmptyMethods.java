@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
-import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
 import javassist.CtClass;
 import javassist.CtMethod;
 import org.apache.logging.log4j.LogManager;
@@ -12,7 +12,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 @Sound
-public class RemoveEmptyMethods implements MemberReducer<CtClass, CtMethod>, JavassistHelper {
+public class RemoveEmptyMethods implements InstanceCachedMemberReducer<CtClass, CtMethod>, JavassistHelper {
 
     private static final Logger logger = LogManager.getLogger();
 

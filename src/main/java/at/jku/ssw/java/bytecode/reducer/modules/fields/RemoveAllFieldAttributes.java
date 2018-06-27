@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
-import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.CtField;
@@ -17,7 +17,7 @@ import java.util.stream.Stream;
  */
 @Unsound
 public class RemoveAllFieldAttributes
-        implements MemberReducer<CtClass, CtField>, JavassistHelper {
+        implements InstanceCachedMemberReducer<CtClass, CtField>, JavassistHelper {
 
     private static final Logger logger = LogManager.getLogger();
 

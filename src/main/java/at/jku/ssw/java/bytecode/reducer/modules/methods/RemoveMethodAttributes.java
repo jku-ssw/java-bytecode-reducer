@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
-import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.MemberAttribute;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
@@ -18,7 +18,7 @@ import java.util.stream.Stream;
  */
 @Unsound
 public class RemoveMethodAttributes
-        implements MemberReducer<CtClass, MemberAttribute>, JavassistHelper {
+        implements InstanceCachedMemberReducer<CtClass, MemberAttribute>, JavassistHelper {
 
     private static final Logger logger = LogManager.getLogger();
 

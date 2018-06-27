@@ -24,7 +24,7 @@ import java.util.stream.Stream;
  */
 @Unsound
 public class RemoveInitializers
-        implements MemberReducer<CtClass, CtConstructor>, JavassistHelper {
+        implements MemberReducer<CtClass, CtConstructor, String>, JavassistHelper {
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -36,8 +36,13 @@ public class RemoveInitializers
     }
 
     @Override
+    public String keyFromMember(CtConstructor constructor) {
+        return constructor.getLongName();
+    }
+
+    @Override
     public CtClass process(CtClass clazz, CtConstructor constructor) throws Exception {
-        logger.debug("Removing constructor '{}'", constructor.getName());
+        logger.debug("Removing constructor '{}'", constructor.getLongName());
 
         // replace each call to the given constructor
         Instrumentation.forNewExpressions(

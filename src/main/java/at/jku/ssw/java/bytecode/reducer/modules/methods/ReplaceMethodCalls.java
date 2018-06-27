@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
+import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
@@ -22,6 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * Replaces method calls with default values of the corresponding return types.
  * This reducer ignores {@code void} methods.
  */
+@Expensive
 @Unsound
 public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
 

@@ -11,27 +11,30 @@ import java.util.stream.Stream;
  * Interface that provides methods to reduce or apply reduction operations
  * on class members, where the concrete type of member can be specified
  * by the implementing class.
+ * Already tried members are stored in a cache where each member is bound
+ * to a specific key by a given mapping.
  *
  * @param <CLASS>  The type for types
  * @param <MEMBER> The type for members
  *                 (e.g. implementations for fields, methods)
+ * @param <CACHE>  The type of values to cache
  */
-public interface MemberReducer<CLASS, MEMBER>
-        extends ForcibleReducer<MEMBER>, BytecodeTransformer<CLASS> {
+public interface MemberReducer<CLASS, MEMBER, CACHE>
+        extends ForcibleReducer<CACHE>, BytecodeTransformer<CLASS> {
 
     @Override
-    default Result<MEMBER> apply(Base<MEMBER> base) throws Exception {
+    default Result<CACHE> apply(Base<CACHE> base) throws Exception {
 
         CLASS clazz = classFrom(base.bytecode());
 
         // get the first applicable member that was not already attempted
         Optional<MEMBER> optMember = getMembers(clazz)
-                .filter(f -> !base.cache().contains(f))
+                .filter(m -> !base.cache().contains(keyFromMember(m)))
                 .findAny();
 
         // if no applicable member was found, the reduction is minimal
-        return optMember.map((TFunction<MEMBER, Result<MEMBER>>) f ->
-                base.toResult(bytecodeFrom(process(clazz, f)), f))
+        return optMember.map((TFunction<MEMBER, Result<CACHE>>) m ->
+                base.toResult(bytecodeFrom(process(clazz, m)), keyFromMember(m)))
                 .orElseGet(base::toMinimalResult);
     }
 
@@ -53,4 +56,12 @@ public interface MemberReducer<CLASS, MEMBER>
      * @throws Exception if the processing failed
      */
     CLASS process(CLASS clazz, MEMBER member) throws Exception;
+
+    /**
+     * Retrieves the key from the given member instance.
+     *
+     * @param member The member to generate the key for
+     * @return the key that uniquely identifies this member object in the cache
+     */
+    CACHE keyFromMember(MEMBER member);
 }

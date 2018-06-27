@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
-import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 @Sound
 public class RemoveUnusedMethods
-        implements MemberReducer<CtClass, CtMethod>, JavassistHelper {
+        implements InstanceCachedMemberReducer<CtClass, CtMethod>, JavassistHelper {
 
     private static final Logger logger = LogManager.getLogger();
 
