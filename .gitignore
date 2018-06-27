@@ -10,6 +10,8 @@
 *.class
 # include resource class files
 !/src/test/resources/**/*.class
+# include sample class files
+!/samples/**/*.class
 
 # Package Files #
 *.jar
