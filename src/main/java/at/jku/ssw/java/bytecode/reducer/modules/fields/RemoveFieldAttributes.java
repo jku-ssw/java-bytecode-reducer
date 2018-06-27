@@ -23,17 +23,11 @@ public class RemoveFieldAttributes
 
     private static final Logger logger = LogManager.getLogger();
 
-    /**
-     * Maximum number of modifiers that are attempted for each field.
-     */
-    private static final int MAX_ATTEMPTS = 5;
-
     @Override
     public Stream<MemberAttribute> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredFields())
                 .flatMap(f ->
                         Members.Attribute.randStream()
-                                .limit(MAX_ATTEMPTS)
                                 .map(a -> a.flag)
                                 .filter(a -> (f.getModifiers() & a) != 0)
                                 .map(a -> new MemberAttribute(f.getName(), a))

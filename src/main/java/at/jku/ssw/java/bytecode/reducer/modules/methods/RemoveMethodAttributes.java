@@ -22,18 +22,12 @@ public class RemoveMethodAttributes
 
     private static final Logger logger = LogManager.getLogger();
 
-    /**
-     * Maximum number of modifiers that are attempted for each method.
-     */
-    private static final int MAX_ATTEMPTS = 5;
-
     @Override
     public Stream<MemberAttribute> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
                 .filter(Members::isNotMain)
                 .flatMap(m ->
                         Members.Attribute.randStream()
-                                .limit(MAX_ATTEMPTS)
                                 .map(a -> a.flag)
                                 .filter(a -> (m.getModifiers() & a) != 0)
                                 .map(a -> new MemberAttribute(m.getLongName(), a))

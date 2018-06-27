@@ -2,7 +2,8 @@ package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
 import javassist.*;
 
-import java.util.Random;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.stream.Stream;
 
 /**
@@ -35,10 +36,14 @@ public final class Members {
         }
 
         public static Stream<Attribute> randStream() {
-            var rand = new Random();
 
-            return rand.ints(0, values().length)
-                    .mapToObj(i -> values()[i]);
+            var values = Arrays.asList(values());
+
+            // shuffle attributes to return them in random order but still
+            // return every attribute only once
+            Collections.shuffle(values);
+
+            return values.stream();
         }
     }
 
