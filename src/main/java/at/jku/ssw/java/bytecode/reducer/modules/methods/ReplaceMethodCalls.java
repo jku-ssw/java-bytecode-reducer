@@ -3,7 +3,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.runtypes.ForcableReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
@@ -23,7 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * This reducer ignores {@code void} methods.
  */
 @Unsound
-public class ReplaceMethodCalls implements ForcableReducer<Integer> {
+public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
 
     private static final Logger logger = LogManager.getLogger();
 

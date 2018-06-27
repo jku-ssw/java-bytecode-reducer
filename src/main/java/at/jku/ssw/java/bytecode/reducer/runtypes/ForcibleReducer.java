@@ -12,7 +12,7 @@ import java.util.function.Predicate;
  *
  * @param <A> The type of the attempt log
  */
-public interface ForcableReducer<A> extends RepeatableReducer<A> {
+public interface ForcibleReducer<A> extends RepeatableReducer<A> {
 
     /**
      * Applies the reduction operation until a minimal result is found.
