@@ -37,16 +37,16 @@ public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
                 clazz,
                 (TPredicate<MethodCall>) c ->
                         !c.getMethod().getReturnType().equals(CtClass.voidType) &&
-                                !base.cache().contains(c.getLineNumber()) &&
+                                !base.cache().contains(c.indexOfBytecode()) &&
                                 call.compareAndSet(null, c),
                 (TConsumer<MethodCall>) c -> {
                     CtClass type  = c.getMethod().getReturnType();
                     var     value = Expressions.defaults(type);
 
                     logger.debug(
-                            "Replacing call of method '{}' in line {} with '{}'",
+                            "Replacing call of method '{}' at index {} with '{}'",
                             c.getMethodName(),
-                            c.getLineNumber(),
+                            c.indexOfBytecode(),
                             value
                     );
 
@@ -57,7 +57,7 @@ public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
         // if no applicable member was found, the reduction is minimal
         return Optional.ofNullable(call.get())
                 .map((TFunction<MethodCall, Result<Integer>>) f ->
-                        base.toResult(Javassist.bytecode(clazz), f.getLineNumber()))
+                        base.toResult(Javassist.bytecode(clazz), f.indexOfBytecode()))
                 .orElseGet(base::toMinimalResult);
     }
 }

@@ -59,9 +59,9 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
                 (TPredicate<FieldAccess>) fa -> fa.getField().equals(field),
                 (TConsumer<FieldAccess>) fa -> {
                     logger.debug(
-                            "Replacing field access '{}' in line {} with '{}'",
+                            "Replacing field access '{}' at index {} with '{}'",
                             fa.getFieldName(),
-                            fa.getLineNumber(),
+                            fa.indexOfBytecode(),
                             value
                     );
 
@@ -94,9 +94,9 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
                     var value = defaultValues.get(fa.getField());
 
                     logger.debug(
-                            "Replacing field access '{}' in line {} with '{}'",
+                            "Replacing field access '{}' at index {} with '{}'",
                             fa.getFieldName(),
-                            fa.getLineNumber(),
+                            fa.indexOfBytecode(),
                             value
                     );
 
