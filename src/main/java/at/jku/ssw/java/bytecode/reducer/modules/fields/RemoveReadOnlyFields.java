@@ -54,7 +54,14 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
 
         Instrumentation.forFieldAccesses(clazz,
                 (TPredicate<FieldAccess>) fa -> fa.getField().equals(field),
-                (TConsumer<FieldAccess>) fa -> fa.replace(replaceWith(value))
+                (TConsumer<FieldAccess>) fa -> {
+                    // read access is replaced by default values while
+                    // write access (initial assignment in constructor) is removed
+                    if (fa.isReader())
+                        fa.replace(replaceWith(value));
+                    else
+                        fa.replace("");
+                }
         );
 
         return base.toResult(Javassist.bytecode(clazz), field);
@@ -73,8 +80,12 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
         Instrumentation.forFieldAccesses(clazz,
                 (TPredicate<FieldAccess>) fa ->
                         defaultValues.containsKey(fa.getField()),
-                (TConsumer<FieldAccess>) fa ->
-                        fa.replace(replaceWith(defaultValues.get(fa.getField()))));
+                (TConsumer<FieldAccess>) fa -> {
+                    if (fa.isReader())
+                        fa.replace(replaceWith(defaultValues.get(fa.getField())));
+                    else
+                        fa.replace("");
+                });
 
         defaultValues.keySet()
                 .forEach((TConsumer<CtField>) clazz::removeField);
