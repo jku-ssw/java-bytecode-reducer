@@ -158,10 +158,12 @@ public class RemoveInstructionSequences implements RepeatableReducer<CodePositio
                             endIndices.add(it.lookAhead());
                     }
 
+                    // perform sorting before return expression
+                    endIndices.sort(Comparator.reverseOrder());
+
                     return beginIndices.stream()
                             .flatMap(i ->
                                     endIndices.stream()
-                                            .sorted(Comparator.reverseOrder())
                                             .filter(j -> j > i)
                                             .map(j -> new CodePosition(name, i, j))
                             )
