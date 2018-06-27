@@ -3,7 +3,6 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.runtypes.AssignmentReplacer;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
@@ -15,6 +14,8 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.expr.FieldAccess;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.Map;
 import java.util.Optional;
@@ -30,7 +31,9 @@ import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Members.isMemberO
  * for each type.
  */
 @Unsound
-public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, AssignmentReplacer {
+public class RemoveReadOnlyFields implements RepeatableReducer<CtField> {
+
+    private static final Logger logger = LogManager.getLogger();
 
     private Stream<CtField> eligibleFields(CtClass clazz) throws CannotCompileException {
         return Instrumentation.unusedFields(clazz, f ->
@@ -55,12 +58,19 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
         Instrumentation.forFieldAccesses(clazz,
                 (TPredicate<FieldAccess>) fa -> fa.getField().equals(field),
                 (TConsumer<FieldAccess>) fa -> {
+                    logger.debug(
+                            "Replacing field access '{}' in line {} with '{}'",
+                            fa.getFieldName(),
+                            fa.getLineNumber(),
+                            value
+                    );
+
                     // read access is replaced by default values while
                     // write access (initial assignment in constructor) is removed
                     if (fa.isReader())
-                        fa.replace(replaceWith(value));
+                        fa.replace(Expressions.replaceAssign(value));
                     else
-                        fa.replace("");
+                        fa.replace(Expressions.NO_EXPRESSION);
                 }
         );
 
@@ -81,10 +91,19 @@ public class RemoveReadOnlyFields implements RepeatableReducer<CtField>, Assignm
                 (TPredicate<FieldAccess>) fa ->
                         defaultValues.containsKey(fa.getField()),
                 (TConsumer<FieldAccess>) fa -> {
+                    var value = defaultValues.get(fa.getField());
+
+                    logger.debug(
+                            "Replacing field access '{}' in line {} with '{}'",
+                            fa.getFieldName(),
+                            fa.getLineNumber(),
+                            value
+                    );
+
                     if (fa.isReader())
-                        fa.replace(replaceWith(defaultValues.get(fa.getField())));
+                        fa.replace(Expressions.replaceAssign(value));
                     else
-                        fa.replace("");
+                        fa.replace(Expressions.NO_EXPRESSION);
                 });
 
         defaultValues.keySet()

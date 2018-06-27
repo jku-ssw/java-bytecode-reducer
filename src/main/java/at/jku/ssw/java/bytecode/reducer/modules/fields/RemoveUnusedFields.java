@@ -5,6 +5,7 @@ import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CannotCompileException;
@@ -37,7 +38,7 @@ public class RemoveUnusedFields
         Instrumentation.forFieldAccesses(
                 clazz,
                 (TPredicate<FieldAccess>) fa -> field.equals(fa.getField()),
-                (TConsumer<FieldAccess>) f -> f.replace("")
+                (TConsumer<FieldAccess>) f -> f.replace(Expressions.NO_EXPRESSION)
         );
 
         clazz.removeField(field);

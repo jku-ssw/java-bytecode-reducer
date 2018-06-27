@@ -3,7 +3,6 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.runtypes.AssignmentReplacer;
 import at.jku.ssw.java.bytecode.reducer.runtypes.RepeatableReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
@@ -24,8 +23,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * This reducer ignores {@code void} methods.
  */
 @Unsound
-public class ReplaceMethodCalls
-        implements RepeatableReducer<Integer>, AssignmentReplacer {
+public class ReplaceMethodCalls implements RepeatableReducer<Integer> {
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -52,7 +50,7 @@ public class ReplaceMethodCalls
                             value
                     );
 
-                    c.replace(replaceWith(value));
+                    c.replace(Expressions.replaceAssign(value));
                 }
         );
 

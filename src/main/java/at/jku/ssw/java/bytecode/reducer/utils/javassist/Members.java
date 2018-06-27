@@ -36,6 +36,8 @@ public final class Members {
             this.flag = flag;
         }
 
+        public static int NONE = 0x0;
+
         public static Stream<Attribute> randStream() {
 
             var values = Arrays.asList(values());

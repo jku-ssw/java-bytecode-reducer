@@ -16,22 +16,20 @@ import java.util.stream.Stream;
 public class RemoveAllMethodAttributes
         implements MemberReducer<CtClass, CtMethod>, JavassistHelper {
 
-    public static final int NO_ATTRIBUTES = 0x0;
-
     private static final Logger logger = LogManager.getLogger();
 
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
                 .filter(Members::isNotMain)
-                .filter(m -> m.getModifiers() != NO_ATTRIBUTES);
+                .filter(m -> m.getModifiers() != Members.Attribute.NONE);
     }
 
     @Override
     public CtClass process(CtClass clazz, CtMethod method) {
         logger.debug("Removing all attributes of method '{}'", method.getLongName());
 
-        method.setModifiers(NO_ATTRIBUTES);
+        method.setModifiers(Members.Attribute.NONE);
 
         return clazz;
     }

@@ -3,6 +3,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.CtField;
 import org.apache.logging.log4j.LogManager;
@@ -18,21 +19,19 @@ import java.util.stream.Stream;
 public class RemoveAllFieldAttributes
         implements MemberReducer<CtClass, CtField>, JavassistHelper {
 
-    public static final int NO_ATTRIBUTES = 0x0;
-
     private static final Logger logger = LogManager.getLogger();
 
     @Override
     public Stream<CtField> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredFields())
-                .filter(f -> f.getModifiers() != NO_ATTRIBUTES);
+                .filter(f -> f.getModifiers() != Members.Attribute.NONE);
     }
 
     @Override
     public CtClass process(CtClass clazz, CtField field) {
         logger.debug("Removing all attributes of field '{}'", field.getName());
 
-        field.setModifiers(NO_ATTRIBUTES);
+        field.setModifiers(Members.Attribute.NONE);
 
         return clazz;
     }

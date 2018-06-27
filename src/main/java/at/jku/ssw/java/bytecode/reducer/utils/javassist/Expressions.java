@@ -11,6 +11,11 @@ public final class Expressions {
     private Expressions() {
     }
 
+    /**
+     * Placeholder that Javassist treats as an empty expression.
+     */
+    public static final String NO_EXPRESSION = "{}";
+
     private static final Map<CtClass, String> DEFAULTS = Map.of(
             CtClass.byteType, "(byte) 0",
             CtClass.shortType, "(short) 0",
@@ -21,6 +26,18 @@ public final class Expressions {
             CtClass.charType, "'\\0'",
             CtClass.booleanType, "false"
     );
+
+    /**
+     * Returns an expression that Javassist treats as a replacement
+     * of an assignment with the given value (e.g. replace method call
+     * with this expression).
+     *
+     * @param value The value to place as the assignment source
+     * @return a string containing the expression
+     */
+    public static String replaceAssign(String value) {
+        return "{ $_ = " + value + "; }";
+    }
 
     /**
      * Returns the default value for the given {@link CtClass} instance.

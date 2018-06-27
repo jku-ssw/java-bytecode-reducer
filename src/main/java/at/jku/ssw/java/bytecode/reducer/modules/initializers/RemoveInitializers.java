@@ -5,7 +5,9 @@ import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.CtConstructor;
 import javassist.expr.ConstructorCall;
@@ -41,20 +43,20 @@ public class RemoveInitializers
         Instrumentation.forNewExpressions(
                 clazz,
                 (TPredicate<NewExpr>) e -> e.getConstructor().equals(constructor),
-                (TConsumer<NewExpr>) e -> e.replace(""));
+                (TConsumer<NewExpr>) e -> e.replace(Expressions.replaceAssign("$0")));
 
         // replace each object assignment that is performed
         // by invoking this constructor
         Instrumentation.forConstructorCalls(
                 clazz,
                 (TPredicate<ConstructorCall>) c -> c.getConstructor().equals(constructor),
-                (TConsumer<ConstructorCall>) c -> c.replace(""));
+                (TConsumer<ConstructorCall>) c -> c.replace(Expressions.NO_EXPRESSION));
 
         // clear constructor
         constructor.setBody(null);
 
         // and revoke modifiers
-        constructor.setModifiers(0x0);
+        constructor.setModifiers(Members.Attribute.NONE);
 
         /*
         Leave it be if it is the default constructor
