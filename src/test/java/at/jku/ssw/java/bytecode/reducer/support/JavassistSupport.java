@@ -4,6 +4,9 @@ import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.Mnemonic;
+import javassist.bytecode.Opcode;
 import javassist.bytecode.annotation.Annotation;
 import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
@@ -31,13 +34,6 @@ public interface JavassistSupport {
      */
     default CtClass classFromBytecode(byte[] bytecode) throws IOException {
         return Javassist.loadClass(bytecode);
-    }
-
-    /**
-     * @see Javassist#bytecode(CtClass)
-     */
-    default byte[] bytecodeFromClass(CtClass clazz) throws IOException {
-        return Javassist.bytecode(clazz);
     }
 
     /**
@@ -136,25 +132,26 @@ public interface JavassistSupport {
      * A line by line comparison of method / constructor bodies
      * is NOT performed.
      *
-     * @param expected The expected bytecode
-     * @param actual   The actual reduction result
+     * @param expected      The expected bytecode
+     * @param actual        The actual reduction result
+     * @param compareBodies Should method bodies also be compared?
      * @throws NotFoundException if the bytecodes contain an invalid class
      * @throws IOException       if the bytecodes cannot be read
      */
-    default void assertClassEquals(byte[] expected, byte[] actual)
+    default void assertClassEquals(byte[] expected, byte[] actual, boolean compareBodies)
             throws NotFoundException, IOException {
 
         CtClass expectedClass = classFromBytecode(expected);
         CtClass actualClass   = classFromBytecode(actual);
 
-        assertClassEquals(expectedClass, actualClass);
+        assertClassEquals(expectedClass, actualClass, compareBodies);
     }
 
     /**
-     * @see JavassistSupport#assertClassEquals(byte[], byte[])
+     * @see JavassistSupport#assertClassEquals(byte[], byte[], boolean)
      */
     @SuppressWarnings("unchecked")
-    default void assertClassEquals(CtClass expected, CtClass actual)
+    default void assertClassEquals(CtClass expected, CtClass actual, boolean compareBodies)
             throws NotFoundException {
         assertNotNull(expected, "The class pattern must not be null");
         assertNotNull(actual, "The reduced class must not be null");
@@ -237,6 +234,9 @@ public interface JavassistSupport {
                 (CtBehavior a, CtBehavior b) -> a.getLongName().equals(b.getLongName()),
                 this::assertBehaviourEquals
         );
+
+        if (compareBodies)
+            assertClassBodyEquals(expected, actual);
     }
 
     /**
@@ -478,5 +478,63 @@ public interface JavassistSupport {
         } catch (NotFoundException e) {
             fail(e);
         }
+    }
+
+    default void assertClassBodyEquals(CtClass expected, CtClass actual) {
+        assertArrayEquals(
+                expected.getDeclaredBehaviors(),
+                actual.getDeclaredBehaviors(),
+                (CtBehavior a, CtBehavior b) -> a.getLongName().equals(b.getLongName()),
+                this::assertBehaviourBody
+        );
+    }
+
+    private void assertBehaviourBody(CtBehavior expected, CtBehavior actual) {
+        var expectedInfo = expected.getMethodInfo();
+        var actualInfo   = actual.getMethodInfo();
+
+        var itExpected = expectedInfo.getCodeAttribute().iterator();
+        var itActual   = actualInfo.getCodeAttribute().iterator();
+
+        try {
+            while (itExpected.hasNext()) {
+                // ensure that both have a successor
+                assertTrue(itActual.hasNext());
+
+                // bytecode indices
+                int iExpected = itExpected.next();
+                int iActual   = itActual.next();
+
+                // actual op codes
+                int opExpected = itExpected.byteAt(iExpected);
+                int opActual   = itActual.byteAt(iActual);
+
+                var instrExpected = Mnemonic.OPCODE[opExpected];
+                var instrActual   = Mnemonic.OPCODE[opActual];
+
+                while (iActual < iExpected) {
+                    assertTrue(itActual.hasNext(), "Reduced bytecode is smaller than expected version");
+                    assertEquals(Mnemonic.OPCODE[Opcode.NOP], instrActual, "Overwritten instructions in the reduced version must be NOPs");
+                    iActual = itActual.next();
+                }
+
+                // compare operations
+                if (opExpected == Opcode.RETURN && opActual != opExpected)
+                    assertEquals(Mnemonic.OPCODE[Opcode.NOP], instrActual, "A return instruction may only be overridden by a NOP");
+                else
+                    assertEquals(instrExpected, instrActual, () -> "Instructions at index " + iExpected + " have to be equal");
+            }
+            while (itActual.hasNext()) {
+                var i      = itActual.next();
+                var opcode = itActual.byteAt(i);
+
+                assertEquals(Opcode.NOP, opcode, () -> "Instruction " + Mnemonic.OPCODE[opcode] + " that exceeds expected body must be NOPs");
+            }
+        } catch (BadBytecode e) {
+            fail(e);
+        }
+
+        // ensure that both iterators have been exhausted
+        assertFalse(itActual.hasNext());
     }
 }

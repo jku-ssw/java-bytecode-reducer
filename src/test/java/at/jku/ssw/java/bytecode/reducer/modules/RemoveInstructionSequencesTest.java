@@ -19,6 +19,11 @@ public class RemoveInstructionSequencesTest extends ReducerTest<RemoveInstructio
 
     @Test
     void testLocalVariableAssignments() throws Exception {
-        assertReduced("LocalVariableAssignments");
+        assertReduced("LocalVariableAssignments", true);
+    }
+
+    @Test
+    void testRecursiveCalls() throws Exception {
+        assertReduced("RecursiveCalls", true);
     }
 }

@@ -115,13 +115,17 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
     }
 
     protected ContinueAssertion assertReduced(final String className) throws Exception {
+        return assertReduced(className, false);
+    }
+
+    protected ContinueAssertion assertReduced(final String className, boolean compareBodies) throws Exception {
         var original = loadOriginalBytecode(className);
 
         var expected = loadReducedBytecode(className);
 
         var actual = reducer.apply(original);
 
-        assertClassEquals(expected, actual);
+        assertClassEquals(expected, actual, compareBodies);
 
         return ContinueAssertion.with(actual);
     }
