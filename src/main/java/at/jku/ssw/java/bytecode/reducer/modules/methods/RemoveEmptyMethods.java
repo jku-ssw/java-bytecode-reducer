@@ -1,8 +1,9 @@
 package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
-import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.CtMethod;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +20,7 @@ public class RemoveEmptyMethods implements InstanceCachedMemberReducer<CtClass, 
     @Override
     public Stream<CtMethod> getMembers(CtClass clazz) {
         return Arrays.stream(clazz.getDeclaredMethods())
+                .filter(Members::isNotMain)
                 .filter(CtMethod::isEmpty);
     }
 
