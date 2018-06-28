@@ -20,6 +20,14 @@ public class ReplaceMethodCallsTest extends ReducerTest<ReplaceMethodCalls> {
     @Test
     void testSingleMethodCall() throws Exception {
         assertReduced("SingleMethodCall")
-                .and(bytes -> assertNoMethodCall(bytes, "SingleMethodCall.anInt()"));
+                .and(bytes -> assertNoMethodCall(bytes, "SingleMethodCall.anInt()"))
+                .and(bytes -> assertNoMethodCall(bytes, "SingleMethodCall.main(String[])"));
+    }
+
+    @Test
+    void testRecursiveCalls() throws Exception {
+        assertReduced("RecursiveCalls")
+                .and(bytes -> assertNoMethodCall(bytes, "RecursiveCalls.aFourthMethod(int)"))
+                .and(bytes -> assertNoMethodCall(bytes, "RecursiveCalls.main(String[])"));
     }
 }
