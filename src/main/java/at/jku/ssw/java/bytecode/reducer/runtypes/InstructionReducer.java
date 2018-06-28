@@ -41,14 +41,12 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
      * Find applicable code positions in the given behaviour with the
      * given code iterator.
      *
-     * @param clazz  The currently reduced class
      * @param method The current method
      * @param it     The code iterator that allows low level access
      * @return all applicable code positions
      * @throws BadBytecode if the byte code is invalid at some point
      */
-    Stream<CodePosition> codePositions(CtClass clazz,
-                                       CtBehavior method,
+    Stream<CodePosition> codePositions(CtBehavior method,
                                        CodeIterator it) throws BadBytecode;
 
     /**
@@ -113,7 +111,7 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
                     */
                     it.skipConstructor();
 
-                    return codePositions(clazz, method, it)
+                    return codePositions(method, it)
                             .filter(cp -> !base.cache().contains(cp));
                 })
                 .findAny()

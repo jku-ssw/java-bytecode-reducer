@@ -51,7 +51,7 @@ public class RemoveConstantAssignments implements InstructionReducer {
     }
 
     @Override
-    public Stream<CodePosition> codePositions(CtClass clazz, CtBehavior method, CodeIterator it) throws BadBytecode {
+    public Stream<CodePosition> codePositions(CtBehavior method, CodeIterator it) throws BadBytecode {
         var name = method.getLongName();
 
         var begin = -1;

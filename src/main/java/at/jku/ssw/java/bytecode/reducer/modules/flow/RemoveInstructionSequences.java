@@ -54,7 +54,7 @@ public class RemoveInstructionSequences implements InstructionReducer {
     }
 
     @Override
-    public Stream<CodePosition> codePositions(CtClass clazz, CtBehavior method, CodeIterator it) throws BadBytecode {
+    public Stream<CodePosition> codePositions(CtBehavior method, CodeIterator it) throws BadBytecode {
         var name = method.getLongName();
 
         logger.trace(name);
@@ -76,7 +76,7 @@ public class RemoveInstructionSequences implements InstructionReducer {
             // get the opcode at the current index position
             int code = it.byteAt(index);
 
-            // If the stacksize is zero BEFORE the current
+            // If the stack size is zero BEFORE the current
             // instruction, either a previous sequence was
             // discarded or the loop just started
             if (stackSize == 0 && code != NOP)
