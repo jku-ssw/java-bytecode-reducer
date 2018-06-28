@@ -8,7 +8,9 @@ import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
 import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
+import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveConstantAssignments;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
+import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveNeutralInstructions;
 import at.jku.ssw.java.bytecode.reducer.modules.initializers.RemoveInitializers;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.*;
 import at.jku.ssw.java.bytecode.reducer.modules.misc.ShrinkConstantPool;
@@ -49,7 +51,7 @@ public class JReduce {
                 System.exit(EXIT_SUCCESS);
 
             // all available reduction operations
-            final var modules = Set.of(
+            final Set<Class<? extends Reducer>> modules = Set.of(
                     RemoveUnusedFields.class,
                     RemoveUnusedMethods.class,
                     RemoveWriteOnlyFields.class,
@@ -58,6 +60,8 @@ public class JReduce {
                     RemoveStaticFieldAttributes.class,
                     RemoveAllFieldAttributes.class,
                     RemoveAllMethodAttributes.class,
+                    RemoveConstantAssignments.class,
+                    RemoveNeutralInstructions.class,
                     RemoveInstructionSequences.class,
                     ShrinkConstantPool.class,
                     RemoveMethodAttributes.class,
