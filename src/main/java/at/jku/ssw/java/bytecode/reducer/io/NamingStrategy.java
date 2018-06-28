@@ -19,12 +19,6 @@ public interface NamingStrategy extends Iterable<String> {
     String SEPARATOR = "-";
 
     /**
-     * Default strategy that simply creates a random directory name
-     * prefixed with ".temp" and then containing a random numeric string.
-     */
-    NamingStrategy DEFAULT = () -> PREFIX + SEPARATOR + randPostfix();
-
-    /**
      * Generate a new name and return it.
      *
      * @return a string that depends on the implemented strategy
@@ -67,7 +61,7 @@ public interface NamingStrategy extends Iterable<String> {
      * based on the given instance
      */
     static <T> NamingStrategy ForInstance(T obj) {
-        final String partial = PREFIX + SEPARATOR + obj.toString() + SEPARATOR;
+        final String partial = PREFIX + SEPARATOR + obj.getClass().getSimpleName() + SEPARATOR;
 
         return () -> partial + randPostfix();
     }

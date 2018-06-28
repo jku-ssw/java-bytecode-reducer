@@ -118,13 +118,6 @@ public abstract class Reduction<T> {
          * @param attempts The updates that led to this result
          * @return a new result that stores the current and reduced bytecodes
          */
-        public final Result<T> toResult(byte[] bytecode, Set<T> attempts) {
-            return new Result<>(this, bytecode, attempts);
-        }
-
-        /**
-         * @see Base#toResult(byte[], Set)
-         */
         @SafeVarargs
         public final Result<T> toResult(byte[] bytecode, T... attempts) {
             return new Result<>(this, bytecode, Set.of(attempts));

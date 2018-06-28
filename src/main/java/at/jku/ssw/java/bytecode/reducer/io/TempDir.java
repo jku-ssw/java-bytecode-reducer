@@ -124,11 +124,4 @@ public class TempDir {
                         new IOException("Could not generate temporary directory at " + path)
                 );
     }
-
-    /**
-     * @see TempDir#use(Consumer, boolean)
-     */
-    public Path use(Consumer<Path> action) throws IOException {
-        return use(action, false);
-    }
 }

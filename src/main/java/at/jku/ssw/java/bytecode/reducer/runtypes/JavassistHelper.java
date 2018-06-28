@@ -4,7 +4,7 @@ import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CtClass;
 
 /**
- * Runtype that provides helper that are based on the Javassist library
+ * Run type that provides helper that are based on the Javassist library
  */
 public interface JavassistHelper extends BytecodeTransformer<CtClass> {
     @Override
