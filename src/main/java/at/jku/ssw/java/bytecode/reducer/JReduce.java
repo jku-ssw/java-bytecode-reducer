@@ -67,7 +67,8 @@ public class JReduce {
                     RemoveMethodAttributes.class,
                     RemoveFieldAttributes.class,
                     RemoveInitializers.class,
-                    ReplaceMethodCalls.class
+                    ReplaceMethodCalls.class,
+                    RemoveVoidMethodCalls.class
             );
 
             final var pre = Reducers.sort(
