@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.modules.initializers;
+package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
