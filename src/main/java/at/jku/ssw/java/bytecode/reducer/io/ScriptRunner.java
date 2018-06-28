@@ -57,8 +57,13 @@ public class ScriptRunner {
 
         var process = exec(script);
 
-        if (!process.waitFor(timeout, TimeUnit.SECONDS))
+        if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
+            // destroy process
+            process.destroy();
+            // and wait for shutdown
+            process.waitFor();
             return EXIT_TIMEOUT;
+        }
 
         return process.exitValue();
     }
