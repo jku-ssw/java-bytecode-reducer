@@ -63,10 +63,11 @@ public class ScriptRunner {
 
         if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
             logger.warn("Execution of test {} took longer than {} seconds - it will be forcefully interrupted. Please provide your test files with a timeout to prevent infinite loops.", script, timeout);
-            // destroy process
-            process.destroy();
-            // and wait for shutdown
-            process.waitFor();
+            // destroy children
+            process.descendants()
+                    .forEach(ProcessHandle::destroyForcibly);
+            // kill the process itself
+            process.destroyForcibly().waitFor();
             return EXIT_TIMEOUT;
         }
 
