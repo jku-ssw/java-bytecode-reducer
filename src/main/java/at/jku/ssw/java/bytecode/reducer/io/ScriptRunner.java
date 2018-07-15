@@ -1,6 +1,8 @@
 package at.jku.ssw.java.bytecode.reducer.io;
 
 import at.jku.ssw.java.bytecode.reducer.utils.OSUtils;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -12,6 +14,8 @@ import java.util.concurrent.TimeUnit;
  * execution.
  */
 public class ScriptRunner {
+
+    private static Logger logger = LogManager.getLogger();
 
     public static final int EXIT_SUCCESS = 0;
 
@@ -58,6 +62,7 @@ public class ScriptRunner {
         var process = exec(script);
 
         if (!process.waitFor(timeout, TimeUnit.SECONDS)) {
+            logger.warn("Execution of test {} took longer than {} seconds - it will be forcefully interrupted. Please provide your test files with a timeout to prevent infinite loops.", script, timeout);
             // destroy process
             process.destroy();
             // and wait for shutdown
