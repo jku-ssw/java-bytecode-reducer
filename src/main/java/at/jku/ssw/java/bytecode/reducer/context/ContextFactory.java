@@ -270,9 +270,10 @@ public class ContextFactory {
      * @throws IOException if the directory is a file or inaccessible
      */
     private Stream<Path> scanFiles(Path workingDir, PathMatcher matcher) throws IOException {
-        return Files.list(workingDir)
-                .filter(Files::isRegularFile)
-                .filter(matcher::matches);
+        try (var files = Files.list(workingDir)) {
+            return files.filter(Files::isRegularFile)
+                    .filter(matcher::matches);
+        }
     }
 
     // endregion
