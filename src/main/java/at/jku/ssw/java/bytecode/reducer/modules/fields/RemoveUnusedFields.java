@@ -1,10 +1,9 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
-import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
+import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
@@ -12,7 +11,6 @@ import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.NotFoundException;
-import javassist.expr.FieldAccess;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -37,8 +35,8 @@ public class RemoveUnusedFields
         // replaces field access in constructors with local variables
         Instrumentation.forFieldAccesses(
                 clazz,
-                (TPredicate<FieldAccess>) fa -> field.equals(fa.getField()),
-                (TConsumer<FieldAccess>) f -> f.replace(Expressions.NO_EXPRESSION)
+                Catch.predicate(fa -> field.equals(fa.getField())),
+                Catch.consumer(f -> f.replace(Expressions.NO_EXPRESSION))
         );
 
         clazz.removeField(field);

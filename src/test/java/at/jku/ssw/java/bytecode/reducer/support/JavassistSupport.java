@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.support;
 
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.*;
 import javassist.bytecode.AttributeInfo;
@@ -205,7 +205,7 @@ public interface JavassistSupport {
         assertAnnotationEquals(
                 expected,
                 actual,
-                (TFunction<CtClass, Object[]>) CtClass::getAnnotations
+                Catch.function(CtClass::getAnnotations)
         );
 
         // compare attributes
@@ -328,7 +328,7 @@ public interface JavassistSupport {
         assertAnnotationEquals(
                 expected,
                 actual,
-                (TFunction<CtField, Object[]>) CtField::getAnnotations
+                Catch.function(CtField::getAnnotations)
         );
     }
 
@@ -391,7 +391,7 @@ public interface JavassistSupport {
         assertAnnotationEquals(
                 expected,
                 actual,
-                (TFunction<CtBehavior, Object[]>) CtBehavior::getAnnotations
+                Catch.function(CtBehavior::getAnnotations)
         );
 
         // compare modifiers
@@ -409,7 +409,7 @@ public interface JavassistSupport {
                                     () -> assertAnnotationEquals(
                                             expected.getParameterAnnotations(),
                                             actual.getParameterAnnotations(),
-                                            (TFunction<Object[][], Object[]>) arr -> arr[i]))
+                                            Catch.function(arr -> arr[i])))
             );
         } catch (NotFoundException e) {
             fail(e);

@@ -3,17 +3,14 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
-import javassist.expr.FieldAccess;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -56,8 +53,8 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
         String  value = Expressions.defaults(field.getType());
 
         Instrumentation.forFieldAccesses(clazz,
-                (TPredicate<FieldAccess>) fa -> fa.getField().equals(field),
-                (TConsumer<FieldAccess>) fa -> {
+                Catch.predicate(fa -> fa.getField().equals(field)),
+                Catch.consumer(fa -> {
                     logger.debug(
                             "Replacing field access '{}' at index {} with '{}'",
                             fa.getFieldName(),
@@ -71,7 +68,7 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
                         fa.replace(Expressions.replaceAssign(value));
                     else
                         fa.replace(Expressions.NO_EXPRESSION);
-                }
+                })
         );
 
         return base.toResult(Javassist.bytecode(clazz), field);
@@ -84,13 +81,13 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
         Map<CtField, String> defaultValues = eligibleFields(clazz)
                 .collect(Collectors.toMap(
                         Function.identity(),
-                        (TFunction<CtField, String>) f ->
-                                Expressions.defaults(f.getType())));
+                        Catch.function(f ->
+                                Expressions.defaults(f.getType()))));
 
         Instrumentation.forFieldAccesses(clazz,
-                (TPredicate<FieldAccess>) fa ->
-                        defaultValues.containsKey(fa.getField()),
-                (TConsumer<FieldAccess>) fa -> {
+                Catch.predicate(fa ->
+                        defaultValues.containsKey(fa.getField())),
+                Catch.consumer(fa -> {
                     var value = defaultValues.get(fa.getField());
 
                     logger.debug(
@@ -104,10 +101,10 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
                         fa.replace(Expressions.replaceAssign(value));
                     else
                         fa.replace(Expressions.NO_EXPRESSION);
-                });
+                }));
 
         defaultValues.keySet()
-                .forEach((TConsumer<CtField>) clazz::removeField);
+                .forEach(Catch.consumer(clazz::removeField));
 
         Base<CtField> base = Reduction.of(Javassist.bytecode(clazz));
 

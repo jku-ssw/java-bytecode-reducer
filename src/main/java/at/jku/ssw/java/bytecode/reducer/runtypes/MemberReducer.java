@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.runtypes;
 
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 
 import java.util.Optional;
 import java.util.stream.Stream;
@@ -33,8 +33,8 @@ public interface MemberReducer<CLASS, MEMBER, CACHE>
                 .findAny();
 
         // if no applicable member was found, the reduction is minimal
-        return optMember.map((TFunction<MEMBER, Result<CACHE>>) m ->
-                base.toResult(bytecodeFrom(process(clazz, m)), keyFromMember(m)))
+        return optMember.map(Catch.function(m ->
+                base.toResult(bytecodeFrom(process(clazz, m)), keyFromMember(m))))
                 .orElseGet(base::toMinimalResult);
     }
 

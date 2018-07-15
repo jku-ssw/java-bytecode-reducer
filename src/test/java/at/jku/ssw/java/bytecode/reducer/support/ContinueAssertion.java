@@ -13,7 +13,7 @@ public class ContinueAssertion {
         this.bytecode = bytecode;
     }
 
-    public ContinueAssertion and(TConsumer<byte[]> assertion) {
+    public ContinueAssertion and(TConsumer<byte[]> assertion) throws Exception {
         assertion.accept(bytecode);
 
         return this;

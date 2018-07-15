@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import javassist.CannotCompileException;
 import javassist.CtClass;
 import javassist.CtField;
@@ -127,7 +127,7 @@ public final class Instrumentation {
         forFieldAccesses(
                 clazz,
                 include.negate(),
-                (TConsumer<FieldAccess>) fa -> fields.remove(fa.getField())
+                Catch.consumer(fa -> fields.remove(fa.getField()))
         );
 
         return fields.stream();
@@ -150,7 +150,7 @@ public final class Instrumentation {
         forMethodCalls(
                 clazz,
                 include.negate(),
-                (TConsumer<MethodCall>) mc -> methods.remove(mc.getMethod()));
+                Catch.consumer(mc -> methods.remove(mc.getMethod())));
 
         return methods.stream();
     }

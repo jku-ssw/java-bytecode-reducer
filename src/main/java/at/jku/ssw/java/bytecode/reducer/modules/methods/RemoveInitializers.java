@@ -1,17 +1,14 @@
 package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.CtConstructor;
-import javassist.expr.ConstructorCall;
-import javassist.expr.NewExpr;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -47,15 +44,15 @@ public class RemoveInitializers
         // replace each call to the given constructor
         Instrumentation.forNewExpressions(
                 clazz,
-                (TPredicate<NewExpr>) e -> e.getConstructor().equals(constructor),
-                (TConsumer<NewExpr>) e -> e.replace(Expressions.replaceAssign("$0")));
+                Catch.predicate(e -> e.getConstructor().equals(constructor)),
+                Catch.consumer(e -> e.replace(Expressions.replaceAssign("$0"))));
 
         // replace each object assignment that is performed
         // by invoking this constructor
         Instrumentation.forConstructorCalls(
                 clazz,
-                (TPredicate<ConstructorCall>) c -> c.getConstructor().equals(constructor),
-                (TConsumer<ConstructorCall>) c -> c.replace(Expressions.NO_EXPRESSION));
+                Catch.predicate(c -> c.getConstructor().equals(constructor)),
+                Catch.consumer(c -> c.replace(Expressions.NO_EXPRESSION)));
 
         // clear constructor
         constructor.setBody(null);

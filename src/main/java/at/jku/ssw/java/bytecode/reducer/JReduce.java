@@ -5,18 +5,17 @@ import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveConstantAssignments;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveNeutralInstructions;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveInitializers;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.*;
 import at.jku.ssw.java.bytecode.reducer.modules.misc.ShrinkConstantPool;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.Reducers;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -103,13 +102,13 @@ public class JReduce {
             TempDir.at(context.tempDir).use(tempDir ->
 
                     // iterate all stages
-                    stages.forEach((TConsumer<Class<? extends Reducer>>) module -> {
+                    stages.forEach(Catch.consumer(module -> {
                         final var reducer = module.getDeclaredConstructor().newInstance();
 
                         logger.info("Initializing reducer " + module.getSimpleName());
 
                         TempDir.at(NamingStrategy.ForInstance(reducer), tempDir).use(reducerDir ->
-                                cache.classes().forEach((TConsumer<String>) fileName -> {
+                                cache.classes().forEach(Catch.consumer(fileName -> {
                                     logger.info("Reducing file " + fileName);
 
                                     // write all other files to the temporary directory
@@ -158,8 +157,8 @@ public class JReduce {
                                     // place the (now valid) bytecode
                                     // in the cache
                                     cache.update(fileName, bytecode);
-                                }), context.keepTemp);
-                    }), context.keepTemp);
+                                })), context.keepTemp);
+                    })), context.keepTemp);
 
         } catch (ParseException e) {
             logger.fatal(e);

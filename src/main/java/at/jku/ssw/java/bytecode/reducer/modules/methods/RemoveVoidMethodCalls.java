@@ -4,10 +4,8 @@ import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TConsumer;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TPredicate;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
@@ -36,11 +34,11 @@ public class RemoveVoidMethodCalls implements ForcibleReducer<Integer> {
 
         Instrumentation.forMethodCalls(
                 clazz,
-                (TPredicate<MethodCall>) c ->
+                Catch.predicate(c ->
                         c.getMethod().getReturnType().equals(CtClass.voidType) &&
                                 !base.cache().contains(c.indexOfBytecode()) &&
-                                call.compareAndSet(null, c),
-                (TConsumer<MethodCall>) c -> {
+                                call.compareAndSet(null, c)),
+                Catch.consumer(c -> {
 
                     logger.debug(
                             "Removing call of method '{}' at index {}",
@@ -49,13 +47,13 @@ public class RemoveVoidMethodCalls implements ForcibleReducer<Integer> {
                     );
 
                     c.replace(Expressions.NO_EXPRESSION);
-                }
+                })
         );
 
         // if no applicable member was found, the reduction is minimal
         return Optional.ofNullable(call.get())
-                .map((TFunction<MethodCall, Result<Integer>>) f ->
-                        base.toResult(Javassist.bytecode(clazz), f.indexOfBytecode()))
+                .map(Catch.function(f ->
+                        base.toResult(Javassist.bytecode(clazz), f.indexOfBytecode())))
                 .orElseGet(base::toMinimalResult);
     }
 }

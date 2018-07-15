@@ -2,8 +2,8 @@ package at.jku.ssw.java.bytecode.reducer.runtypes;
 
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.CodePosition;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.TFunction;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -93,7 +93,7 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
 
         // iterate all "behaviours" (which includes methods and initializers)
         return Arrays.stream(clazz.getDeclaredBehaviors())
-                .flatMap((TFunction<CtBehavior, Stream<CodePosition>>) method -> {
+                .flatMap(Catch.function(method -> {
                     var m = method.getMethodInfo();
 
                     final var ca = m.getCodeAttribute();
@@ -113,7 +113,7 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
 
                     return codePositions(method, it)
                             .filter(cp -> !base.cache().contains(cp));
-                })
+                }))
                 .findAny()
                 .map(cp -> process(base, clazz, cp))
                 .orElseGet(base::toMinimalResult);
