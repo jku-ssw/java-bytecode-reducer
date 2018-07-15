@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.utils;
+package at.jku.ssw.java.bytecode.reducer.utils.cachetypes;
 
 import java.util.Objects;
 

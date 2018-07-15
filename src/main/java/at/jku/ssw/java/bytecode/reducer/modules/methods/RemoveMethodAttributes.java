@@ -3,7 +3,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
-import at.jku.ssw.java.bytecode.reducer.utils.MemberAttribute;
+import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.MemberAttribute;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.Modifier;
