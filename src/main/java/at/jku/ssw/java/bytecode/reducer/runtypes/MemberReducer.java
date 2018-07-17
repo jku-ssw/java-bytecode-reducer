@@ -29,7 +29,7 @@ public interface MemberReducer<CLASS, MEMBER, CACHE>
 
         // get the first applicable member that was not already attempted
         Optional<MEMBER> optMember = getMembers(clazz)
-                .filter(m -> !base.cache().contains(keyFromMember(m)))
+                .filter(m -> base.isNotCached(keyFromMember(m)))
                 .findAny();
 
         // if no applicable member was found, the reduction is minimal

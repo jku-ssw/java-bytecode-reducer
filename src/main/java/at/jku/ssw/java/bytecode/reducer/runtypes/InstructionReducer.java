@@ -2,8 +2,8 @@ package at.jku.ssw.java.bytecode.reducer.runtypes;
 
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CtBehavior;
 import javassist.CtClass;
@@ -112,7 +112,7 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
                     it.skipConstructor();
 
                     return codePositions(method, it)
-                            .filter(cp -> !base.cache().contains(cp));
+                            .filter(base::isNotCached);
                 }))
                 .findAny()
                 .map(cp -> process(base, clazz, cp))

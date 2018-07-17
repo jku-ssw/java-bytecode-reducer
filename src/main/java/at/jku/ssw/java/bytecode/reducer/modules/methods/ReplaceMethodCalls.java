@@ -37,7 +37,7 @@ public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
                 clazz,
                 Catch.predicate(c ->
                         !c.getMethod().getReturnType().equals(CtClass.voidType) &&
-                                !base.cache().contains(c.indexOfBytecode()) &&
+                                base.isNotCached(c.indexOfBytecode()) &&
                                 call.compareAndSet(null, c)),
                 Catch.consumer(c -> {
                     CtClass type  = c.getMethod().getReturnType();

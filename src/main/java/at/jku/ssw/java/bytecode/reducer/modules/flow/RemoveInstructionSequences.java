@@ -24,7 +24,7 @@ import static javassist.bytecode.Opcode.NOP;
  * Removes sequences of instructions that are neutral to the stack
  * (e.g. delete as many stack-pushes as stack-pops).
  */
-@Expensive(heaviness = 10)
+@Expensive
 @Unsound
 public class RemoveInstructionSequences implements InstructionReducer {
 

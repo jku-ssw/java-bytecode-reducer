@@ -4,8 +4,8 @@ import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
@@ -36,7 +36,7 @@ public class RemoveVoidMethodCalls implements ForcibleReducer<Integer> {
                 clazz,
                 Catch.predicate(c ->
                         c.getMethod().getReturnType().equals(CtClass.voidType) &&
-                                !base.cache().contains(c.indexOfBytecode()) &&
+                                base.isNotCached(c.indexOfBytecode()) &&
                                 call.compareAndSet(null, c)),
                 Catch.consumer(c -> {
 

@@ -1,8 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -23,7 +21,7 @@ public abstract class Reduction<T> {
     /**
      * The attempts of previous reducers.
      */
-    protected final Set<T> cache;
+    protected final Set<T> attempts;
 
     /**
      * Increasing identifier for consecutive runs.
@@ -34,19 +32,19 @@ public abstract class Reduction<T> {
      * Instantiate a new object with the given bytecode and attempt cache.
      *
      * @param bytecode The bytecode that represents this base / result
-     * @param cache    The initial cache (empty if null)
+     * @param attempts The initial cache (empty if null)
      * @param run      The run number (default 0)
      */
-    private Reduction(byte[] bytecode, Set<T> cache, int run) {
+    protected Reduction(byte[] bytecode, Set<T> attempts, int run) {
         this.bytecode = bytecode;
-        this.cache = cache;
+        this.attempts = attempts;
         this.run = run;
     }
 
     /**
      * @see Reduction#Reduction(byte[], Set, int)
      */
-    private Reduction(byte[] bytecode, int run) {
+    protected Reduction(byte[] bytecode, int run) {
         this(bytecode, Set.of(), run);
     }
 
@@ -71,12 +69,22 @@ public abstract class Reduction<T> {
     }
 
     /**
-     * Returns the attempt cache.
+     * Determines whether the given value is already cached (was already
+     * tried with this result).
      *
-     * @return a set of attempts
+     * @param attempt The current attempt
+     * @return {@code true} if this attempt was already tried, {@code false}
+     * otherwise
      */
-    public final Set<T> cache() {
-        return cache;
+    public final boolean isCached(T attempt) {
+        return attempts.contains(attempt);
+    }
+
+    /**
+     * @see Reduction#isCached(Object)
+     */
+    public final boolean isNotCached(T attempt) {
+        return !isCached(attempt);
     }
 
     /**
@@ -85,26 +93,26 @@ public abstract class Reduction<T> {
      *
      * @param <T> The type of the stored attempts
      */
-    public static final class Base<T> extends Reduction<T> {
+    public static class Base<T> extends Reduction<T> {
 
         /**
          * @see Reduction#Reduction(byte[], Set, int)
          */
-        private Base(byte[] bytecode, Set<T> cache, int run) {
+        protected Base(byte[] bytecode, Set<T> cache, int run) {
             super(bytecode, cache, run);
         }
 
         /**
          * @see Reduction#Reduction(byte[], Set, int)
          */
-        private Base(byte[] bytecode, int run) {
+        protected Base(byte[] bytecode, int run) {
             super(bytecode, run);
         }
 
         /**
          * @see Reduction#Reduction(byte[], Set, int)
          */
-        private Base(byte[] bytecode) {
+        protected Base(byte[] bytecode) {
             super(bytecode, 0);
         }
 
@@ -142,14 +150,14 @@ public abstract class Reduction<T> {
      *
      * @param <T> The type of the stored attempts
      */
-    public static final class Result<T> extends Reduction<T> {
+    public static class Result<T> extends Reduction<T> {
 
         /**
          * The bytecode that produced this result.
          * Is stored in order to revert back to this in
          * case of invalid results.
          */
-        private final byte[] previous;
+        protected final byte[] previous;
 
         /**
          * Flag that indicates that a result is minimal.
@@ -165,8 +173,8 @@ public abstract class Reduction<T> {
          * @param attempts The additional updates
          * @param min      Indicates whether the result is minimal
          */
-        private Result(Base<T> base, byte[] bytecode, Set<T> attempts, boolean min) {
-            super(bytecode, Stream.of(base.cache, attempts)
+        protected Result(Base<T> base, byte[] bytecode, Set<T> attempts, boolean min) {
+            super(bytecode, Stream.of(base.attempts, attempts)
                     .flatMap(Collection::stream)
                     .collect(Collectors.toSet()), base.run + 1);
             this.previous = base.bytecode;
@@ -181,7 +189,7 @@ public abstract class Reduction<T> {
          * @param bytecode The resulting bytecode
          * @param attempts The additional updates
          */
-        private Result(Base<T> base, byte[] bytecode, Set<T> attempts) {
+        protected Result(Base<T> base, byte[] bytecode, Set<T> attempts) {
             this(base, bytecode, attempts, false);
         }
 
@@ -204,7 +212,7 @@ public abstract class Reduction<T> {
          * and the cached attempts
          */
         public Base<T> reject() {
-            return new Base<>(previous, cache, run);
+            return new Base<>(previous, attempts, run);
         }
 
         /**
