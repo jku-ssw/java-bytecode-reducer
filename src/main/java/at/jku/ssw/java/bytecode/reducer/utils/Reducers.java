@@ -15,6 +15,6 @@ public class Reducers {
     }
 
     public static <T extends Reducer> Stream<Class<? extends T>> sort(Stream<Class<? extends T>> modules) {
-        return modules.sorted(Comparator.comparing(c -> c.isAnnotationPresent(Expensive.class) ? c.getAnnotation(Expensive.class).heaviness() : -1));
+        return modules.sorted(Comparator.comparing(c -> c.isAnnotationPresent(Expensive.class) ? 1 : -1));
     }
 }
