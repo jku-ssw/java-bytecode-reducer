@@ -24,7 +24,7 @@ test {
 }
 
 wrapper {
-    gradleVersion    = '4.8'
+    gradleVersion = '4.8'
 }
 
 /* REPOSITORIES ============================================================ */
@@ -36,26 +36,14 @@ repositories {
 /* DEPENDENCIES ============================================================ */
 
 dependencies {
-    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-api
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: '2.11.0'
-    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-core
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.11.0'
-    // https://mvnrepository.com/artifact/org.apache.logging.log4j/log4j-iostreams
-    compile group: 'org.apache.logging.log4j', name: 'log4j-iostreams', version: '2.11.0'
+    compile 'org.apache.logging.log4j:log4j-api:2.11.0'
+    compile 'org.apache.logging.log4j:log4j-core:2.11.0'
+    compile 'org.apache.logging.log4j:log4j-iostreams:2.11.0'
 
-    // https://mvnrepository.com/artifact/com.fasterxml.jackson.core/jackson-databind
-    compile group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: '2.9.4'
-    // https://mvnrepository.com/artifact/com.fasterxml.jackson.dataformat/jackson-dataformat-yaml
-    compile group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-yaml', version: '2.9.4'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 
-    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-api
-    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: '5.1.0'
-    // https://mvnrepository.com/artifact/org.junit.jupiter/junit-jupiter-engine
-    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: '5.1.0'
+    compile 'org.javassist:javassist:3.22.0-GA'
 
-    // https://mvnrepository.com/artifact/org.javassist/javassist
-    compile group: 'org.javassist', name: 'javassist', version: '3.22.0-GA'
-
-    // https://mvnrepository.com/artifact/commons-cli/commons-cli
-    compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+    compile 'commons-cli:commons-cli:1.4'
 }
