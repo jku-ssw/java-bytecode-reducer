@@ -8,7 +8,7 @@ in order to remove complex instruction sequences and unused members.
 ## Usage
 To initiate a reduction sequence, the following command line options are supported:
 
-`jreduce \[-d <arg>\] \[-help\] \[-i <arg>\] \[-k\] \[-out <arg>\] \[-q | -v\] \[-t <arg>\] \[-tmp <arg>\] \[-version\]`
+`jreduce [-d <arg>] [-help] [-i <arg>] [-k] [-out <arg>] [-q | -v] [-t <arg>] [-tmp <arg>] [-version]`
 
 | Argument                | Description                                                                                      |
 |-------------------------|--------------------------------------------------------------------------------------------------|
