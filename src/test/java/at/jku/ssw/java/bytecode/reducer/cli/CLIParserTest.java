@@ -28,6 +28,7 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
+                new String[0],
                 false,
                 -1L
         );
@@ -88,6 +89,7 @@ public class CLIParserTest {
                 "",
                 DEFAULT_OUT,
                 DEFAULT_TEMP,
+                new String[0],
                 false,
                 -1L
         );
