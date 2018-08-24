@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.modules.misc;
+package at.jku.ssw.java.bytecode.reducer.modules.cleanup;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
