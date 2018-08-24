@@ -64,6 +64,16 @@ public class CLIParserTest {
     }
 
     @Test
+    void testListArgument() throws ParseException {
+        final String list = "--list-modules";
+
+        assertNull(parse(list));
+        assertNull(parse(list, ""));
+        assertNull(parse(list, "1"));
+        assertNull(parse(list, "another_arg"));
+    }
+
+    @Test
     void testLoggingArgument() throws ParseException {
         assertEquals(emptyContextFactory(), parse("-q"));
         assertEquals(emptyContextFactory(), parse("-v"));

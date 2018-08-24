@@ -15,4 +15,5 @@ public interface CLIOptions {
     String KEEP_TEMP  = "k";
     String TIMEOUT    = "t";
     String FILTER     = "f";
+    String LIST       = "l";
 }

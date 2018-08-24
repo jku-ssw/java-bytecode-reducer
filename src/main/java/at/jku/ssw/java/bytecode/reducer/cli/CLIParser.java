@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.cli;
 
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
+import at.jku.ssw.java.bytecode.reducer.context.ModuleRegistry;
 import org.apache.commons.cli.*;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
@@ -29,6 +30,11 @@ public class CLIParser {
 
         if (cmd.hasOption(CLIOptions.VERSION)) {
             showVersion();
+            return null;
+        }
+
+        if (cmd.hasOption(CLIOptions.LIST)) {
+            showModules();
             return null;
         }
 
@@ -127,6 +133,13 @@ public class CLIParser {
         logger.info("Version: {}", version);
     }
 
+    private void showModules() {
+        logger.info("The following reducer modules are available:");
+        ModuleRegistry.allModules().stream()
+                .map(Class::getSimpleName)
+                .forEach(logger::info);
+    }
+
     private Options generateArgumentOptions() {
         Options options = new Options();
 
@@ -197,6 +210,7 @@ public class CLIParser {
         options.addOption(CLIOptions.HELP, CLIOptions.HELP, false, "Display information about application usage")
                 .addOption(CLIOptions.VERSION, CLIOptions.VERSION, false, "Print program version")
                 .addOption(CLIOptions.KEEP_TEMP, "keep", false, "Keep temporary test directories and files")
+                .addOption(CLIOptions.LIST, "list-modules", false, "List all available transformation modules")
                 .addOption(workingDir)
                 .addOption(outDir)
                 .addOption(tempDir)
