@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
 import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
-import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+import at.jku.ssw.java.bytecode.reducer.utils.FileUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -191,7 +191,11 @@ public class ContextFactory {
         Path outDir     = workingDir.resolve(this.outDir).toAbsolutePath();
         Path tempDir    = workingDir.resolve(this.tempDir).toAbsolutePath();
 
-        var modules = applyFilters(ModuleRegistry.allModules().stream())
+        var noFilters = this.filters.length == 0;
+
+        var modules = ModuleRegistry.allModules().stream()
+                .filter(m -> noFilters || Arrays.stream(this.filters)
+                        .anyMatch(f -> f.equalsIgnoreCase(m.getSimpleName())))
                 .collect(Collectors.toList());
 
         return new Context(outDir, tempDir, modules, keepTemp);
@@ -224,23 +228,6 @@ public class ContextFactory {
     // region Utility methods
 
     /**
-     * Applies filters on the given module string if any are available.
-     *
-     * @param modules The reducer modules that are checked
-     * @return the filtering results (if there are filters), or the same stream
-     */
-    private Stream<Class<? extends Reducer>> applyFilters(Stream<Class<? extends Reducer>> modules) {
-        if (filters.length == 0)
-            return modules;
-
-        var filters = Arrays.stream(this.filters)
-                .map(String::toLowerCase)
-                .collect(Collectors.toSet());
-
-        return modules.filter(m -> filters.contains(m.getSimpleName()));
-    }
-
-    /**
      * Validates the given file names.
      *
      * @param workingDir The working directory (default reference for relative paths)
@@ -251,17 +238,15 @@ public class ContextFactory {
      */
     private Set<Path> validate(Path workingDir,
                                String[] files,
-                               PathMatcher matcher)
-            throws IOException {
+                               PathMatcher matcher) throws IOException {
 
-        final Stream<Path> paths;
-
+        // scan working directory if no targets are given
         if (files.length == 0)
-            paths = scanFiles(workingDir, matcher);
-        else
-            paths = resolve(workingDir, files, matcher);
+            return FileUtils.scan(workingDir, matcher)
+                    .collect(Collectors.toSet());
 
-        return paths.collect(Collectors.toSet());
+        return resolve(workingDir, files, matcher)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -292,26 +277,6 @@ public class ContextFactory {
 
                     return true;
                 });
-    }
-
-    /**
-     * Returns all regular files in the given directory that end
-     * with the given string.
-     *
-     * @param workingDir The directory to scan
-     * @param matcher    String that all files have to end with
-     * @return a stream of paths that point to the result files
-     * @throws IOException if the directory is a file or inaccessible
-     */
-    private Stream<Path> scanFiles(Path workingDir, PathMatcher matcher) throws IOException {
-        try (var files = Files.walk(workingDir)) {
-            // this stream has to be collected in-place and then converted
-            // again, as the resource is closed after leaving the method
-            return files.filter(Files::isRegularFile)
-                    .filter(matcher::matches)
-                    .collect(Collectors.toSet())
-                    .stream();
-        }
     }
 
     // endregion

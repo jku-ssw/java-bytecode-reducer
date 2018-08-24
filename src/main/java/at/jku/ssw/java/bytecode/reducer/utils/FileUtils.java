@@ -3,9 +3,14 @@ package at.jku.ssw.java.bytecode.reducer.utils;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.Arrays;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+/**
+ * Contains utilities for Java NIO classes and general file I/O operations.
+ */
 public final class FileUtils {
     private FileUtils() {
     }
@@ -71,5 +76,26 @@ public final class FileUtils {
                     }
                 })
                 .filter(Objects::nonNull);
+    }
+
+    /**
+     * Scans the given path and recursively returns all files that match
+     * all the given filters (if any).
+     *
+     * @param path     The initial path
+     * @param matchers The filters that each result file has to pass through
+     * @return a stream of paths within the directory that correspond to
+     * all given matchers
+     * @throws IOException if the files cannot be accessed
+     */
+    public static Stream<Path> scan(Path path, PathMatcher... matchers) throws IOException {
+        try (var pathStream = Files.walk(path)) {
+            // this stream has to be collected in-place and then converted
+            // again, as the resource is closed after leaving the method
+            return pathStream.filter(Files::isRegularFile)
+                    .filter(p -> Arrays.stream(matchers).allMatch(m -> m.matches(p)))
+                    .collect(Collectors.toList())
+                    .stream();
+        }
     }
 }
