@@ -44,6 +44,7 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.1.0'
 
     compile 'org.javassist:javassist:3.22.0-GA'
+    compile 'org.ow2.asm:asm:6.2'
 
     compile 'commons-cli:commons-cli:1.4'
 }
