@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
+import at.jku.ssw.java.bytecode.reducer.modules.cleanup.RemoveNOPs;
 import at.jku.ssw.java.bytecode.reducer.modules.cleanup.ShrinkConstantPool;
 import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveConstantAssignments;
@@ -32,15 +33,16 @@ public final class ModuleRegistry {
                 RemoveStaticFieldAttributes.class,
                 RemoveAllFieldAttributes.class,
                 RemoveAllMethodAttributes.class,
-                RemoveConstantAssignments.class,
-                RemoveNeutralInstructions.class,
-                ShrinkConstantPool.class,
                 RemoveMethodAttributes.class,
                 RemoveFieldAttributes.class,
                 RemoveInitializers.class,
                 ReplaceMethodCalls.class,
                 RemoveVoidMethodCalls.class,
-                RemoveInstructionSequences.class
+                RemoveConstantAssignments.class,
+                RemoveNeutralInstructions.class,
+                RemoveInstructionSequences.class,
+                ShrinkConstantPool.class,
+                RemoveNOPs.class
         );
     }
 }
