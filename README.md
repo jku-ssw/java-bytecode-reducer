@@ -8,14 +8,16 @@ in order to remove complex instruction sequences and unused members.
 ## Usage
 To initiate a reduction sequence, the following command line options are supported:
 
-`jreduce [-d <arg>] [-help] [-i <arg>] [-k] [-out <arg>] [-q | -v] [-t <arg>] [-tmp <arg>] [-version]`
+`jreduce [-d <arg>] [-f <arg>] [-help] [-i <arg>] [-k] [-l] [-out <arg>] [-q | -v] [-t <arg>] [-tmp <arg>] [-version]`
 
 | Argument                | Description                                                                                      |
 |-------------------------|--------------------------------------------------------------------------------------------------|
 | -d,--working-dir <arg>  | The working directory in which the task is run (if omitted, the current directory is assumed)    |
+| -f,--filter <arg>       | Choose individual operations or modules to apply                                                 |
 | -help,--help            | Display information about application usage                                                      |
 | -i,--i-tests <arg>      | The interestingness test file (test.{sh,bat} is assumed if no argument is supplied)              |
 | -k,--keep               | Keep temporary test directories and files                                                        |
+| -l,--list-modules       | List all available transformation modules                                                        |
 | -out,--out-dir <arg>    | The directory where results will be placed                                                       |
 | -q,--quiet              | Suppress log messages                                                                            |
 | -t,--timeout <arg>      | The timeout in seconds until runs of the test files are interrupted (to prevent infinite loops)  |
