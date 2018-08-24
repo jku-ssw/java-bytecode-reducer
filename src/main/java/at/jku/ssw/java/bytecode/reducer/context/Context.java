@@ -1,6 +1,10 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
+import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+
 import java.nio.file.Path;
+import java.util.List;
+import java.util.stream.Stream;
 
 /**
  * Stores properties of the current execution context.
@@ -24,12 +28,23 @@ public class Context {
      */
     public final boolean keepTemp;
 
+    /**
+     * The available transformation modules in this run.
+     */
+    private final List<Class<? extends Reducer>> modules;
+
     Context(Path outDir,
             Path tempDir,
+            List<Class<? extends Reducer>> modules,
             boolean keepTemp) {
 
         this.outDir = outDir;
         this.tempDir = tempDir;
         this.keepTemp = keepTemp;
+        this.modules = modules;
+    }
+
+    public Stream<Class<? extends Reducer>> executionOrder() {
+        return modules.stream();
     }
 }

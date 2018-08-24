@@ -14,4 +14,5 @@ public interface CLIOptions {
     String I_TESTS    = "i";
     String KEEP_TEMP  = "k";
     String TIMEOUT    = "t";
+    String FILTER     = "f";
 }

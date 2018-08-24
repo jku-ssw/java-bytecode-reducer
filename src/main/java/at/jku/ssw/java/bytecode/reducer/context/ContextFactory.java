@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
 import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
+import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import at.jku.ssw.java.bytecode.reducer.utils.OSUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -8,7 +9,6 @@ import org.apache.logging.log4j.Logger;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -96,6 +96,11 @@ public class ContextFactory {
      */
     private final long timeout;
 
+    /**
+     * Possible filters for individual reducers.
+     */
+    private final String[] filters;
+
     // endregion
     //-------------------------------------------------------------------------
     // region Initialization
@@ -105,6 +110,7 @@ public class ContextFactory {
                           String workingDir,
                           String outDir,
                           String tempDir,
+                          String[] filters,
                           boolean keepTemp,
                           long timeout) {
 
@@ -115,6 +121,7 @@ public class ContextFactory {
         this.tempDir = tempDir == null ? DEFAULT_TEMP : tempDir;
         this.keepTemp = keepTemp;
         this.timeout = timeout == -1 ? DEFAULT_TIMEOUT : timeout;
+        this.filters = filters;
 
         String scriptPattern = OSUtils.isWindows() ? "glob:*.bat" : "glob:*.sh";
         scriptMatcher = FileSystems.getDefault().getPathMatcher(scriptPattern);
@@ -125,24 +132,34 @@ public class ContextFactory {
     //-------------------------------------------------------------------------
     // region Overridden methods
 
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
-        ContextFactory that = (ContextFactory) o;
-        return Arrays.equals(classFiles, that.classFiles) &&
-                Arrays.equals(iTests, that.iTests) &&
-                Objects.equals(workingDir, that.workingDir) &&
-                Objects.equals(outDir, that.outDir) &&
-                Objects.equals(tempDir, that.tempDir);
+
+        var that = (ContextFactory) o;
+
+        if (keepTemp != that.keepTemp) return false;
+        if (timeout != that.timeout) return false;
+        if (!Arrays.equals(classFiles, that.classFiles)) return false;
+        if (!Arrays.equals(iTests, that.iTests)) return false;
+        if (!workingDir.equals(that.workingDir)) return false;
+        if (!outDir.equals(that.outDir)) return false;
+        if (!tempDir.equals(that.tempDir)) return false;
+        return Arrays.equals(filters, that.filters);
     }
 
     @Override
     public int hashCode() {
-
-        int result = Objects.hash(workingDir, outDir, tempDir);
-        result = 31 * result + Arrays.hashCode(classFiles);
+        int result = Arrays.hashCode(classFiles);
         result = 31 * result + Arrays.hashCode(iTests);
+        result = 31 * result + workingDir.hashCode();
+        result = 31 * result + outDir.hashCode();
+        result = 31 * result + tempDir.hashCode();
+        result = 31 * result + (keepTemp ? 1 : 0);
+        result = 31 * result + (int) (timeout ^ (timeout >>> 32));
+        result = 31 * result + Arrays.hashCode(filters);
         return result;
     }
 
@@ -154,10 +171,11 @@ public class ContextFactory {
                 ", workingDir='" + workingDir + '\'' +
                 ", outDir='" + outDir + '\'' +
                 ", tempDir='" + tempDir + '\'' +
+                ", filters='" + Arrays.toString(filters) + '\'' +
                 '}';
     }
 
-// endregion
+    // endregion
     //-------------------------------------------------------------------------
     // region Factory methods
 
@@ -173,11 +191,10 @@ public class ContextFactory {
         Path outDir     = workingDir.resolve(this.outDir).toAbsolutePath();
         Path tempDir    = workingDir.resolve(this.tempDir).toAbsolutePath();
 
-        return new Context(
-                outDir,
-                tempDir,
-                keepTemp
-        );
+        var modules = applyFilters(ModuleRegistry.allModules().stream())
+                .collect(Collectors.toList());
+
+        return new Context(outDir, tempDir, modules, keepTemp);
     }
 
     public BytecodeCache initCache()
@@ -205,6 +222,23 @@ public class ContextFactory {
     // endregion
     //-------------------------------------------------------------------------
     // region Utility methods
+
+    /**
+     * Applies filters on the given module string if any are available.
+     *
+     * @param modules The reducer modules that are checked
+     * @return the filtering results (if there are filters), or the same stream
+     */
+    private Stream<Class<? extends Reducer>> applyFilters(Stream<Class<? extends Reducer>> modules) {
+        if (filters.length == 0)
+            return modules;
+
+        var filters = Arrays.stream(this.filters)
+                .map(String::toLowerCase)
+                .collect(Collectors.toSet());
+
+        return modules.filter(m -> filters.contains(m.getSimpleName()));
+    }
 
     /**
      * Validates the given file names.
@@ -270,9 +304,13 @@ public class ContextFactory {
      * @throws IOException if the directory is a file or inaccessible
      */
     private Stream<Path> scanFiles(Path workingDir, PathMatcher matcher) throws IOException {
-        try (var files = Files.list(workingDir)) {
+        try (var files = Files.walk(workingDir)) {
+            // this stream has to be collected in-place and then converted
+            // again, as the resource is closed after leaving the method
             return files.filter(Files::isRegularFile)
-                    .filter(matcher::matches);
+                    .filter(matcher::matches)
+                    .collect(Collectors.toSet())
+                    .stream();
         }
     }
 

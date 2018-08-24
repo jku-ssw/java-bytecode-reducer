@@ -47,6 +47,10 @@ public class CLIParser {
         String tmp        = getArg(cmd, CLIOptions.TEMP);
         String workingDir = getArg(cmd, CLIOptions.WORKING_D);
 
+        String[] filters = Optional
+                .ofNullable(cmd.getOptionValues(CLIOptions.FILTER))
+                .orElse(new String[0]);
+
         String[] fileArgs   = cmd.getArgs();
         String[] classFiles = fileArgs;
 
@@ -74,6 +78,7 @@ public class CLIParser {
                 workingDir,
                 out,
                 tmp,
+                filters,
                 keepTemp,
                 timeout
         );
@@ -181,6 +186,14 @@ public class CLIParser {
                 .type(Number.class)
                 .build();
 
+        Option filter = Option.builder(CLIOptions.FILTER)
+                .desc("Choose individual operations or modules to apply")
+                .longOpt("filter")
+                .valueSeparator(',')
+                .hasArgs()
+                .required(false)
+                .build();
+
         options.addOption(CLIOptions.HELP, CLIOptions.HELP, false, "Display information about application usage")
                 .addOption(CLIOptions.VERSION, CLIOptions.VERSION, false, "Print program version")
                 .addOption(CLIOptions.KEEP_TEMP, "keep", false, "Keep temporary test directories and files")
@@ -189,7 +202,8 @@ public class CLIParser {
                 .addOption(tempDir)
                 .addOptionGroup(logging)
                 .addOption(iTest)
-                .addOption(timeout);
+                .addOption(timeout)
+                .addOption(filter);
 
         return options;
     }

@@ -1,31 +1,17 @@
 package at.jku.ssw.java.bytecode.reducer;
 
-import at.jku.ssw.java.bytecode.reducer.annot.Sound;
-import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.cli.CLIParser;
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import at.jku.ssw.java.bytecode.reducer.errors.DuplicateClassException;
-import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.io.NamingStrategy;
 import at.jku.ssw.java.bytecode.reducer.io.TempDir;
-import at.jku.ssw.java.bytecode.reducer.modules.fields.*;
-import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveConstantAssignments;
-import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
-import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveNeutralInstructions;
-import at.jku.ssw.java.bytecode.reducer.modules.methods.*;
-import at.jku.ssw.java.bytecode.reducer.modules.misc.ShrinkConstantPool;
-import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
-import at.jku.ssw.java.bytecode.reducer.utils.Reducers;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import org.apache.commons.cli.ParseException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class JReduce {
     private static final Logger logger = LogManager.getLogger();
@@ -49,48 +35,11 @@ public class JReduce {
             if (contextFactory == null)
                 System.exit(EXIT_SUCCESS);
 
-            // all available reduction operations
-            final Set<Class<? extends Reducer>> modules = Set.of(
-                    RemoveUnusedFields.class,
-                    RemoveUnusedMethods.class,
-                    RemoveWriteOnlyFields.class,
-                    RemoveEmptyMethods.class,
-                    RemoveReadOnlyFields.class,
-                    RemoveStaticFieldAttributes.class,
-                    RemoveAllFieldAttributes.class,
-                    RemoveAllMethodAttributes.class,
-                    RemoveConstantAssignments.class,
-                    RemoveNeutralInstructions.class,
-                    RemoveInstructionSequences.class,
-                    ShrinkConstantPool.class,
-                    RemoveMethodAttributes.class,
-                    RemoveFieldAttributes.class,
-                    RemoveInitializers.class,
-                    ReplaceMethodCalls.class,
-                    RemoveVoidMethodCalls.class
-            );
-
-            final var pre = Reducers.sort(
-                    modules.stream()
-                            .filter(c -> c.isAnnotationPresent(Sound.class))
-            ).collect(Collectors.toList());
-
-            final var core = Reducers.sort(
-                    modules.stream()
-                            .filter(c -> c.isAnnotationPresent(Unsound.class))
-            ).collect(Collectors.toList());
-
-            /*
-            Running order: apply sound operations first,
-            then try experimental ones that may remove significant portions
-            of the code and then run sound ones again to reduce assets that
-            may have been affected by the core transformations.
-            */
-            final var stages = List.of(pre, core, pre).stream()
-                    .flatMap(Collection::stream);
-
             // initialize the context
             final var context = contextFactory.createContext();
+
+            // retrieve the running order
+            final var stages = context.executionOrder();
 
             // initialize the test suite
             final var testSuite = contextFactory.getTestSuite();
