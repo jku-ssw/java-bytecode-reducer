@@ -6,13 +6,11 @@ import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
 import javassist.CtBehavior;
-import javassist.CtClass;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 
-import java.io.IOException;
 import java.util.Arrays;
-import java.util.stream.Stream;
+import java.util.Optional;
 
 import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecode;
 
@@ -23,69 +21,18 @@ import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecod
 public interface InstructionReducer extends RepeatableReducer<CodePosition> {
 
     /**
-     * Perform the reduction operation on the given code position
-     * using the given iterator.
+     * Find the next applicable code positions in the given behaviour with the
+     * given code iterator and perform the reduction operation on it
      *
-     * @param clazz        The currently reduced class
-     * @param behav        The current method
-     * @param codePosition The code position that should be reduced
-     * @param iterator     The code iterator that allows low level access
-     * @return the reduced class
-     */
-    CtClass reduce(CtClass clazz,
-                   CtBehavior behav,
-                   CodePosition codePosition,
-                   CodeIterator iterator);
-
-    /**
-     * Find applicable code positions in the given behaviour with the
-     * given code iterator.
-     *
+     * @param base   The current reduction base (for accessing the cache)
      * @param method The current method
      * @param it     The code iterator that allows low level access
-     * @return all applicable code positions
+     * @return the potentially reduced code positions
      * @throws BadBytecode if the byte code is invalid at some point
      */
-    Stream<CodePosition> codePositions(CtBehavior method,
-                                       CodeIterator it) throws BadBytecode;
-
-    /**
-     * Reduces the given class at the given code position by the
-     * implementation dependent operation.
-     *
-     * @param base         The reduction base
-     * @param clazz        The class to reduce
-     * @param codePosition The determined code position
-     * @return the reduction result
-     */
-    default Result<CodePosition> process(Base<CodePosition> base,
-                                         CtClass clazz,
-                                         CodePosition codePosition) {
-
-        /*
-        Fetch the method that is referenced in the code position.
-        As this always returns a single method, the Optional result is simply
-        forced.
-        */
-        return Arrays.stream(clazz.getDeclaredBehaviors())
-                .filter(b -> b.getLongName().equals(codePosition.member))
-                .findAny()
-                .map(behav -> {
-
-                    var methodInfo = behav.getMethodInfo();
-
-                    var ca = methodInfo.getCodeAttribute();
-                    var it = ca.iterator();
-
-                    try {
-                        return base.toResult(bytecode(
-                                reduce(clazz, behav, codePosition, it)
-                        ), codePosition);
-                    } catch (IOException e) {
-                        return null;
-                    }
-                }).orElse(null);
-    }
+    Optional<CodePosition> reduceNext(Base<CodePosition> base,
+                                      CtBehavior method,
+                                      CodeIterator it) throws BadBytecode;
 
     @Override
     default Result<CodePosition> apply(Base<CodePosition> base) throws Exception {
@@ -111,11 +58,12 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
                     */
                     it.skipConstructor();
 
-                    return codePositions(method, it)
-                            .filter(base::isNotCached);
+                    // perform the operation and "stream" the result
+                    // (to abide to flatMap rules)
+                    return reduceNext(base, method, it).stream();
                 }))
                 .findAny()
-                .map(cp -> process(base, clazz, cp))
+                .map(Catch.function(cp -> base.toResult(bytecode(clazz), cp)))
                 .orElseGet(base::toMinimalResult);
     }
 

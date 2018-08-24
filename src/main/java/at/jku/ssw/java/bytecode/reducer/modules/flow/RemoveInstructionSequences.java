@@ -2,11 +2,11 @@ package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
+import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import javassist.CtBehavior;
-import javassist.CtClass;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Mnemonic;
@@ -14,9 +14,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Optional;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static javassist.bytecode.Opcode.NOP;
 
@@ -30,11 +29,9 @@ public class RemoveInstructionSequences implements InstructionReducer {
 
     private static final Logger logger = LogManager.getLogger();
 
-    @Override
-    public CtClass reduce(CtClass clazz,
-                          CtBehavior behav,
-                          CodePosition codePosition,
-                          CodeIterator it) {
+    public CodePosition reduce(CtBehavior behav,
+                               CodePosition codePosition,
+                               CodeIterator it) {
 
         var begin = codePosition.begin;
         var end   = codePosition.end;
@@ -50,11 +47,13 @@ public class RemoveInstructionSequences implements InstructionReducer {
         IntStream.range(begin, end)
                 .forEach(i -> it.writeByte(NOP, i));
 
-        return clazz;
+        return codePosition;
     }
 
     @Override
-    public Stream<CodePosition> codePositions(CtBehavior method, CodeIterator it) throws BadBytecode {
+    public Optional<CodePosition> reduceNext(Reduction.Base<CodePosition> base,
+                                             CtBehavior method,
+                                             CodeIterator it) throws BadBytecode {
         var name = method.getLongName();
 
         logger.trace(name);
@@ -62,10 +61,6 @@ public class RemoveInstructionSequences implements InstructionReducer {
         // store the markings at which the stack size is zero
         // and that are not NOPs
         var beginIndices = new ArrayList<Integer>();
-
-        // store the markings at which the stack size is zero
-        // which may be NOPs
-        var endIndices = new ArrayList<Integer>();
 
         // the current number of items on the stack
         var stackSize = 0;
@@ -101,21 +96,24 @@ public class RemoveInstructionSequences implements InstructionReducer {
                     stackSize
             ));
 
-            // if the stack is empty (again), remember the next index
-            // as this may be a potential end of a removable sequence
-            if (stackSize == 0)
-                endIndices.add(it.lookAhead());
+            // if the stack is empty (again), the next index may be the end
+            // of a potentially removable instruction sequence
+
+            if (stackSize == 0) {
+                var end = it.lookAhead();
+                // potentially removable code position
+                var opt = beginIndices.stream()
+                        .map(begin -> new CodePosition(name, begin, end))
+                        .filter(base::isNotCached)
+                        .findAny()
+                        .map(cp -> reduce(method, cp, it));
+
+                if (opt.isPresent())
+                    return opt;
+            }
         }
 
-        // perform sorting before return expression
-        endIndices.sort(Comparator.reverseOrder());
-
-        return beginIndices.stream()
-                .flatMap(i ->
-                        endIndices.stream()
-                                .filter(j -> j > i)
-                                .map(j -> new CodePosition(name, i, j))
-                );
+        return Optional.empty();
     }
 
 }

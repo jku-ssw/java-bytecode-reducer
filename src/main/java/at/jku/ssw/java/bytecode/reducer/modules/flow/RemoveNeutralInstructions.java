@@ -2,20 +2,19 @@ package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
+import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import javassist.CtBehavior;
-import javassist.CtClass;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Opcode;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
+import java.util.Optional;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static javassist.bytecode.Opcode.NOP;
 
@@ -28,8 +27,7 @@ public class RemoveNeutralInstructions implements InstructionReducer {
 
     private static final Logger logger = LogManager.getLogger();
 
-    @Override
-    public CtClass reduce(CtClass clazz, CtBehavior behav, CodePosition codePosition, CodeIterator iterator) {
+    public CodePosition reduce(CtBehavior behav, CodePosition codePosition, CodeIterator iterator) {
         var begin = codePosition.begin;
         var end   = codePosition.end;
 
@@ -43,13 +41,14 @@ public class RemoveNeutralInstructions implements InstructionReducer {
         IntStream.range(begin, end)
                 .forEach(i -> iterator.writeByte(NOP, i));
 
-        return clazz;
+        return codePosition;
     }
 
     @Override
-    public Stream<CodePosition> codePositions(CtBehavior method, CodeIterator it) throws BadBytecode {
-        var name      = method.getLongName();
-        var positions = new ArrayList<CodePosition>();
+    public Optional<CodePosition> reduceNext(Base<CodePosition> base,
+                                             CtBehavior method,
+                                             CodeIterator it) throws BadBytecode {
+        var name = method.getLongName();
 
         while (it.hasNext()) {
             int begin = it.next();
@@ -73,12 +72,17 @@ public class RemoveNeutralInstructions implements InstructionReducer {
                     it
             );
 
-            // if potential site is found, store it
-            if (change == 0)
-                positions.add(new CodePosition(name, begin, end));
+            // if potential site is found, analyze it
+            if (change == 0) {
+                // potentially removable code position
+                var cp = new CodePosition(name, begin, end);
+
+                if (base.isNotCached(cp))
+                    return Optional.of(reduce(method, cp, it));
+            }
         }
 
-        return positions.stream();
+        return Optional.empty();
     }
 
 }
