@@ -45,7 +45,7 @@ public final class Instrumentation {
     }
 
     /**
-     * Performs the given action for each field access of the given class.
+     * Performs the given action for each method call of the given class.
      * Results can be filtered.
      *
      * @param clazz  The class under inspection
