@@ -1,6 +1,9 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
+import javassist.ClassPool;
 import javassist.CtBehavior;
+import javassist.CtClass;
+import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Descriptor;
@@ -367,12 +370,15 @@ public final class Code {
      * @param it     The code iterator
      * @return a positive value if the stack is increased, a negative value
      * if the stack is reduced; 0 if the stack remains invariant
-     * @throws BadBytecode if the current bytecode is flawed
+     * @throws BadBytecode       if the current bytecode is flawed
+     * @throws NotFoundException if a potential method type
+     *                           cannot be identified
      */
     public static int getStackLevelChange(CtBehavior method,
                                           int opcode,
                                           int i,
-                                          CodeIterator it) throws BadBytecode {
+                                          CodeIterator it)
+            throws BadBytecode, NotFoundException {
         if (plus1.contains(opcode))
             return 1;
         if (plus2.contains(opcode))
@@ -399,24 +405,30 @@ public final class Code {
                     var desc = constPool.getInterfaceMethodrefType(arg);
 
                     // removes the object reference and returns a single value
-                    // and reduces the stack by n values
+                    // (or void) and reduces the stack by n (+1) values
                     // where n is the number of parameters
-                    return -Descriptor.numOfParameters(desc);
+                    return isVoid(desc)
+                            ? -(1 + Descriptor.numOfParameters(desc))
+                            : -Descriptor.numOfParameters(desc);
                 case INVOKESPECIAL:
                 case INVOKEVIRTUAL:
                     arg = it.s16bitAt(i + 1);
                     desc = constPool.getMethodrefType(arg);
 
                     // removes the object reference and returns a single value
-                    // and reduces the stack by n values
-                    return -Descriptor.numOfParameters(desc);
+                    // (or void) and reduces the stack by n (+1) values
+                    return isVoid(desc)
+                            ? -(1 + Descriptor.numOfParameters(desc))
+                            : -Descriptor.numOfParameters(desc);
                 case INVOKEDYNAMIC:
                 case INVOKESTATIC:
                     arg = it.s16bitAt(i + 1);
                     desc = constPool.getMethodrefType(arg);
 
                     // removes n values and puts the result on the stack
-                    return 1 - Descriptor.numOfParameters(desc);
+                    return isVoid(desc)
+                            ? -Descriptor.numOfParameters(desc)
+                            : 1 - Descriptor.numOfParameters(desc);
                 case MULTIANEWARRAY:
                     /*
                     1 byte for instruction
@@ -446,17 +458,35 @@ public final class Code {
      * @param i          The current instruction index
      * @param it         The code iterator
      * @return the new stack level
-     * @throws BadBytecode if the current bytecode is flawed
+     * @throws BadBytecode       if the current bytecode is flawed
+     * @throws NotFoundException if a method type cannot be identified
      */
     public static int newStackLevel(CtBehavior method,
                                     int stackLevel,
                                     int opcode,
                                     int i,
-                                    CodeIterator it) throws BadBytecode {
+                                    CodeIterator it)
+            throws BadBytecode, NotFoundException {
         // if an instruction clears the stack, simply return 0
         if (clear.contains(opcode))
             return 0;
 
         return stackLevel + getStackLevelChange(method, opcode, i, it);
+    }
+
+    /**
+     * Chechs if the given descriptor identifies a method without return value
+     * (void).
+     *
+     * @param desc The method descriptor
+     * @return {@code true} if the method does not return anything;
+     * {@code false} otherwise
+     * @throws NotFoundException if the return type cannot be found in the
+     *                           class pool
+     */
+    public static boolean isVoid(String desc) throws NotFoundException {
+        var returnType = Descriptor.getReturnType(desc, ClassPool.getDefault());
+
+        return returnType == CtClass.voidType;
     }
 }
