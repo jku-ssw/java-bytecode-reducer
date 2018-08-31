@@ -325,8 +325,8 @@ public final class Code {
 
         var frame = frames[index];
 
-        // fetch type of the top element#
-        var top = frame.getStack(frame.getTopIndex() - 1);
+        // fetch type of the top element
+        var top = frame.peek();
 
         return top == Type.DOUBLE || top == Type.LONG;
     }
