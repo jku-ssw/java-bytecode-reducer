@@ -5,7 +5,9 @@ import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
+import javassist.ClassPool;
 import javassist.CtBehavior;
+import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 
@@ -28,11 +30,13 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
      * @param method The current method
      * @param it     The code iterator that allows low level access
      * @return the potentially reduced code positions
-     * @throws BadBytecode if the byte code is invalid at some point
+     * @throws BadBytecode       if the byte code is invalid at some point
+     * @throws NotFoundException if a type of a potential method
+     *                           cannot be identified
      */
     Optional<CodePosition> reduceNext(Base<CodePosition> base,
                                       CtBehavior method,
-                                      CodeIterator it) throws BadBytecode;
+                                      CodeIterator it) throws BadBytecode, NotFoundException;
 
     @Override
     default Result<CodePosition> apply(Base<CodePosition> base) throws Exception {
@@ -60,7 +64,12 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
 
                     // perform the operation and "stream" the result
                     // (to abide to flatMap rules)
-                    return reduceNext(base, method, it).stream();
+                    var result = reduceNext(base, method, it).stream();
+
+                    // rebuild the stack map
+                    m.rebuildStackMap(ClassPool.getDefault());
+
+                    return result;
                 }))
                 .findAny()
                 .map(Catch.function(cp -> base.toResult(bytecode(clazz), cp)))

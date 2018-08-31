@@ -7,6 +7,7 @@ import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import javassist.CtBehavior;
+import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Opcode;
@@ -47,7 +48,9 @@ public class RemoveNeutralInstructions implements InstructionReducer {
     @Override
     public Optional<CodePosition> reduceNext(Base<CodePosition> base,
                                              CtBehavior method,
-                                             CodeIterator it) throws BadBytecode {
+                                             CodeIterator it)
+            throws BadBytecode, NotFoundException {
+
         var name = method.getLongName();
 
         while (it.hasNext()) {
