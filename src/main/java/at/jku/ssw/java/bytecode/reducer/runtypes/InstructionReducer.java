@@ -66,8 +66,14 @@ public interface InstructionReducer extends RepeatableReducer<CodePosition> {
                     // (to abide to flatMap rules)
                     var result = reduceNext(base, method, it).stream();
 
-                    // rebuild the stack map
-                    m.rebuildStackMap(ClassPool.getDefault());
+                    try {
+                        // rebuild the stack map
+                        m.rebuildStackMap(ClassPool.getDefault());
+                    } catch (BadBytecode e) {
+                        // if rebuild fails, this means that the bytecode is
+                        // invalid and will fail the test anyway
+                        // TODO find better way to skip this
+                    }
 
                     return result;
                 }))
