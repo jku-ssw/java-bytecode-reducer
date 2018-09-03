@@ -1,9 +1,10 @@
 package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.MemberAttribute;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Members;
 import javassist.CtClass;
 import javassist.Modifier;
@@ -45,8 +46,12 @@ public class RemoveMethodAttributes
         Arrays.stream(clazz.getDeclaredMethods())
                 .filter(m -> m.getLongName().equals(memAttr.member))
                 .findAny()
-                .ifPresent(m ->
-                        m.setModifiers(Modifier.clear(m.getModifiers(), memAttr.attribute))
+                .ifPresent(Catch.consumer(m -> {
+                            if (memAttr.attribute == Modifier.STATIC)
+                                Members.makeInstanceMethod(m);
+                            else
+                                m.setModifiers(Modifier.clear(m.getModifiers(), memAttr.attribute));
+                        })
                 );
 
         return clazz;
