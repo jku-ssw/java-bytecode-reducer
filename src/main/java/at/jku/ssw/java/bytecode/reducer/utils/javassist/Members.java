@@ -1,6 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.utils.javassist;
 
 import javassist.*;
+import javassist.bytecode.BadBytecode;
 import javassist.expr.MethodCall;
 
 import java.util.Arrays;
@@ -120,6 +121,29 @@ public final class Members {
             return callSite instanceof CtMethod && call.getMethod().equals(callSite);
         } catch (NotFoundException e) {
             return false;
+        }
+    }
+
+    /**
+     * Converts the given (static) method into a instance method.
+     * If the method is not static, this method does nothing.
+     *
+     * @param method The corresponding method instance
+     * @throws BadBytecode if the method cannot be altered
+     */
+    public static void makeInstanceMethod(CtMethod method) throws BadBytecode {
+        var modifiers = method.getModifiers();
+
+        if (Modifier.isStatic(modifiers)) {
+            var info      = method.getMethodInfo();
+            var ca        = info.getCodeAttribute();
+            var maxLocals = ca.getMaxLocals();
+
+            // add a local variable for the object instance
+            ca.setMaxLocals(maxLocals + 1);
+            ca.computeMaxStack();
+
+            method.setModifiers(Modifier.clear(modifiers, Modifier.STATIC));
         }
     }
 }
