@@ -421,6 +421,13 @@ public final class Code {
                             ? -(1 + Descriptor.numOfParameters(desc))
                             : -Descriptor.numOfParameters(desc);
                 case INVOKEDYNAMIC:
+                    arg = it.s16bitAt(i + 1);
+                    desc = constPool.getInvokeDynamicType(arg);
+
+                    // removes n values and puts the result on the stack
+                    return isVoid(desc)
+                            ? -Descriptor.numOfParameters(desc)
+                            : 1 - Descriptor.numOfParameters(desc);
                 case INVOKESTATIC:
                     arg = it.s16bitAt(i + 1);
                     desc = constPool.getMethodrefType(arg);
