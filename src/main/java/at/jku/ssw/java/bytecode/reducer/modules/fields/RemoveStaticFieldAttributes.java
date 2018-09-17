@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
-import at.jku.ssw.java.bytecode.reducer.runtypes.InstanceCachedMemberReducer;
+import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
 import javassist.CtClass;
 import javassist.CtField;
 import javassist.Modifier;
@@ -14,7 +14,7 @@ import java.util.stream.Stream;
 
 @Unsound
 public class RemoveStaticFieldAttributes
-        implements InstanceCachedMemberReducer<CtClass, CtField>, JavassistHelper {
+        implements MemberReducer<CtClass, CtField, String>, JavassistHelper {
 
     private static final Logger logger = LogManager.getLogger();
 
@@ -31,5 +31,10 @@ public class RemoveStaticFieldAttributes
         field.setModifiers(Modifier.clear(field.getModifiers(), Modifier.STATIC));
 
         return clazz;
+    }
+
+    @Override
+    public String keyFromMember(CtField ctField) {
+        return ctField.getName();
     }
 }
