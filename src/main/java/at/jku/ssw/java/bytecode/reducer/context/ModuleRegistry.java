@@ -36,13 +36,18 @@ public final class ModuleRegistry {
                 RemoveMethodAttributes.class,
                 RemoveFieldAttributes.class,
                 RemoveInitializers.class,
-                ReplaceMethodCalls.class,
                 RemoveVoidMethodCalls.class,
-                RemoveConstantAssignments.class,
-                RemoveNeutralInstructions.class,
+                RemoveNOPs.class,
+                ReplaceMethodCalls.class,
+                RemoveUnusedFields.class,
+                RemoveNOPs.class,
                 RemoveInstructionSequences.class,
-                ShrinkConstantPool.class,
-                RemoveNOPs.class
+                RemoveNOPs.class,
+                RemoveConstantAssignments.class,
+                RemoveNOPs.class,
+                RemoveNeutralInstructions.class,
+                RemoveNOPs.class,
+                ShrinkConstantPool.class
         );
     }
 }
