@@ -20,7 +20,7 @@ import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.bytecod
  * Run type that allows low level access to method behaviour.
  * Caches code positions that were already tried.
  */
-public interface InstructionReducer extends RepeatableReducer<CodePosition> {
+public interface InstructionReducer extends IterativeReducer<CodePosition> {
 
     /**
      * Find the next applicable code positions in the given behaviour with the

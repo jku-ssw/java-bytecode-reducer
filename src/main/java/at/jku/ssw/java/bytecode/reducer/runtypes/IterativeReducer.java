@@ -11,7 +11,7 @@ import java.util.function.Predicate;
  *
  * @param <A> The type of the attempt log
  */
-public interface RepeatableReducer<A> extends Reducer {
+public interface IterativeReducer<A> extends Reducer {
 
     /**
      * Apply the transformation on the given base and return a
