@@ -117,6 +117,27 @@ To initiate a reduction sequence, the following command line options are support
 
     Removes elements from the constant pool that are no longer referenced
 
+## Installation
+
+To run the tool, the project has to be downloaded or cloned.
+Using the provided *Gradle Wrapper*, it is possible to run the tool by executing
+
+`./gradlew run --args='<args>'` (Linux)
+ 
+`./gradlew.bat run --args='<args>'` (Windows)
+
+from within the application directory.
+
+Additionally, it is also possible to generate a *JAR* from the sources by executing
+
+`./gradlew jar` (Linux)
+ 
+`./gradlew.bat jar` (Windows)
+
+This generates the executable *JAR* file `./build/libs/jreduce.jar`, which in turn can be run using
+
+`java -jar jreduce.jar <args>`
+
 ## Examples
 
 The [samples](/samples) folder contains both class file samples and corresponding interestingness tests for both *Windows* and *Linux*.
