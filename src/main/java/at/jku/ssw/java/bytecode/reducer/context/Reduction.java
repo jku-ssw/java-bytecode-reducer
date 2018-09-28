@@ -1,6 +1,8 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -128,7 +130,10 @@ public abstract class Reduction<T> {
          */
         @SafeVarargs
         public final Result<T> toResult(byte[] bytecode, T... attempts) {
-            return new Result<>(this, bytecode, Set.of(attempts));
+            if (Arrays.equals(this.bytecode, bytecode))
+                return new Result.Failure<>(this, bytecode, Set.of(attempts));
+            else
+                return new Result<>(this, bytecode, Set.of(attempts));
         }
 
         /**
@@ -151,6 +156,18 @@ public abstract class Reduction<T> {
      * @param <T> The type of the stored attempts
      */
     public static class Result<T> extends Reduction<T> {
+
+        private static class Failure<T> extends Result<T> {
+
+            protected Failure(Base<T> base, byte[] bytecode, Set<T> attempts) {
+                super(base, bytecode, attempts);
+            }
+
+            @Override
+            public Base<T> accept() {
+                return super.reject();
+            }
+        }
 
         /**
          * The bytecode that produced this result.
