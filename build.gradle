@@ -4,8 +4,15 @@ version = '1.0-SNAPSHOT'
 /* PLUGINS ================================================================= */
 
 apply plugin: 'java'
+apply plugin: 'application'
 sourceCompatibility = 10
 targetCompatibility = 10
+
+mainClassName = 'at.jku.ssw.java.bytecode.reducer.JReduce'
+
+/* Set properties for JAR task */
+jar.baseName = 'jreduce'
+jar.archiveName = "${jar.baseName}.${jar.extension}"
 
 /* CUSTOM TASKS ============================================================ */
 
@@ -17,20 +24,22 @@ javadoc {
 }
 
 /**
- * Generate a JAR including dependencies
+ * Generate JAR file including dependencies.
  */
-task fatJar(type: Jar) {
+jar {
     manifest {
         attributes 'Implementation-Title': 'Java Bytecode Reducer',
                 'Implementation-Version': version,
-                'Main-Class': 'at.jku.ssw.java.bytecode.reducer.JReduce'
+                'Main-Class': mainClassName
     }
     baseName = 'jreduce'
-    archiveName = "${baseName}.${jar.extension}"
+    archiveName = "${jar.baseName}.${jar.extension}"
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
-    with jar
 }
 
+/**
+ * Run all tests.
+ */
 test {
     useJUnitPlatform()
     testLogging {
@@ -38,6 +47,16 @@ test {
     }
 }
 
+/**
+ * Run the application.
+ */
+run {
+    classpath = sourceSets.main.runtimeClasspath
+}
+
+/**
+ * Generate the wrapper.
+ */
 wrapper {
     gradleVersion = '4.9'
 }
