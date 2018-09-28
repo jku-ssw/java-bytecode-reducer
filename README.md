@@ -116,6 +116,10 @@ To initiate a reduction sequence, the following command line options are support
   * *Shrink constant pool*
 
     Removes elements from the constant pool that are no longer referenced
+    
+  * *Remove NOPs*
+  
+    Removes any remaining `nop` from the bytecode
 
 ## Installation
 
