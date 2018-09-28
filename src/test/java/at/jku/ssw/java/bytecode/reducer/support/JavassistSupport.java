@@ -6,7 +6,6 @@ import javassist.*;
 import javassist.bytecode.AttributeInfo;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.Mnemonic;
-import javassist.bytecode.Opcode;
 import javassist.bytecode.annotation.Annotation;
 import javassist.expr.ExprEditor;
 import javassist.expr.FieldAccess;
@@ -22,6 +21,7 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.stream.IntStream;
 
+import static javassist.bytecode.Opcode.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -514,13 +514,13 @@ public interface JavassistSupport {
 
                 while (iActual < iExpected) {
                     assertTrue(itActual.hasNext(), "Reduced bytecode is smaller than expected version");
-                    assertEquals(Mnemonic.OPCODE[Opcode.NOP], instrActual, "Overwritten instructions in the reduced version must be NOPs");
+                    assertEquals(Mnemonic.OPCODE[NOP], instrActual, "Overwritten instructions in the reduced version must be NOPs");
                     iActual = itActual.next();
                 }
 
                 // compare operations
-                if (opExpected == Opcode.RETURN && opActual != opExpected)
-                    assertEquals(Mnemonic.OPCODE[Opcode.NOP], instrActual, "A return instruction may only be overridden by a NOP");
+                if (opExpected == RETURN && opActual != opExpected)
+                    assertEquals(Mnemonic.OPCODE[NOP], instrActual, "A return instruction may only be overridden by a NOP");
                 else
                     assertEquals(instrExpected, instrActual, () -> "Instructions at index " + iExpected + " have to be equal");
             }
@@ -528,7 +528,15 @@ public interface JavassistSupport {
                 var i      = itActual.next();
                 var opcode = itActual.byteAt(i);
 
-                assertEquals(Opcode.NOP, opcode, () -> "Instruction " + Mnemonic.OPCODE[opcode] + " that exceeds expected body must be NOP");
+                // these opcodes are allowed since they are sometimes introduced by Javassist when rebuilding the stack map
+                assertTrue(
+                        opcode == NOP ||
+                                opcode <= RETURN && opcode >= IRETURN ||
+                                opcode == ATHROW ||
+                                opcode == GOTO
+                        ,
+                        () -> "Instruction " + Mnemonic.OPCODE[opcode] + " that exceeds expected body must be a NOP or RETURN instruction"
+                        );
             }
         } catch (BadBytecode e) {
             fail(e);
