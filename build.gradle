@@ -1,5 +1,5 @@
 group = 'at.jku.ssw'
-version = '0.1-SNAPSHOT'
+version = '1.0-SNAPSHOT'
 
 /* PLUGINS ================================================================= */
 
@@ -14,6 +14,21 @@ targetCompatibility = 10
  */
 javadoc {
     source = sourceSets.main.allJava
+}
+
+/**
+ * Generate a JAR including dependencies
+ */
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Implementation-Title': 'Java Bytecode Reducer',
+                'Implementation-Version': version,
+                'Main-Class': 'at.jku.ssw.java.bytecode.reducer.JReduce'
+    }
+    baseName = 'jreduce'
+    archiveName = "${baseName}.${jar.extension}"
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }
 
 test {
