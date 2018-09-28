@@ -6,10 +6,15 @@ import at.jku.ssw.java.bytecode.reducer.support.JavassistSupport;
 import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
 import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
 import javassist.CannotCompileException;
+import javassist.bytecode.BadBytecode;
+import javassist.bytecode.analysis.Analyzer;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Arrays;
+
+import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.loadClass;
 
 /**
  * Superclass for {@link Reducer} tests.
@@ -123,7 +128,24 @@ public abstract class ReducerTest<T extends Reducer> implements JavassistSupport
 
         var expected = loadReducedBytecode(className);
 
-        var actual = reducer.apply(original);
+        var actual = reducer.apply(original, bytecode -> {
+            try {
+                var analyzer = new Analyzer();
+
+                return Arrays
+                        .stream(loadClass(bytecode).getDeclaredMethods())
+                        .allMatch(m -> {
+                            try {
+                                analyzer.analyze(m);
+                                return true;
+                            } catch (BadBytecode e) {
+                                return false;
+                            }
+                        });
+            } catch (IOException e) {
+                return false;
+            }
+        });
 
         assertClassEquals(expected, actual, compareBodies);
 
