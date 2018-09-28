@@ -5,12 +5,11 @@ import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
 import at.jku.ssw.java.bytecode.reducer.context.Reduction;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
-import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
 import javassist.CtBehavior;
-import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Mnemonic;
+import javassist.bytecode.analysis.Frame;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -54,9 +53,8 @@ public class RemoveInstructionSequences implements InstructionReducer {
     @Override
     public Optional<CodePosition> reduceNext(Reduction.Base<CodePosition> base,
                                              CtBehavior method,
-                                             CodeIterator it)
-            throws BadBytecode, NotFoundException {
-
+                                             CodeIterator it,
+                                             Frame[] frames) throws BadBytecode {
         var name = method.getLongName();
 
         logger.trace(name);
@@ -66,7 +64,8 @@ public class RemoveInstructionSequences implements InstructionReducer {
         var beginIndices = new ArrayList<Integer>();
 
         // the current number of items on the stack
-        var stackSize = 0;
+        // (initialize with -1 as first iteration
+        var stackSize = -1;
 
         while (it.hasNext()) {
             int index = it.next();
@@ -74,46 +73,44 @@ public class RemoveInstructionSequences implements InstructionReducer {
             // get the opcode at the current index position
             int code = it.byteAt(index);
 
-            // If the stack size is zero BEFORE the current
-            // instruction, either a previous sequence was
-            // discarded or the loop just started
-            if (stackSize == 0 && code != NOP)
-                beginIndices.add(index);
-
-            var oldStackSize = stackSize;
-
-            // calculate the new stack level
-            stackSize = Code.newStackLevel(
-                    method,
-                    oldStackSize,
-                    code,
-                    index,
-                    it
-            );
+            // get the execution frame at this index position
+            var frame = frames[index];
+            // since the top index points to the position, the actual
+            // length is computed by adding 1
+            // if there is no frame, this means that the instruction is
+            // unreachable (dead code) and can usually be included in any
+            // reduction
+            stackSize = frame != null ? frame.getTopIndex() + 1 : 0;
 
             logger.trace(String.format(
-                    "%6d: %-40s // Stack: %d -> %d",
+                    "%6d: %-20s // [ %d ]",
                     index,
                     Mnemonic.OPCODE[code],
-                    oldStackSize,
                     stackSize
             ));
 
-            // if the stack is empty (again), the next index may be the end
-            // of a potentially removable instruction sequence
-
             if (stackSize == 0) {
-                var end = it.lookAhead();
-                // potentially removable code position
-                var opt = beginIndices.stream()
-                        .map(begin -> new CodePosition(name, begin, end))
-                        .filter(base::isNotCached)
-                        .findAny()
-                        .map(cp -> reduce(method, cp, it));
 
-                if (opt.isPresent())
-                    return opt;
+                if (code != NOP) {
+                    // if the stack size at this instruction is zero
+                    // and it is not a NOP, it is the start of a probably removable
+                    // range
+                    beginIndices.add(index);
+
+                    // if the stack is empty, this index may also be the end
+                    // of a potentially removable instruction sequence
+                    var opt = beginIndices.stream()
+                            .filter(i -> i < index)
+                            .map(i -> new CodePosition(name, i, index))
+                            .filter(base::isNotCached)
+                            .findAny()
+                            .map(cp -> reduce(method, cp, it));
+
+                    if (opt.isPresent())
+                        return opt;
+                }
             }
+
         }
 
         return Optional.empty();

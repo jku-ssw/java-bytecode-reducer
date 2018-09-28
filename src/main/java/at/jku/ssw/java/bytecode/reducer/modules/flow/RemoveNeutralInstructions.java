@@ -11,6 +11,7 @@ import javassist.NotFoundException;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Opcode;
+import javassist.bytecode.analysis.Frame;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -48,9 +49,9 @@ public class RemoveNeutralInstructions implements InstructionReducer {
     @Override
     public Optional<CodePosition> reduceNext(Base<CodePosition> base,
                                              CtBehavior method,
-                                             CodeIterator it)
+                                             CodeIterator it,
+                                             Frame[] frames)
             throws BadBytecode, NotFoundException {
-
         var name = method.getLongName();
 
         while (it.hasNext()) {
@@ -58,8 +59,8 @@ public class RemoveNeutralInstructions implements InstructionReducer {
             // get the opcode at the current index position
             int code = it.byteAt(begin);
 
-            // skip NOPs
-            if (code == Opcode.NOP)
+            // skip NOPs and GOTOs
+            if (code == Opcode.NOP || code == Opcode.GOTO || code == Opcode.GOTO_W)
                 continue;
 
             // the end index is either the next instruction

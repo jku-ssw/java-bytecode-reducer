@@ -9,6 +9,7 @@ import javassist.CtBehavior;
 import javassist.bytecode.BadBytecode;
 import javassist.bytecode.CodeIterator;
 import javassist.bytecode.Opcode;
+import javassist.bytecode.analysis.Frame;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -51,7 +52,8 @@ public class RemoveConstantAssignments implements InstructionReducer {
     @Override
     public Optional<CodePosition> reduceNext(Reduction.Base<CodePosition> base,
                                              CtBehavior method,
-                                             CodeIterator it) throws BadBytecode {
+                                             CodeIterator it,
+                                             Frame[] frames) throws BadBytecode {
         var name = method.getLongName();
 
         var begin = -1;
