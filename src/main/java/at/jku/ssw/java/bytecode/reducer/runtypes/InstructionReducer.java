@@ -72,7 +72,6 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
                     } catch (BadBytecode e) {
                         // if rebuild fails, this means that the bytecode is
                         // invalid and will fail the test anyway
-                        // TODO find better way to skip this
                     }
 
                     return result;
