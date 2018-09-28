@@ -528,7 +528,7 @@ public interface JavassistSupport {
                 var i      = itActual.next();
                 var opcode = itActual.byteAt(i);
 
-                assertEquals(Opcode.NOP, opcode, () -> "Instruction " + Mnemonic.OPCODE[opcode] + " that exceeds expected body must be NOPs");
+                assertEquals(Opcode.NOP, opcode, () -> "Instruction " + Mnemonic.OPCODE[opcode] + " that exceeds expected body must be NOP");
             }
         } catch (BadBytecode e) {
             fail(e);
