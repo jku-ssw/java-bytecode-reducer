@@ -117,3 +117,6 @@ To initiate a reduction sequence, the following command line options are support
 
     Removes elements from the constant pool that are no longer referenced
 
+## Examples
+
+The [samples](/samples) folder contains both class file samples and corresponding interestingness tests for both *Windows* and *Linux*.
