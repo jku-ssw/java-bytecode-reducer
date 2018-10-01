@@ -10,10 +10,6 @@ targetCompatibility = 10
 
 mainClassName = 'at.jku.ssw.java.bytecode.reducer.JReduce'
 
-/* Set properties for JAR task */
-jar.baseName = 'jreduce'
-jar.archiveName = "${jar.baseName}.${jar.extension}"
-
 /* CUSTOM TASKS ============================================================ */
 
 /**
