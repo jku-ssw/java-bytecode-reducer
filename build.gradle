@@ -10,14 +10,17 @@ targetCompatibility = 10
 
 mainClassName = 'at.jku.ssw.java.bytecode.reducer.JReduce'
 
-/* DEPENDENCY VERSIONS ===================================================== */
+/* PROPERTIES ============================================================== */
 
 ext {
+    asmVersion = '6.2.1'
     javassistVersion = '3.23.1-GA'
-    asmVersion = '6.2'
+
     junitVersion = '5.3.1'
-    commonsCliVersion = '1.4'
-    log4jVersion = '2.11.1'
+    hamcrestVersion = '1.3'
+
+    apacheLoggingVersion = '2.11.1'
+    apacheCommonsVersion = '1.4'
 }
 
 /* CUSTOM TASKS ============================================================ */
@@ -78,15 +81,21 @@ repositories {
 /* DEPENDENCIES ============================================================ */
 
 dependencies {
-    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
-    compile group: 'org.apache.logging.log4j', name: 'log4j-iostreams', version: log4jVersion
+    compile group: 'org.apache.logging.log4j', name: 'log4j-api', version: apacheLoggingVersion
+    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: apacheLoggingVersion
+    compile group: 'org.apache.logging.log4j', name: 'log4j-iostreams', version: apacheLoggingVersion
 
     testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: junitVersion
     testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: junitVersion
+    testCompile group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: junitVersion
+
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: hamcrestVersion
+
 
     compile group: 'org.javassist', name: 'javassist', version: javassistVersion
     compile group: 'org.ow2.asm', name: 'asm', version: asmVersion
+    compile group: 'org.ow2.asm', name: 'asm-tree', version: asmVersion
+    compile group: 'org.ow2.asm', name: 'asm-commons', version: asmVersion
 
-    compile group: 'commons-cli', name: 'commons-cli', version: commonsCliVersion
+    compile group: 'commons-cli', name: 'commons-cli', version: apacheCommonsVersion
 }
