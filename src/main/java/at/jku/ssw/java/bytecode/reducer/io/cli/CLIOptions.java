@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.cli;
+package at.jku.ssw.java.bytecode.reducer.io.cli;
 
 /**
  * Holds constants related to the CLI parameters.

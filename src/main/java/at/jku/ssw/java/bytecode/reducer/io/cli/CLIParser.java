@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.cli;
+package at.jku.ssw.java.bytecode.reducer.io.cli;
 
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
 import at.jku.ssw.java.bytecode.reducer.context.ModuleRegistry;

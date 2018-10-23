@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.io;
+package at.jku.ssw.java.bytecode.reducer.io.files;
 
 import java.util.Iterator;
 import java.util.stream.Stream;

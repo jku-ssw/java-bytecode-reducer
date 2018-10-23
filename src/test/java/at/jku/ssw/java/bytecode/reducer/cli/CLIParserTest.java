@@ -2,6 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.cli;
 
 
 import at.jku.ssw.java.bytecode.reducer.context.ContextFactory;
+import at.jku.ssw.java.bytecode.reducer.io.cli.CLIParser;
 import org.apache.commons.cli.AlreadySelectedException;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.UnrecognizedOptionException;

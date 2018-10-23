@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.io;
+package at.jku.ssw.java.bytecode.reducer.io.files;
 
 import at.jku.ssw.java.bytecode.reducer.utils.OSUtils;
 import org.apache.logging.log4j.LogManager;
