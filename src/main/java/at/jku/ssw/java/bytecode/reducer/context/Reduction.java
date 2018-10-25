@@ -54,7 +54,7 @@ public abstract class Reduction<T> {
      * Instantiate a base from the given bytecode
      *
      * @param bytecode The bytecode describing the class
-     * @param <U>      The type of the the cached attempts
+     * @param <U>      The type of the cached attempts
      * @return a new reduction base
      */
     public static <U> Base<U> of(byte[] bytecode) {
