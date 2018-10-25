@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;

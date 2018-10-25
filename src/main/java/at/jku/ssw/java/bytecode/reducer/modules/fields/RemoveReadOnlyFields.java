@@ -1,8 +1,8 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.context.Reduction;
-import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;

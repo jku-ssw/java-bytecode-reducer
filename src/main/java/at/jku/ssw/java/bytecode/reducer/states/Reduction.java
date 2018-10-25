@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.context;
+package at.jku.ssw.java.bytecode.reducer.states;
 
 import java.util.Arrays;
 import java.util.Collection;

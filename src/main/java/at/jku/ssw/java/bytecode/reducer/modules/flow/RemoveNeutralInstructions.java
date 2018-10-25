@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.context.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;

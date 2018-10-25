@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.context.Reduction;
-import at.jku.ssw.java.bytecode.reducer.context.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction;
+import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
 
 import java.util.function.Predicate;
 
