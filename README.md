@@ -1,7 +1,7 @@
 # Java Bytecode Reducer
 [![Build Status](https://travis-ci.org/jku-ssw/java-bytecode-reducer.svg?branch=master)](https://travis-ci.org/jku-ssw/java-bytecode-reducer)
 
-This project contains a a test case reducer for Java bytecode in the spirit of [C-Reduce](https://github.com/csmith-project/creduce).
+This project contains a test case reducer for Java bytecode in the spirit of [C-Reduce](https://github.com/csmith-project/creduce).
 It provides multiple modules that apply different reduction techniques to selected bytecodes
 in order to remove complex instruction sequences and unused members.
 
