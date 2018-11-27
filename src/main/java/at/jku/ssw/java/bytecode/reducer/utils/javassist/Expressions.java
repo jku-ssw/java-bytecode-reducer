@@ -36,7 +36,7 @@ public final class Expressions {
      * @return a string containing the expression
      */
     public static String replaceAssign(String value) {
-        return "{ $_ = " + value + "; }";
+        return "{ $_ = ($r) " + value + "; }";
     }
 
     /**
