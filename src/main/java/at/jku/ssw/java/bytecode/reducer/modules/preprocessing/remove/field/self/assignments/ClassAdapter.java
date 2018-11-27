@@ -6,7 +6,7 @@ import org.objectweb.asm.MethodVisitor;
 import static org.objectweb.asm.Opcodes.ASM6;
 
 class ClassAdapter extends ClassVisitor {
-    public ClassAdapter(ClassVisitor classVisitor) {
+    ClassAdapter(ClassVisitor classVisitor) {
         super(ASM6, classVisitor);
     }
 

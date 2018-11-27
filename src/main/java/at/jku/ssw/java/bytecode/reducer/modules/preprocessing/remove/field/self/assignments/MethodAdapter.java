@@ -43,7 +43,7 @@ class MethodAdapter extends PatternMethodAdapter {
     private String fieldName;
     private String fieldDesc;
 
-    public MethodAdapter(MethodVisitor methodVisitor) {
+    MethodAdapter(MethodVisitor methodVisitor) {
         super(methodVisitor);
     }
 
