@@ -7,11 +7,13 @@ import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 
 public class SimpleFieldOperations extends BytecodeSample {
 
-    public static byte[] bytecode(int version) {
+    public static Bytecode bytecode(int version) {
         var instance = new SimpleFieldOperations();
-        return instance
-                .bar(instance.assemble(version))
-                .toByteArray();
+        return instance.new Bytecode(
+                instance
+                        .bar(instance.assemble(version))
+                        .toByteArray()
+        );
     }
 
     /*

@@ -1,9 +1,12 @@
 package at.jku.ssw.java.bytecode.reducer.modules.preprocessing;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
 import org.junit.jupiter.api.Assertions;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
+import samples.BytecodeSample.Bytecode;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -15,42 +18,61 @@ import java.util.stream.IntStream;
 import static org.junit.jupiter.api.Assertions.*;
 
 abstract class ReducerTest {
-    protected static <T extends Reducer> ReducerAssertion<T> assertThat(Class<T> type) {
-        return new ReducerAssertion<>(type);
-    }
 
-    protected static class ReducerAssertion<T extends Reducer> {
-        private final Class<T> type;
-
-        private ReducerAssertion(Class<T> type) {
-            this.type = type;
-        }
-
-        protected ResultAssertion<T> reduces(byte[] bytecode) {
-            return new ResultAssertion<>(type, bytecode);
-        }
-    }
-
-    protected static class ResultAssertion<T extends Reducer> {
-        private final Class<T> type;
-        private final byte[] bytecode;
+    protected static class ResultAssertion {
+        private final Bytecode bytecode;
 
 
-        private ResultAssertion(Class<T> type, byte[] bytecode) {
-            this.type = type;
+        private ResultAssertion(Bytecode bytecode) {
             this.bytecode = bytecode;
         }
 
-        protected void to(byte[] expected) throws Exception {
-            T reducer;
+        public ReducesTo to(byte[] expected) {
+            return new ReducesTo(bytecode, expected);
+        }
+    }
+
+    protected static class ReducesTo extends TypeSafeMatcher<Class<? extends Reducer>> {
+
+        private final Bytecode bytecode;
+        private final byte[] expected;
+        private final GeneratedClassVerifier verifier;
+
+        private ReducesTo(Bytecode bytecode, byte[] expected) {
+            this.bytecode = bytecode;
+            this.expected = expected;
+            this.verifier = new GeneratedClassVerifier();
+        }
+
+        public static ResultAssertion reduces(Bytecode bytecode) {
+            return new ResultAssertion(bytecode);
+        }
+
+        @Override
+        protected boolean matchesSafely(Class<? extends Reducer> type) {
+            Reducer reducer;
             try {
                 reducer = type.getConstructor().newInstance();
             } catch (Exception e) {
                 throw new AssertionError("Could not instantiate reducer", e);
             }
 
-            byte[] actual = reducer.apply(bytecode);
-            assertEqualClassStructure(expected, actual);
+            byte[] actual;
+            try {
+                actual = reducer.apply(bytecode.bytecode);
+                assertEqualClassStructure(expected, actual);
+
+
+                return verifier.isValid(bytecode);
+            } catch (Exception e) {
+                e.printStackTrace();
+                return false;
+            }
+        }
+
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("reduces to valid class file");
         }
     }
 

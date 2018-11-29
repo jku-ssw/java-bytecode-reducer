@@ -26,4 +26,14 @@ public abstract class BytecodeSample {
     }
 
     protected abstract ClassWriter prepareFields(ClassWriter cw);
+
+    public class Bytecode {
+        public final String className;
+        public final byte[] bytecode;
+
+        public Bytecode(byte[] bytecode) {
+            this.className = BytecodeSample.this.className;
+            this.bytecode = bytecode;
+        }
+    }
 }
