@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.context;
 
-import at.jku.ssw.java.bytecode.reducer.io.files.ScriptRunner;
+import at.jku.ssw.java.bytecode.reducer.io.ScriptRunner;
 import at.jku.ssw.java.bytecode.reducer.utils.FileUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
