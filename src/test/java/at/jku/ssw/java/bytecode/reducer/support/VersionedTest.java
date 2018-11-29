@@ -16,14 +16,14 @@ import static org.objectweb.asm.Opcodes.*;
 
 @Target({ElementType.ANNOTATION_TYPE, ElementType.METHOD})
 @Retention(RetentionPolicy.RUNTIME)
-@ParameterizedTest
+@ParameterizedTest()
 @ArgumentsSource(VersionedTest.VersionProvider.class)
 public @interface VersionedTest {
     class VersionProvider implements ArgumentsProvider {
 
         @Override
-        public Stream<? extends Arguments> provideArguments(ExtensionContext context) throws Exception {
-            return Stream.of(V1_6, V1_7, V1_8, V9, V10, V11, V12)
+        public Stream<? extends Arguments> provideArguments(ExtensionContext context) {
+            return Stream.of(V1_6, V1_7, V1_8, V9, V10, V11/*, V12*/)
                     .map(Arguments::of);
         }
     }
