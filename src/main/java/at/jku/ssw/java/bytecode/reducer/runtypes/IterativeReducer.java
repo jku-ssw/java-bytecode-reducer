@@ -31,30 +31,48 @@ public interface IterativeReducer<A> extends Reducer {
      *
      * @param bytecode The bytecode to reduce
      * @param test     The function that determines whether the resulting
-     *                 bytecode is valid
+     *                 bytecode is interesting
      * @return the minimal bytecode
      * @throws Exception if the bytecode access at some point reports errors
      */
     @Override
     default byte[] apply(byte[] bytecode, Predicate<byte[]> test) throws Exception {
-        Base<A>   base = Base.of(bytecode);
-        Result<A> res;
-        byte[]    reduced;
-
-        do {
-            res = apply(base);
-            reduced = res.bytecode();
-
-            base = test.test(reduced) ? res.accept() : res.reject();
-        } while (!res.isMinimal());
-
-        return reduced;
+        return iterate(Base.of(bytecode), test);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     default byte[] apply(byte[] bytecode) throws Exception {
         // the default implementation of the reducer
         // without providing a check simply forces a result
         return apply(bytecode, __ -> true);
+    }
+
+    /**
+     * Applies this transformation iteratively to the given base
+     * until a minimal result is produced.
+     *
+     * @param base The base that contains the bytecode to reduce
+     * @param test The function that determines whether the resulting bytecode
+     *             is interesting
+     * @return the minimal bytecode
+     * @throws Exception if the bytecode access fails
+     */
+    default byte[] iterate(Base<A> base, Predicate<byte[]> test) throws Exception {
+        Result<A> res;
+        byte[] reduced;
+
+        for (; ; ) {
+            res = apply(base);
+            reduced = res.bytecode();
+
+            // assumption that a minimal result was already checked
+            if (res.isMinimal())
+                return reduced;
+
+            base = test.test(reduced) ? res.accept() : res.reject();
+        }
     }
 }

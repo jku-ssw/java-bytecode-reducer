@@ -27,7 +27,7 @@ public interface ForcibleReducer<A> extends IterativeReducer<A> {
      */
     @Override
     default byte[] apply(byte[] bytecode, Predicate<byte[]> test) throws Exception {
-        var res     = force(bytecode);
+        var res = force(bytecode);
         var reduced = res.bytecode();
 
         // try forced result (assumed to be minimal)
@@ -37,14 +37,7 @@ public interface ForcibleReducer<A> extends IterativeReducer<A> {
         var base = res.reject();
 
         // otherwise try iterative approach
-        do {
-            res = apply(base);
-            reduced = res.bytecode();
-
-            base = test.test(reduced) ? res.accept() : res.reject();
-        } while (!res.isMinimal());
-
-        return reduced;
+        return iterate(base, test);
     }
 
     @Override
@@ -64,7 +57,7 @@ public interface ForcibleReducer<A> extends IterativeReducer<A> {
      */
     default Result<A> force(byte[] bytecode) throws Exception {
         Reduction.Base<A> base = Reduction.of(bytecode);
-        Result<A>         res;
+        Result<A> res;
 
         do {
             // apply the reduction operation
