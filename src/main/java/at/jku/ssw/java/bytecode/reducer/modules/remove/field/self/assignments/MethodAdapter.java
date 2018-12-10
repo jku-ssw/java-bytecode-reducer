@@ -48,22 +48,51 @@ class MethodAdapter extends PatternMethodAdapter {
     }
 
     @Override
+    public void visitInsn(int opcode) {
+        if (opcode == DUP) {
+            switch (state) {
+                case INSTANCE_LOADED:
+                    // if a `DUP` instruction is encountered,
+                    // the sequence is continued
+
+                    nextInstruction = opcode;
+
+                    state = State.INSTANCE_RELOADED;
+                    return;
+                case INSTANCE_RELOADED:
+                    // if another `DUP` instruction is found,
+                    // the matching stalls
+
+                    // already a sequence detected, the first
+                    // instruction has to be overwritten
+                    // and the old instruction is written to the
+                    // class file
+                    accept(loadInstruction);
+
+                    loadInstruction = nextInstruction;
+                    nextInstruction = opcode;
+                    return;
+            }
+        }
+
+        visitInsn();
+        mv.visitInsn(opcode);
+    }
+
+    @Override
     public void visitVarInsn(int opcode, int var) {
-        if (opcode == ALOAD || opcode == DUP) {
+        if (opcode == ALOAD) {
             switch (state) {
                 case INIT:
                     // the pattern is only triggered when
                     // an `ALOAD_x` is recognized
-                    if (opcode == ALOAD) {
-                        loadInstruction = opcode;
-                        nextInstruction = NONE;
-                        i = var;
-                        state = State.INSTANCE_LOADED;
-                        return;
-                    }
-                    break;
+                    loadInstruction = opcode;
+                    nextInstruction = NONE;
+                    i = var;
+                    state = State.INSTANCE_LOADED;
+                    return;
                 case INSTANCE_LOADED:
-                    if (opcode == ALOAD && var != i) {
+                    if (var != i) {
                         // if another `ALOAD_x` instruction is detected,
                         // but the indices do not match,
                         // the matching stalls
@@ -72,7 +101,7 @@ class MethodAdapter extends PatternMethodAdapter {
                         nextInstruction = NONE;
                         i = var;
                     } else {
-                        // if an `ALOAD_x` or `DUP` instruction is encountered,
+                        // if an `ALOAD_x` instruction is encountered,
                         // the sequence is continued
 
                         nextInstruction = opcode;
@@ -81,7 +110,7 @@ class MethodAdapter extends PatternMethodAdapter {
                     }
                     return;
                 case INSTANCE_RELOADED:
-                    if (opcode == ALOAD && var != i) {
+                    if (var != i) {
                         // if another `ALOAD_x` instruction is detected,
                         // but the indices do not match,
                         // the matching goes a step back
@@ -92,7 +121,7 @@ class MethodAdapter extends PatternMethodAdapter {
                         state = State.INSTANCE_LOADED;
                         i = var;
                     } else {
-                        // if another `ALOAD_x` or `DUP` instruction is found,
+                        // if another `ALOAD_x` instruction is found,
                         // the matching stalls
 
                         // already a sequence detected, the first
