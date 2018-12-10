@@ -19,13 +19,13 @@ public abstract class BytecodeSample {
         type = Type.getType(getClass());
     }
 
-    protected ClassWriter assemble(int version) {
+    public ClassWriter assemble(int version) {
         ClassWriter cw = new ClassWriter(0);
         cw.visit(version, ACC_PUBLIC, className, null, DEFAULT_SUPERCLASS, new String[]{});
         return prepareFields(cw);
     }
 
-    protected abstract ClassWriter prepareFields(ClassWriter cw);
+    public abstract ClassWriter prepareFields(ClassWriter cw);
 
     public class Bytecode {
         public final String className;

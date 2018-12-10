@@ -13,11 +13,20 @@ public class RemoveFieldSelfAssignmentsTest extends ReducerTest {
     @VersionedTest
     public void testSimpleSelfAssignment(int version) {
 
-        var cw = SimpleFieldOperations.clazz(version);
-        var mv = cw.visitMethod(ACC_PUBLIC, "bar", "()V", null, null);
-        mv.visitCode();
-        mv.visitMaxs(0, 1);
-        mv.visitEnd();
+        var instance = new SimpleFieldOperations();
+        var cw = instance.assemble(version);
+
+        var mv1 = cw.visitMethod(ACC_PUBLIC, "assignSelfToField", "()V", null, null);
+        mv1.visitCode();
+        mv1.visitMaxs(0, 1);
+        mv1.visitEnd();
+
+        instance.assign10ToField(cw);
+
+        var mv2 = cw.visitMethod(ACC_PUBLIC, "assignSelfToFieldDup", "()V", null, null);
+        mv2.visitCode();
+        mv2.visitMaxs(0, 1);
+        mv2.visitEnd();
 
         assertThat(
                 RemoveFieldSelfAssignments.class,
@@ -25,4 +34,5 @@ public class RemoveFieldSelfAssignmentsTest extends ReducerTest {
                         .to(cw.toByteArray())
         );
     }
+
 }

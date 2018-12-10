@@ -1,5 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
+import at.jku.ssw.java.bytecode.reducer.Properties;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 import org.hamcrest.Description;
 import org.hamcrest.TypeSafeMatcher;
@@ -8,6 +9,9 @@ import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.tree.ClassNode;
 import samples.BytecodeSample.Bytecode;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -50,6 +54,34 @@ abstract class ReducerTest {
 
         @Override
         protected boolean matchesSafely(Class<? extends Reducer> type) {
+
+            if (Properties.DEBUG) {
+                var expectedPath = Paths.get(Properties.DIR).resolve("expected");
+                var actualPath = Paths.get(Properties.DIR).resolve("actual");
+
+                try {
+                    if (!Files.exists(expectedPath)) {
+                        Files.createDirectories(expectedPath);
+                    }
+
+                    if (!Files.exists(actualPath)) {
+                        Files.createDirectories(actualPath);
+                    }
+
+                    Files.write(
+                            expectedPath.resolve(bytecode.className + ".class"),
+                            expected
+                    );
+
+                    Files.write(
+                            actualPath.resolve(bytecode.className + ".class"),
+                            bytecode.bytecode
+                    );
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+
             Reducer reducer;
             try {
                 reducer = type.getConstructor().newInstance();
@@ -60,6 +92,7 @@ abstract class ReducerTest {
             byte[] actual;
             try {
                 actual = reducer.apply(bytecode.bytecode);
+
                 assertEqualClassStructure(expected, actual);
 
 
@@ -101,10 +134,10 @@ abstract class ReducerTest {
                 nEx.fields,
                 nAc.fields,
                 (fEx, fAc) -> {
-                    assertEquals(fEx.name, fAc.name);
-                    assertEquals(fEx.access, fAc.access);
-                    assertEquals(fEx.signature, fAc.signature);
-                    assertEquals(fEx.value, fAc.value);
+                    assertEquals(fEx.name, fAc.name, fEx.name);
+                    assertEquals(fEx.access, fAc.access, fEx.name);
+                    assertEquals(fEx.signature, fAc.signature, fEx.name);
+                    assertEquals(fEx.value, fAc.value, fEx.name);
                     // TODO maybe compare annotations
                 },
                 Comparator.comparing(f -> f.name)
@@ -114,18 +147,18 @@ abstract class ReducerTest {
                 nEx.methods,
                 nAc.methods,
                 (mEx, mAc) -> {
-                    assertEquals(mEx.name, mAc.name);
-                    assertEquals(mEx.access, mAc.access);
-                    assertEquals(mEx.signature, mAc.signature);
-                    assertEquals(mEx.maxLocals, mAc.maxLocals);
-                    assertEquals(mEx.maxStack, mAc.maxStack);
+                    assertEquals(mEx.name, mAc.name, mEx.name);
+                    assertEquals(mEx.access, mAc.access, mEx.name);
+                    assertEquals(mEx.signature, mAc.signature, mEx.name);
+                    assertEquals(mEx.maxLocals, mAc.maxLocals, mEx.name);
+                    assertEquals(mEx.maxStack, mAc.maxStack, mEx.name);
 
                     assertListEquals(
                             mEx.parameters,
                             mAc.parameters,
                             (pEx, pAc) -> {
-                                assertEquals(pEx.access, pAc.access);
-                                assertEquals(pEx.name, pAc.name);
+                                assertEquals(pEx.access, pAc.access, pEx.name);
+                                assertEquals(pEx.name, pAc.name, pEx.name);
                             }
                     );
 
@@ -140,8 +173,8 @@ abstract class ReducerTest {
                             mEx.instructions.toArray(),
                             mAc.instructions.toArray(),
                             (iEx, iAc) -> {
-                                assertEquals(iEx.getOpcode(), iAc.getOpcode());
-                                assertEquals(iEx.getType(), iAc.getType());
+                                assertEquals(iEx.getOpcode(), iAc.getOpcode(), iEx.getOpcode());
+                                assertEquals(iEx.getType(), iAc.getType(), iEx.getOpcode());
                             }
                     );
                 },

@@ -1,35 +1,75 @@
 package samples;
 
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.commons.InstructionAdapter;
 
-import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
+import static org.objectweb.asm.Opcodes.*;
 
 public class SimpleFieldOperations extends BytecodeSample {
 
     public static Bytecode bytecode(int version) {
         var instance = new SimpleFieldOperations();
         return instance.new Bytecode(
-                instance
-                        .bar(instance.assemble(version))
-                        .toByteArray()
+                instance.assignSelfToFieldDup(
+                        instance.assign10ToField(
+                                instance.assignSelfToField(
+                                        instance.assemble(version)
+                                )
+                        )
+                ).toByteArray()
         );
     }
 
     /*
-    ACC_PUBLIC bar()V:
+    ACC_PUBLIC assignSelfToField()V:
         ALOAD_0
         ALOAD_0
         GETFIELD #foo
         PUTFIELD #foo
      */
-    private ClassWriter bar(ClassWriter cw) {
-        var mv = new InstructionAdapter(cw.visitMethod(ACC_PUBLIC, "bar", "()V", null, null));
+    public ClassWriter assignSelfToField(ClassWriter cw) {
+        var mv = cw.visitMethod(ACC_PUBLIC, "assignSelfToField", "()V", null, null);
         mv.visitCode();
-        mv.load(0, type);
-        mv.load(0, type);
-        mv.getfield(internalName, "foo", "I");
-        mv.putfield(internalName, "foo", "I");
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitFieldInsn(GETFIELD, internalName, "foo", "I");
+        mv.visitFieldInsn(PUTFIELD, internalName, "foo", "I");
+        mv.visitMaxs(2, 1);
+        mv.visitEnd();
+        return cw;
+    }
+
+    /*
+    ACC_PUBLIC assign10ToField()V:
+        ICONST 10
+        ALOAD_0
+        GETFIELD #foo
+        PUTFIELD #foo
+     */
+    public ClassWriter assign10ToField(ClassWriter cw) {
+        var mv = cw.visitMethod(ACC_PUBLIC, "assign10ToField", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitLdcInsn(10);
+        mv.visitFieldInsn(PUTFIELD, internalName, "foo", "I");
+        mv.visitMaxs(2, 1);
+        mv.visitEnd();
+        return cw;
+    }
+
+    /*
+    ACC_PUBLIC ()V:
+        ALOAD_0
+        DUP
+        GETFIELD #foo
+        PUTFIELD #foo
+     */
+    public ClassWriter assignSelfToFieldDup(ClassWriter cw) {
+        var mv = cw.visitMethod(ACC_PUBLIC, "assignSelfToFieldDup", "()V", null, null);
+        mv.visitCode();
+        mv.visitVarInsn(ALOAD, 0);
+        mv.visitInsn(DUP);
+        mv.visitFieldInsn(GETFIELD, internalName, "foo", "I");
+        mv.visitFieldInsn(PUTFIELD, internalName, "foo", "I");
         mv.visitMaxs(2, 1);
         mv.visitEnd();
         return cw;
@@ -39,15 +79,8 @@ public class SimpleFieldOperations extends BytecodeSample {
         return new SimpleFieldOperations().assemble(version);
     }
 
-    public static byte[] bar(int version) {
-        var instance = new SimpleFieldOperations();
-        var cw = instance.bar(instance.assemble(version));
-
-        return cw.toByteArray();
-    }
-
     @Override
-    protected ClassWriter prepareFields(ClassWriter cw) {
+    public ClassWriter prepareFields(ClassWriter cw) {
         cw.visitField(ACC_PUBLIC, "foo", "I", null, null);
         return cw;
     }
