@@ -55,33 +55,6 @@ abstract class ReducerTest {
         @Override
         protected boolean matchesSafely(Class<? extends Reducer> type) {
 
-            if (Properties.DEBUG) {
-                var expectedPath = Paths.get(Properties.DIR).resolve("expected");
-                var actualPath = Paths.get(Properties.DIR).resolve("actual");
-
-                try {
-                    if (!Files.exists(expectedPath)) {
-                        Files.createDirectories(expectedPath);
-                    }
-
-                    if (!Files.exists(actualPath)) {
-                        Files.createDirectories(actualPath);
-                    }
-
-                    Files.write(
-                            expectedPath.resolve(bytecode.className + ".class"),
-                            expected
-                    );
-
-                    Files.write(
-                            actualPath.resolve(bytecode.className + ".class"),
-                            bytecode.bytecode
-                    );
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-
             Reducer reducer;
             try {
                 reducer = type.getConstructor().newInstance();
@@ -92,6 +65,33 @@ abstract class ReducerTest {
             byte[] actual;
             try {
                 actual = reducer.apply(bytecode.bytecode);
+
+                if (Properties.DEBUG) {
+                    var expectedPath = Paths.get(Properties.DIR).resolve("expected");
+                    var actualPath = Paths.get(Properties.DIR).resolve("actual");
+
+                    try {
+                        if (!Files.exists(expectedPath)) {
+                            Files.createDirectories(expectedPath);
+                        }
+
+                        if (!Files.exists(actualPath)) {
+                            Files.createDirectories(actualPath);
+                        }
+
+                        Files.write(
+                                expectedPath.resolve(bytecode.className + ".class"),
+                                expected
+                        );
+
+                        Files.write(
+                                actualPath.resolve(bytecode.className + ".class"),
+                                actual
+                        );
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
 
                 assertEqualClassStructure(expected, actual);
 
