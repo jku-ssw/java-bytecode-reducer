@@ -19,12 +19,17 @@ public class SimpleFieldOperations extends BytecodeSample {
         );
     }
 
-    /*
-    ACC_PUBLIC assignSelfToField()V:
-        ALOAD_0
-        ALOAD_0
-        GETFIELD #foo
-        PUTFIELD #foo
+    /**
+     * <code>
+     * ACC_PUBLIC assignSelfToField()V:
+     * ALOAD_0
+     * ALOAD_0
+     * GETFIELD #foo
+     * PUTFIELD #foo
+     * </code>
+     *
+     * @param cw The class writer
+     * @return the same class writer
      */
     public ClassWriter assignSelfToField(ClassWriter cw) {
         var mv = cw.visitMethod(ACC_PUBLIC, "assignSelfToField", "()V", null, null);
@@ -38,12 +43,17 @@ public class SimpleFieldOperations extends BytecodeSample {
         return cw;
     }
 
-    /*
-    ACC_PUBLIC assign10ToField()V:
-        ICONST 10
-        ALOAD_0
-        GETFIELD #foo
-        PUTFIELD #foo
+    /**
+     * <code>
+     * ACC_PUBLIC assign10ToField()V:
+     * ICONST 10
+     * ALOAD_0
+     * GETFIELD #foo
+     * PUTFIELD #foo
+     * </code>
+     *
+     * @param cw The class writer
+     * @return the same class writer
      */
     public ClassWriter assign10ToField(ClassWriter cw) {
         var mv = cw.visitMethod(ACC_PUBLIC, "assign10ToField", "()V", null, null);
@@ -56,12 +66,17 @@ public class SimpleFieldOperations extends BytecodeSample {
         return cw;
     }
 
-    /*
-    ACC_PUBLIC ()V:
-        ALOAD_0
-        DUP
-        GETFIELD #foo
-        PUTFIELD #foo
+    /**
+     * <code>
+     * ACC_PUBLIC ()V:
+     * ALOAD_0
+     * DUP
+     * GETFIELD #foo
+     * PUTFIELD #foo
+     * </code>
+     *
+     * @param cw The class writer
+     * @return the same class writer
      */
     public ClassWriter assignSelfToFieldDup(ClassWriter cw) {
         var mv = cw.visitMethod(ACC_PUBLIC, "assignSelfToFieldDup", "()V", null, null);
