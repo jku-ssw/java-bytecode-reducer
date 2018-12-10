@@ -7,6 +7,8 @@ import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveConstantAssignments;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveInstructionSequences;
 import at.jku.ssw.java.bytecode.reducer.modules.flow.RemoveNeutralInstructions;
 import at.jku.ssw.java.bytecode.reducer.modules.methods.*;
+import at.jku.ssw.java.bytecode.reducer.modules.remove.field.self.assignments.RemoveFieldSelfAssignments;
+import at.jku.ssw.java.bytecode.reducer.modules.remove.local.self.assignments.RemoveLocalSelfAssignments;
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
 
 import java.util.List;
@@ -36,6 +38,8 @@ public final class ModuleRegistry {
                 RemoveMethodAttributes.class,
                 RemoveFieldAttributes.class,
                 RemoveInitializers.class,
+                RemoveFieldSelfAssignments.class,
+                RemoveLocalSelfAssignments.class,
                 RemoveVoidMethodCalls.class,
                 RemoveNOPs.class,
                 ReplaceMethodCalls.class,
