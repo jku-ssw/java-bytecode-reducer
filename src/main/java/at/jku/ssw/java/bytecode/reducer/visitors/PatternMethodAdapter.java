@@ -1,14 +1,15 @@
-package at.jku.ssw.java.bytecode.reducer.runtypes;
+package at.jku.ssw.java.bytecode.reducer.visitors;
 
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
 
-import static org.objectweb.asm.Opcodes.ASM6;
-
 public abstract class PatternMethodAdapter extends MethodVisitor {
 
-    public PatternMethodAdapter(MethodVisitor methodVisitor) {
-        super(ASM6, methodVisitor);
+    protected final String descriptor;
+
+    public PatternMethodAdapter(int api, MethodVisitor methodVisitor, String descriptor) {
+        super(api, methodVisitor);
+        this.descriptor = descriptor;
     }
 
     protected abstract void visitInsn();

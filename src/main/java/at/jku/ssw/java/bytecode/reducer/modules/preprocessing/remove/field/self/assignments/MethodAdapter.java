@@ -1,6 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.modules.preprocessing.remove.field.self.assignments;
 
-import at.jku.ssw.java.bytecode.reducer.runtypes.PatternMethodAdapter;
+import at.jku.ssw.java.bytecode.reducer.visitors.PatternMethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 
 import static at.jku.ssw.java.bytecode.reducer.modules.preprocessing.remove.field.self.assignments.MethodAdapter.State.INIT;
@@ -43,8 +43,8 @@ class MethodAdapter extends PatternMethodAdapter {
     private String fieldName;
     private String fieldDesc;
 
-    MethodAdapter(MethodVisitor methodVisitor) {
-        super(methodVisitor);
+    MethodAdapter(MethodVisitor methodVisitor, String descriptor) {
+        super(ASM6, methodVisitor, descriptor);
     }
 
     @Override
