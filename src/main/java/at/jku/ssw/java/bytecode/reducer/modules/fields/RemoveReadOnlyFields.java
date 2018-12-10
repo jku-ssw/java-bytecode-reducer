@@ -1,8 +1,8 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.states.State;
+import at.jku.ssw.java.bytecode.reducer.states.State.Stable;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
@@ -41,13 +41,13 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
     }
 
     @Override
-    public Reduction.Result<CtField> apply(Base<CtField> base) throws Exception {
-        CtClass clazz = Javassist.loadClass(base.bytecode());
+    public State.Experimental<CtField> apply(Stable<CtField> stable) throws Exception {
+        CtClass clazz = Javassist.loadClass(stable.bytecode());
 
         Optional<CtField> optField = eligibleFields(clazz).findFirst();
 
         if (!optField.isPresent())
-            return base.toMinimalResult();
+            return stable.toMinimalResult();
 
         CtField field = optField.get();
         String  value = Expressions.defaults(field.getType());
@@ -71,11 +71,11 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
                 })
         );
 
-        return base.toResult(Javassist.bytecode(clazz), field);
+        return stable.toResult(Javassist.bytecode(clazz), field);
     }
 
     @Override
-    public Reduction.Result<CtField> force(byte[] bytecode) throws Exception {
+    public State.Experimental<CtField> force(byte[] bytecode) throws Exception {
         CtClass clazz = Javassist.loadClass(bytecode);
 
         Map<CtField, String> defaultValues = eligibleFields(clazz)
@@ -106,9 +106,9 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
         defaultValues.keySet()
                 .forEach(Catch.consumer(clazz::removeField));
 
-        Base<CtField> base = Reduction.of(Javassist.bytecode(clazz));
+        Stable<CtField> stable = State.of(Javassist.bytecode(clazz));
 
-        return base.toMinimalResult();
+        return stable.toMinimalResult();
     }
 
 }

@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.State.Stable;
+import at.jku.ssw.java.bytecode.reducer.states.State.Experimental;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 
 import java.util.Optional;
@@ -23,19 +23,19 @@ public interface MemberReducer<CLASS, MEMBER, CACHE>
         extends ForcibleReducer<CACHE>, BytecodeTransformer<CLASS> {
 
     @Override
-    default Result<CACHE> apply(Base<CACHE> base) throws Exception {
+    default Experimental<CACHE> apply(Stable<CACHE> stable) throws Exception {
 
-        CLASS clazz = classFrom(base.bytecode());
+        CLASS clazz = classFrom(stable.bytecode());
 
         // get the first applicable member that was not already attempted
         Optional<MEMBER> optMember = getMembers(clazz)
-                .filter(m -> base.isNotCached(keyFromMember(m)))
+                .filter(m -> stable.isNotCached(keyFromMember(m)))
                 .findAny();
 
         // if no applicable member was found, the reduction is minimal
         return optMember.map(Catch.function(m ->
-                base.toResult(bytecodeFrom(process(clazz, m)), keyFromMember(m))))
-                .orElseGet(base::toMinimalResult);
+                stable.toResult(bytecodeFrom(process(clazz, m)), keyFromMember(m))))
+                .orElseGet(stable::toMinimalResult);
     }
 
     /**

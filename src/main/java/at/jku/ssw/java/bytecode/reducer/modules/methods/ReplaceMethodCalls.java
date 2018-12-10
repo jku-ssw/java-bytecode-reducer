@@ -2,8 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.methods;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.State;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
@@ -28,8 +27,8 @@ public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
     private static final Logger logger = LogManager.getLogger();
 
     @Override
-    public Result<Integer> apply(Base<Integer> base) throws Exception {
-        final CtClass clazz = Javassist.loadClass(base.bytecode());
+    public State.Experimental<Integer> apply(State.Stable<Integer> stable) throws Exception {
+        final CtClass clazz = Javassist.loadClass(stable.bytecode());
 
         final AtomicReference<MethodCall> call = new AtomicReference<>();
 
@@ -37,7 +36,7 @@ public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
                 clazz,
                 Catch.predicate(c ->
                         !c.getMethod().getReturnType().equals(CtClass.voidType) &&
-                                base.isNotCached(c.indexOfBytecode()) &&
+                                stable.isNotCached(c.indexOfBytecode()) &&
                                 call.compareAndSet(null, c)),
                 Catch.consumer(c -> {
                     CtClass type  = c.getMethod().getReturnType();
@@ -57,7 +56,7 @@ public class ReplaceMethodCalls implements ForcibleReducer<Integer> {
         // if no applicable member was found, the reduction is minimal
         return Optional.ofNullable(call.get())
                 .map(Catch.function(f ->
-                        base.toResult(Javassist.bytecode(clazz), f.indexOfBytecode())))
-                .orElseGet(base::toMinimalResult);
+                        stable.toResult(Javassist.bytecode(clazz), f.indexOfBytecode())))
+                .orElseGet(stable::toMinimalResult);
     }
 }

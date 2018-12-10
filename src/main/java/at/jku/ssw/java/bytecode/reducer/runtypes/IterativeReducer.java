@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.State;
+import at.jku.ssw.java.bytecode.reducer.states.State.Stable;
 
 import java.util.function.Predicate;
 
@@ -17,12 +17,12 @@ public interface IterativeReducer<A> extends Reducer {
      * Apply the transformation on the given base and return a
      * contextual result.
      *
-     * @param base The base that contains the bytecode and attempt log
+     * @param stable The base that contains the bytecode and attempt log
      * @return the new bytecode and attempted objects in a
-     * {@link Result} object
+     * {@link State.Experimental} object
      * @throws Exception if the bytecode is invalid
      */
-    Result<A> apply(Base<A> base) throws Exception;
+    State.Experimental<A> apply(State.Stable<A> stable) throws Exception;
 
     /**
      * Applies the reduction operation until a minimal result is found.
@@ -37,7 +37,7 @@ public interface IterativeReducer<A> extends Reducer {
      */
     @Override
     default byte[] apply(byte[] bytecode, Predicate<byte[]> test) throws Exception {
-        return iterate(Base.of(bytecode), test);
+        return iterate(Stable.of(bytecode), test);
     }
 
     /**
@@ -54,25 +54,25 @@ public interface IterativeReducer<A> extends Reducer {
      * Applies this transformation iteratively to the given base
      * until a minimal result is produced.
      *
-     * @param base The base that contains the bytecode to reduce
+     * @param stable The base that contains the bytecode to reduce
      * @param test The function that determines whether the resulting bytecode
      *             is interesting
      * @return the minimal bytecode
      * @throws Exception if the bytecode access fails
      */
-    default byte[] iterate(Base<A> base, Predicate<byte[]> test) throws Exception {
-        Result<A> res;
+    default byte[] iterate(Stable<A> stable, Predicate<byte[]> test) throws Exception {
+        State.Experimental<A> res;
         byte[] reduced;
 
         for (; ; ) {
-            res = apply(base);
+            res = apply(stable);
             reduced = res.bytecode();
 
             // assumption that a minimal result was already checked
             if (res.isMinimal())
                 return reduced;
 
-            base = test.test(reduced) ? res.accept() : res.reject();
+            stable = test.test(reduced) ? res.accept() : res.reject();
         }
     }
 }

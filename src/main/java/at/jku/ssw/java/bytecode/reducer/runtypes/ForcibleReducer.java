@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.states.Reduction;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.State;
+import at.jku.ssw.java.bytecode.reducer.states.State.Experimental;
 
 import java.util.function.Predicate;
 
@@ -52,25 +52,25 @@ public interface ForcibleReducer<A> extends IterativeReducer<A> {
      * This may fail and require an iterative approach (with attempt log)
      *
      * @param bytecode The bytecode
-     * @return a new {@link Result} containing the bytecode and attempt log
+     * @return a new {@link Experimental} containing the bytecode and attempt log
      * @throws Exception if the bytecode is invalid
      */
-    default Result<A> force(byte[] bytecode) throws Exception {
-        Reduction.Base<A> base = Reduction.of(bytecode);
-        Result<A> res;
+    default Experimental<A> force(byte[] bytecode) throws Exception {
+        State.Stable<A> stable = State.of(bytecode);
+        Experimental<A> res;
 
         do {
             // apply the reduction operation
-            res = apply(base);
+            res = apply(stable);
 
             // and "accept" the result / assume it to be correct
-            base = res.accept();
+            stable = res.accept();
 
             // only return on a minimal result
         } while (!res.isMinimal());
 
-        // create a new reduction result that has the "unforced" bytecode
+        // create a new result that has the "unforced" bytecode
         // as a previous result
-        return Reduction.<A>of(bytecode).toResult(res.bytecode());
+        return State.<A>of(bytecode).toResult(res.bytecode());
     }
 }

@@ -1,7 +1,7 @@
 package at.jku.ssw.java.bytecode.reducer.runtypes;
 
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Result;
+import at.jku.ssw.java.bytecode.reducer.states.State;
+import at.jku.ssw.java.bytecode.reducer.states.State.Stable;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
@@ -28,7 +28,7 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
      * Find the next applicable code positions in the given behaviour with the
      * given code iterator and perform the reduction operation on it
      *
-     * @param base   The current reduction base (for accessing the cache)
+     * @param stable   The current reduction base (for accessing the cache)
      * @param method The current method
      * @param it     The code iterator that allows low level access
      * @param frames The execution frames of this method which store
@@ -38,14 +38,14 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
      * @throws NotFoundException if a type of a potential method
      *                           cannot be identified
      */
-    Optional<CodePosition> reduceNext(Base<CodePosition> base,
+    Optional<CodePosition> reduceNext(State.Stable<CodePosition> stable,
                                       CtBehavior method,
                                       CodeIterator it,
                                       Frame[] frames) throws BadBytecode, NotFoundException;
 
     @Override
-    default Result<CodePosition> apply(Base<CodePosition> base) throws Exception {
-        final var clazz = Javassist.loadClass(base.bytecode());
+    default State.Experimental<CodePosition> apply(Stable<CodePosition> stable) throws Exception {
+        final var clazz = Javassist.loadClass(stable.bytecode());
 
         // iterate all "behaviours" (which includes methods and initializers)
         return Arrays.stream(clazz.getDeclaredBehaviors())
@@ -77,7 +77,7 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
 
                     // perform the operation and "stream" the result
                     // (to abide to flatMap rules)
-                    var result = reduceNext(base, method, it, frames).stream();
+                    var result = reduceNext(stable, method, it, frames).stream();
 
                     try {
                         // rebuild the stack map
@@ -90,8 +90,8 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
                     return result;
                 }))
                 .findAny()
-                .map(Catch.function(cp -> base.toResult(bytecode(clazz), cp)))
-                .orElseGet(base::toMinimalResult);
+                .map(Catch.function(cp -> stable.toResult(bytecode(clazz), cp)))
+                .orElseGet(stable::toMinimalResult);
     }
 
 }

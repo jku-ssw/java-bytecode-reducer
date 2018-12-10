@@ -7,13 +7,13 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * Represents either a reduction {@link Base} or {@link Result} that
+ * Represents either a reduction {@link Stable} or {@link Experimental} that
  * may be the argument or result of a
  * {@link at.jku.ssw.java.bytecode.reducer.runtypes.Reducer}.
  *
  * @param <T> The type of the attempt cache
  */
-public abstract class Reduction<T> {
+public abstract class State<T> {
 
     /**
      * The current bytecode.
@@ -37,16 +37,16 @@ public abstract class Reduction<T> {
      * @param attempts The initial cache (empty if null)
      * @param run      The run number (default 0)
      */
-    protected Reduction(byte[] bytecode, Set<T> attempts, int run) {
+    protected State(byte[] bytecode, Set<T> attempts, int run) {
         this.bytecode = bytecode;
         this.attempts = attempts;
         this.run = run;
     }
 
     /**
-     * @see Reduction#Reduction(byte[], Set, int)
+     * @see State#State(byte[], Set, int)
      */
-    protected Reduction(byte[] bytecode, int run) {
+    protected State(byte[] bytecode, int run) {
         this(bytecode, Set.of(), run);
     }
 
@@ -57,8 +57,8 @@ public abstract class Reduction<T> {
      * @param <U>      The type of the cached attempts
      * @return a new reduction base
      */
-    public static <U> Base<U> of(byte[] bytecode) {
-        return new Base<>(Arrays.copyOf(bytecode, bytecode.length));
+    public static <U> Stable<U> of(byte[] bytecode) {
+        return new Stable<>(Arrays.copyOf(bytecode, bytecode.length));
     }
 
     /**
@@ -83,7 +83,7 @@ public abstract class Reduction<T> {
     }
 
     /**
-     * @see Reduction#isCached(Object)
+     * @see State#isCached(Object)
      */
     public final boolean isNotCached(T attempt) {
         return !isCached(attempt);
@@ -95,31 +95,31 @@ public abstract class Reduction<T> {
      *
      * @param <T> The type of the stored attempts
      */
-    public static class Base<T> extends Reduction<T> {
+    public static class Stable<T> extends State<T> {
 
         /**
-         * @see Reduction#Reduction(byte[], Set, int)
+         * @see State#State(byte[], Set, int)
          */
-        protected Base(byte[] bytecode, Set<T> cache, int run) {
+        protected Stable(byte[] bytecode, Set<T> cache, int run) {
             super(bytecode, cache, run);
         }
 
         /**
-         * @see Reduction#Reduction(byte[], Set, int)
+         * @see State#State(byte[], Set, int)
          */
-        protected Base(byte[] bytecode, int run) {
+        protected Stable(byte[] bytecode, int run) {
             super(bytecode, run);
         }
 
         /**
-         * @see Reduction#Reduction(byte[], Set, int)
+         * @see State#State(byte[], Set, int)
          */
-        protected Base(byte[] bytecode) {
+        protected Stable(byte[] bytecode) {
             super(bytecode, 0);
         }
 
         /**
-         * Transforms the base into a new {@link Result}
+         * Transforms the base into a new {@link Experimental}
          * that stores this base's bytecode and the result of a
          * {@link at.jku.ssw.java.bytecode.reducer.runtypes.Reducer}.
          * Also appends the new attempts.
@@ -129,23 +129,23 @@ public abstract class Reduction<T> {
          * @return a new result that stores the current and reduced bytecodes
          */
         @SafeVarargs
-        public final Result<T> toResult(byte[] bytecode, T... attempts) {
+        public final Experimental<T> toResult(byte[] bytecode, T... attempts) {
             if (Arrays.equals(this.bytecode, bytecode))
-                return new Result.Failure<>(this, bytecode, Set.of(attempts));
+                return new Experimental.Failure<>(this, bytecode, Set.of(attempts));
             else
-                return new Result<>(this, bytecode, Set.of(attempts));
+                return new Experimental<>(this, bytecode, Set.of(attempts));
         }
 
         /**
-         * Transforms the base into a new {@link Result}
+         * Transforms the base into a new {@link Experimental}
          * that stores this base's bytecode and the result of a
          * {@link at.jku.ssw.java.bytecode.reducer.runtypes.Reducer}.
          * Also appends the new attempts.
          *
          * @return a new result that stores the current and reduced bytecodes
          */
-        public final Result<T> toMinimalResult() {
-            return new Result<>(this, bytecode, Set.of(), true);
+        public final Experimental<T> toMinimalResult() {
+            return new Experimental<>(this, bytecode, Set.of(), true);
         }
     }
 
@@ -155,16 +155,16 @@ public abstract class Reduction<T> {
      *
      * @param <T> The type of the stored attempts
      */
-    public static class Result<T> extends Reduction<T> {
+    public static class Experimental<T> extends State<T> {
 
-        private static class Failure<T> extends Result<T> {
+        private static class Failure<T> extends Experimental<T> {
 
-            protected Failure(Base<T> base, byte[] bytecode, Set<T> attempts) {
-                super(base, bytecode, attempts);
+            protected Failure(Stable<T> stable, byte[] bytecode, Set<T> attempts) {
+                super(stable, bytecode, attempts);
             }
 
             @Override
-            public Base<T> accept() {
+            public Stable<T> accept() {
                 return super.reject();
             }
         }
@@ -182,32 +182,32 @@ public abstract class Reduction<T> {
         protected final boolean minimal;
 
         /**
-         * Create a new result based on the given {@link Base}
+         * Create a new result based on the given {@link Stable}
          * in combination with the new bytecode and additional attempts.
          *
-         * @param base     The base that produced this result
+         * @param stable   The base that produced this result
          * @param bytecode The resulting bytecode
          * @param attempts The additional updates
          * @param min      Indicates whether the result is minimal
          */
-        protected Result(Base<T> base, byte[] bytecode, Set<T> attempts, boolean min) {
-            super(bytecode, Stream.of(base.attempts, attempts)
+        protected Experimental(Stable<T> stable, byte[] bytecode, Set<T> attempts, boolean min) {
+            super(bytecode, Stream.of(stable.attempts, attempts)
                     .flatMap(Collection::stream)
-                    .collect(Collectors.toSet()), base.run + 1);
-            this.previous = base.bytecode;
+                    .collect(Collectors.toSet()), stable.run + 1);
+            this.previous = stable.bytecode;
             this.minimal = min;
         }
 
         /**
-         * Creates a new (non-minimal) result based on the given {@link Base}
+         * Creates a new (non-minimal) result based on the given {@link Stable}
          * in combination with the new bytecode and additional attempts
          *
-         * @param base     The base that produced this result
+         * @param stable   The base that produced this result
          * @param bytecode The resulting bytecode
          * @param attempts The additional updates
          */
-        protected Result(Base<T> base, byte[] bytecode, Set<T> attempts) {
-            this(base, bytecode, attempts, false);
+        protected Experimental(Stable<T> stable, byte[] bytecode, Set<T> attempts) {
+            this(stable, bytecode, attempts, false);
         }
 
         /**
@@ -217,8 +217,8 @@ public abstract class Reduction<T> {
          * @return a new reduction base with the new bytecode and the default
          * attempt log
          */
-        public Base<T> accept() {
-            return new Base<>(bytecode, run);
+        public Stable<T> accept() {
+            return new Stable<>(bytecode, run);
         }
 
         /**
@@ -228,8 +228,8 @@ public abstract class Reduction<T> {
          * @return a new reduction base consisting of the source bytecode
          * and the cached attempts
          */
-        public Base<T> reject() {
-            return new Base<>(previous, attempts, run);
+        public Stable<T> reject() {
+            return new Stable<>(previous, attempts, run);
         }
 
         /**

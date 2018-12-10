@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction.Base;
+import at.jku.ssw.java.bytecode.reducer.states.State;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Code;
@@ -47,7 +47,7 @@ public class RemoveNeutralInstructions implements InstructionReducer {
     }
 
     @Override
-    public Optional<CodePosition> reduceNext(Base<CodePosition> base,
+    public Optional<CodePosition> reduceNext(State.Stable<CodePosition> stable,
                                              CtBehavior method,
                                              CodeIterator it,
                                              Frame[] frames)
@@ -81,7 +81,7 @@ public class RemoveNeutralInstructions implements InstructionReducer {
                 // potentially removable code position
                 var cp = new CodePosition(name, begin, end);
 
-                if (base.isNotCached(cp))
+                if (stable.isNotCached(cp))
                     return Optional.of(reduce(method, cp, it));
             }
         }

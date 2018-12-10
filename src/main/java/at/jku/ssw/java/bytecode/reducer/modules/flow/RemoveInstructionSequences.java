@@ -2,7 +2,7 @@ package at.jku.ssw.java.bytecode.reducer.modules.flow;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Expensive;
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
-import at.jku.ssw.java.bytecode.reducer.states.Reduction;
+import at.jku.ssw.java.bytecode.reducer.states.State;
 import at.jku.ssw.java.bytecode.reducer.runtypes.InstructionReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.cachetypes.CodePosition;
 import javassist.CtBehavior;
@@ -51,7 +51,7 @@ public class RemoveInstructionSequences implements InstructionReducer {
     }
 
     @Override
-    public Optional<CodePosition> reduceNext(Reduction.Base<CodePosition> base,
+    public Optional<CodePosition> reduceNext(State.Stable<CodePosition> stable,
                                              CtBehavior method,
                                              CodeIterator it,
                                              Frame[] frames) throws BadBytecode {
@@ -102,7 +102,7 @@ public class RemoveInstructionSequences implements InstructionReducer {
                     var opt = beginIndices.stream()
                             .filter(i -> i < index)
                             .map(i -> new CodePosition(name, i, index))
-                            .filter(base::isNotCached)
+                            .filter(stable::isNotCached)
                             .findAny()
                             .map(cp -> reduce(method, cp, it));
 
