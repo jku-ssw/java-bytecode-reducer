@@ -13,7 +13,7 @@ public interface ASMReducer extends Reducer {
         // do not use "optimized" ClassWriter invocation (with reference
         // to the ClassReader instance, since this is discouraged for
         // non-additive transformations
-        ClassWriter cw = new ClassWriter(0);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_FRAMES | ClassWriter.COMPUTE_MAXS);
         ClassReader cr = new ClassReader(bytecode);
 
         visitors(cw).forEach(v -> cr.accept(v, 0));
