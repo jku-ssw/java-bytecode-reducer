@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.modules.preprocessing.remove.field.self.assignments;
+package at.jku.ssw.java.bytecode.reducer.modules.remove.field.self.assignments;
 
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.MethodVisitor;

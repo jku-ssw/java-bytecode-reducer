@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.modules.preprocessing;
+package at.jku.ssw.java.bytecode.reducer.modules;
 
 import samples.BytecodeSample.Bytecode;
 

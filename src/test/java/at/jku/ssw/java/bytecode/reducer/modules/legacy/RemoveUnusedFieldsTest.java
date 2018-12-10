@@ -1,4 +1,4 @@
-package at.jku.ssw.java.bytecode.reducer.modules;
+package at.jku.ssw.java.bytecode.reducer.modules.legacy;
 
 import at.jku.ssw.java.bytecode.reducer.modules.fields.RemoveUnusedFields;
 import org.junit.jupiter.api.AfterEach;

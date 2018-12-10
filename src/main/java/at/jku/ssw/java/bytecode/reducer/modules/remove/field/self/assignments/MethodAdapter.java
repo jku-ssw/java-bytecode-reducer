@@ -1,9 +1,9 @@
-package at.jku.ssw.java.bytecode.reducer.modules.preprocessing.remove.field.self.assignments;
+package at.jku.ssw.java.bytecode.reducer.modules.remove.field.self.assignments;
 
 import at.jku.ssw.java.bytecode.reducer.visitors.PatternMethodAdapter;
 import org.objectweb.asm.MethodVisitor;
 
-import static at.jku.ssw.java.bytecode.reducer.modules.preprocessing.remove.field.self.assignments.MethodAdapter.State.INIT;
+import static at.jku.ssw.java.bytecode.reducer.modules.remove.field.self.assignments.MethodAdapter.State.INIT;
 import static org.objectweb.asm.Opcodes.*;
 
 class MethodAdapter extends PatternMethodAdapter {

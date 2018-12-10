@@ -1,155 +1,201 @@
 package at.jku.ssw.java.bytecode.reducer.modules;
 
 import at.jku.ssw.java.bytecode.reducer.runtypes.Reducer;
-import at.jku.ssw.java.bytecode.reducer.support.ContinueAssertion;
-import at.jku.ssw.java.bytecode.reducer.support.JavassistSupport;
-import at.jku.ssw.java.bytecode.reducer.utils.ClassUtils;
-import at.jku.ssw.java.bytecode.reducer.utils.StringUtils;
-import javassist.CannotCompileException;
-import javassist.bytecode.BadBytecode;
-import javassist.bytecode.analysis.Analyzer;
+import org.hamcrest.Description;
+import org.hamcrest.TypeSafeMatcher;
+import org.junit.jupiter.api.Assertions;
+import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.tree.ClassNode;
+import samples.BytecodeSample.Bytecode;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import java.util.function.BiConsumer;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
-import static at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist.loadClass;
+import static org.junit.jupiter.api.Assertions.*;
 
-/**
- * Superclass for {@link Reducer} tests.
- * Simplifies the access to bytecodes / resources and keeps track
- * of a reducer's individual resources.
- *
- * @param <T> The type of the {@link Reducer} to test
- */
-public abstract class ReducerTest<T extends Reducer> implements JavassistSupport {
+abstract class ReducerTest {
 
-    /**
-     * The directory name for bytecodes.
-     */
-    public final String BYTE_CODE_DIR_NAME = "bytecodes";
+    protected static class ResultAssertion {
+        private final Bytecode bytecode;
 
-    /**
-     * The directory name for the source bytecodes.
-     */
-    public final String ORIGINAL_DIR_NAME = "original";
 
-    /**
-     * The directory name for reduced / expected result bytecodes.
-     */
-    public final String REDUCED_DIR_NAME = "reduced";
+        private ResultAssertion(Bytecode bytecode) {
+            this.bytecode = bytecode;
+        }
 
-    /**
-     * Postfix for class files.
-     */
-    public final String CLASS_POSTFIX = "class";
-
-    /**
-     * Path to original resources.
-     */
-    private final String originalResources;
-
-    /**
-     * Path to reduced resources.
-     */
-    private final String reducedResources;
-
-    /**
-     * The reducer instance to use.
-     */
-    protected T reducer;
-
-    /**
-     * Instantiate a new test and determine the resource paths accordingly.
-     */
-    @SuppressWarnings("unchecked")
-    public ReducerTest() {
-        var reducer = (Class<T>) ClassUtils.getGenericTypes(getClass())[0];
-
-        var dirName   = StringUtils.snake_case(reducer.getSimpleName()).toLowerCase();
-        var resources = BYTE_CODE_DIR_NAME + File.separator + dirName + File.separator;
-        originalResources = resources + ORIGINAL_DIR_NAME + File.separator;
-        reducedResources = resources + REDUCED_DIR_NAME + File.separator;
-    }
-
-    /**
-     * Load the original class identified by the given name.
-     *
-     * @param name The class name
-     * @return the bytecode of the requested class
-     * @throws IOException if the file cannot be found
-     */
-    protected final byte[] loadOriginalBytecode(String name) throws IOException {
-        try (InputStream is = getResourceStream(originalResources + name + "." + CLASS_POSTFIX)) {
-            return is.readAllBytes();
+        public ReducesTo to(byte[] expected) {
+            return new ReducesTo(bytecode, expected);
         }
     }
 
-    /**
-     * Load the expected reduced class identified by the given name.
-     *
-     * @param name The class name
-     * @return the bytecode of the requested class
-     * @throws IOException if the file cannot be found
-     */
-    protected final byte[] loadReducedBytecode(String name) throws IOException {
-        try (InputStream is = getResourceStream(reducedResources + name + "." + CLASS_POSTFIX)) {
-            return is.readAllBytes();
+    protected static class ReducesTo extends TypeSafeMatcher<Class<? extends Reducer>> {
+
+        private final Bytecode bytecode;
+        private final byte[] expected;
+        private final GeneratedClassVerifier verifier;
+
+        private ReducesTo(Bytecode bytecode, byte[] expected) {
+            this.bytecode = bytecode;
+            this.expected = expected;
+            this.verifier = new GeneratedClassVerifier();
         }
-    }
 
-    /**
-     * Fetch the resource at the given class path location.
-     *
-     * @param path The path of the resource
-     * @return an input stream for the resource file
-     */
-    private InputStream getResourceStream(String path) {
-        return getClass().getClassLoader().getResourceAsStream(path);
-    }
+        public static ResultAssertion reduces(Bytecode bytecode) {
+            return new ResultAssertion(bytecode);
+        }
 
-    protected void assertNoFieldAccess(byte[] clazz, String... fields)
-            throws IOException, CannotCompileException {
-        assertNoFieldAccess(classFromBytecode(clazz), fields);
-    }
-
-    protected void assertNoMethodCall(byte[] clazz, String... methods)
-            throws IOException, CannotCompileException {
-        assertNoMethodCall(classFromBytecode(clazz), methods);
-    }
-
-    protected ContinueAssertion assertReduced(final String className) throws Exception {
-        return assertReduced(className, false);
-    }
-
-    protected ContinueAssertion assertReduced(final String className, boolean compareBodies) throws Exception {
-        var original = loadOriginalBytecode(className);
-
-        var expected = loadReducedBytecode(className);
-
-        var actual = reducer.apply(original, bytecode -> {
+        @Override
+        protected boolean matchesSafely(Class<? extends Reducer> type) {
+            Reducer reducer;
             try {
-                var analyzer = new Analyzer();
+                reducer = type.getConstructor().newInstance();
+            } catch (Exception e) {
+                throw new AssertionError("Could not instantiate reducer", e);
+            }
 
-                return Arrays
-                        .stream(loadClass(bytecode).getDeclaredMethods())
-                        .allMatch(m -> {
-                            try {
-                                analyzer.analyze(m);
-                                return true;
-                            } catch (BadBytecode e) {
-                                return false;
-                            }
-                        });
-            } catch (IOException e) {
+            byte[] actual;
+            try {
+                actual = reducer.apply(bytecode.bytecode);
+                assertEqualClassStructure(expected, actual);
+
+
+                return verifier.isValid(bytecode);
+            } catch (Exception e) {
+                e.printStackTrace();
                 return false;
             }
-        });
+        }
 
-        assertClassEquals(expected, actual, compareBodies);
-
-        return ContinueAssertion.with(actual);
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("reduces to valid class file");
+        }
     }
 
+    static void assertEqualClassStructure(byte[] expected, byte[] actual) {
+        ClassReader rEx = new ClassReader(expected);
+        ClassReader rAc = new ClassReader(actual);
+
+        assertEquals(rEx.getAccess(), rAc.getAccess(), "Class access modifiers");
+        assertEquals(rEx.getClassName(), rAc.getClassName(), "Class names");
+        assertEquals(rEx.getItemCount(), rAc.getItemCount(), "Constant pool size");
+        assertEquals(rEx.getSuperName(), rAc.getSuperName(), "Superclass");
+
+        assertArrayEquals(
+                rEx.getInterfaces(),
+                rAc.getInterfaces(),
+                Assertions::assertEquals,
+                String::compareTo
+        );
+
+        ClassNode nEx = new ClassNode();
+        ClassNode nAc = new ClassNode();
+        rEx.accept(nEx, 0);
+        rAc.accept(nAc, 0);
+
+        assertListEquals(
+                nEx.fields,
+                nAc.fields,
+                (fEx, fAc) -> {
+                    assertEquals(fEx.name, fAc.name);
+                    assertEquals(fEx.access, fAc.access);
+                    assertEquals(fEx.signature, fAc.signature);
+                    assertEquals(fEx.value, fAc.value);
+                    // TODO maybe compare annotations
+                },
+                Comparator.comparing(f -> f.name)
+        );
+
+        assertListEquals(
+                nEx.methods,
+                nAc.methods,
+                (mEx, mAc) -> {
+                    assertEquals(mEx.name, mAc.name);
+                    assertEquals(mEx.access, mAc.access);
+                    assertEquals(mEx.signature, mAc.signature);
+                    assertEquals(mEx.maxLocals, mAc.maxLocals);
+                    assertEquals(mEx.maxStack, mAc.maxStack);
+
+                    assertListEquals(
+                            mEx.parameters,
+                            mAc.parameters,
+                            (pEx, pAc) -> {
+                                assertEquals(pEx.access, pAc.access);
+                                assertEquals(pEx.name, pAc.name);
+                            }
+                    );
+
+                    assertListEquals(
+                            mEx.exceptions,
+                            mAc.exceptions,
+                            Assertions::assertEquals,
+                            String::compareTo
+                    );
+
+                    assertArrayEquals(
+                            mEx.instructions.toArray(),
+                            mAc.instructions.toArray(),
+                            (iEx, iAc) -> {
+                                assertEquals(iEx.getOpcode(), iAc.getOpcode());
+                                assertEquals(iEx.getType(), iAc.getType());
+                            }
+                    );
+                },
+                Comparator.comparing(m -> m.name + m.signature)
+        );
+    }
+
+    static <T> void assertListEquals(List<T> expected, List<T> actual, BiConsumer<T, T> assertions) {
+        assertListEquals(expected, actual, assertions, null);
+    }
+
+    @SuppressWarnings("unchecked")
+    static <T> void assertListEquals(List<T> expected, List<T> actual, BiConsumer<T, T> assertions, Comparator<T> cmp) {
+        if (expected == null)
+            assertNull(actual);
+        else {
+            assertNotNull(actual);
+
+            assertArrayEquals(
+                    (T[]) expected.toArray(),
+                    (T[]) actual.toArray(),
+                    assertions,
+                    cmp
+            );
+        }
+    }
+
+    static <T> void assertArrayEquals(T[] expected, T[] actual, BiConsumer<T, T> assertions) {
+        assertArrayEquals(expected, actual, assertions, null);
+    }
+
+    static <T> void assertArrayEquals(T[] expected, T[] actual, BiConsumer<T, T> assertions, Comparator<T> cmp) {
+        if (expected == null)
+            assertNull(actual);
+        else {
+            assertNotNull(actual);
+
+            assertEquals(expected.length, actual.length);
+
+            List<T> exSorted = cmp == null
+                    ? List.of(expected)
+                    : Arrays.stream(expected)
+                    .sorted(cmp)
+                    .collect(Collectors.toList());
+
+            List<T> acSorted = cmp == null
+                    ? List.of(actual)
+                    : Arrays.stream(actual)
+                    .sorted(cmp)
+                    .collect(Collectors.toList());
+
+            IntStream
+                    .range(0, exSorted.size())
+                    .forEach(i -> assertions.accept(exSorted.get(i), acSorted.get(i)));
+        }
+    }
 }

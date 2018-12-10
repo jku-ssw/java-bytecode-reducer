@@ -1,10 +1,10 @@
-package at.jku.ssw.java.bytecode.reducer.modules.preprocessing;
+package at.jku.ssw.java.bytecode.reducer.modules;
 
-import at.jku.ssw.java.bytecode.reducer.modules.preprocessing.remove.field.self.assignments.RemoveFieldSelfAssignments;
+import at.jku.ssw.java.bytecode.reducer.modules.remove.field.self.assignments.RemoveFieldSelfAssignments;
 import at.jku.ssw.java.bytecode.reducer.support.VersionedTest;
 import samples.SimpleFieldOperations;
 
-import static at.jku.ssw.java.bytecode.reducer.modules.preprocessing.ReducerTest.ReducesTo.reduces;
+import static at.jku.ssw.java.bytecode.reducer.modules.ReducerTest.ReducesTo.reduces;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.objectweb.asm.Opcodes.ACC_PUBLIC;
 

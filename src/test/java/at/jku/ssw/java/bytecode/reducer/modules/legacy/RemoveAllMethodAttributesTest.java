@@ -1,15 +1,15 @@
-package at.jku.ssw.java.bytecode.reducer.modules;
+package at.jku.ssw.java.bytecode.reducer.modules.legacy;
 
-import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveEmptyMethods;
+import at.jku.ssw.java.bytecode.reducer.modules.methods.RemoveAllMethodAttributes;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class RemoveEmptyMethodsTest extends ReducerTest<RemoveEmptyMethods> {
+public class RemoveAllMethodAttributesTest extends ReducerTest<RemoveAllMethodAttributes> {
 
     @BeforeEach
     void setUp() {
-        reducer = new RemoveEmptyMethods();
+        reducer = new RemoveAllMethodAttributes();
     }
 
     @AfterEach
