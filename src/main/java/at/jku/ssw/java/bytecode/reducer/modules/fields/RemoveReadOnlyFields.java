@@ -1,10 +1,10 @@
 package at.jku.ssw.java.bytecode.reducer.modules.fields;
 
 import at.jku.ssw.java.bytecode.reducer.annot.Unsound;
+import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
 import at.jku.ssw.java.bytecode.reducer.states.State;
 import at.jku.ssw.java.bytecode.reducer.states.State.Stable;
 import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
-import at.jku.ssw.java.bytecode.reducer.runtypes.ForcibleReducer;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Javassist;
@@ -50,7 +50,7 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
             return stable.toMinimalResult();
 
         CtField field = optField.get();
-        String  value = Expressions.defaults(field.getType());
+        String value = Expressions.defaults(field.getType());
 
         Instrumentation.forFieldAccesses(clazz,
                 Catch.predicate(fa -> fa.getField().equals(field)),
@@ -70,6 +70,9 @@ public class RemoveReadOnlyFields implements ForcibleReducer<CtField> {
                         fa.replace(Expressions.NO_EXPRESSION);
                 })
         );
+
+        logger.debug("Removing field '{}'", field.getName());
+        clazz.removeField(field);
 
         return stable.toResult(Javassist.bytecode(clazz), field);
     }

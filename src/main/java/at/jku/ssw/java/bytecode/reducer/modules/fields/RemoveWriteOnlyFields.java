@@ -3,6 +3,8 @@ package at.jku.ssw.java.bytecode.reducer.modules.fields;
 import at.jku.ssw.java.bytecode.reducer.annot.Sound;
 import at.jku.ssw.java.bytecode.reducer.runtypes.JavassistHelper;
 import at.jku.ssw.java.bytecode.reducer.runtypes.MemberReducer;
+import at.jku.ssw.java.bytecode.reducer.utils.functional.Catch;
+import at.jku.ssw.java.bytecode.reducer.utils.javassist.Expressions;
 import at.jku.ssw.java.bytecode.reducer.utils.javassist.Instrumentation;
 import javassist.CtClass;
 import javassist.CtField;
@@ -25,8 +27,23 @@ public class RemoveWriteOnlyFields
 
     @Override
     public CtClass process(CtClass clazz, CtField field) throws Exception {
+        Instrumentation.forFieldAccesses(clazz,
+                Catch.predicate(fa -> fa.getField().getName().equals(field.getName())),
+                Catch.consumer(fa -> {
+                    logger.debug(
+                            "Replacing field access '{}' at index {}",
+                            fa.getFieldName(),
+                            fa.indexOfBytecode()
+                    );
+
+                    // remove write access locations
+                    fa.replace(Expressions.NO_EXPRESSION);
+                })
+        );
+
         logger.debug("Removing field '{}'", field.getName());
         clazz.removeField(field);
+
         return clazz;
     }
 
