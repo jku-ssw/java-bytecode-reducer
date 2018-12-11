@@ -1,7 +1,6 @@
 package at.jku.ssw.java.bytecode.reducer.visitors;
 
-import org.objectweb.asm.Label;
-import org.objectweb.asm.MethodVisitor;
+import org.objectweb.asm.*;
 
 /**
  * A method adapter that allows to detect patterns and rollback on certain
@@ -158,5 +157,158 @@ public abstract class PatternMethodAdapter extends MethodVisitor {
     public void visitMaxs(int maxStack, int maxLocals) {
         visitInsn();
         super.visitMaxs(maxStack, maxLocals);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitParameter(String name, int access) {
+        visitInsn();
+        super.visitParameter(name, access);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitAnnotationDefault() {
+        visitInsn();
+        return super.visitAnnotationDefault();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+        visitInsn();
+        return super.visitAnnotation(descriptor, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitTypeAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+        visitInsn();
+        return super.visitTypeAnnotation(typeRef, typePath, descriptor, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitAnnotableParameterCount(int parameterCount, boolean visible) {
+        visitInsn();
+        super.visitAnnotableParameterCount(parameterCount, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitParameterAnnotation(int parameter, String descriptor, boolean visible) {
+        visitInsn();
+        return super.visitParameterAnnotation(parameter, descriptor, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitAttribute(Attribute attribute) {
+        visitInsn();
+        super.visitAttribute(attribute);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitCode() {
+        visitInsn();
+        super.visitCode();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
+        visitInsn();
+        super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitInvokeDynamicInsn(String name, String descriptor, Handle bootstrapMethodHandle, Object... bootstrapMethodArguments) {
+        visitInsn();
+        super.visitInvokeDynamicInsn(name, descriptor, bootstrapMethodHandle, bootstrapMethodArguments);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitInsnAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+        visitInsn();
+        return super.visitInsnAnnotation(typeRef, typePath, descriptor, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitTryCatchBlock(Label start, Label end, Label handler, String type) {
+        visitInsn();
+        super.visitTryCatchBlock(start, end, handler, type);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitTryCatchAnnotation(int typeRef, TypePath typePath, String descriptor, boolean visible) {
+        visitInsn();
+        return super.visitTryCatchAnnotation(typeRef, typePath, descriptor, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitLocalVariable(String name, String descriptor, String signature, Label start, Label end, int index) {
+        visitInsn();
+        super.visitLocalVariable(name, descriptor, signature, start, end, index);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public AnnotationVisitor visitLocalVariableAnnotation(int typeRef, TypePath typePath, Label[] start, Label[] end, int[] index, String descriptor, boolean visible) {
+        visitInsn();
+        return super.visitLocalVariableAnnotation(typeRef, typePath, start, end, index, descriptor, visible);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitLineNumber(int line, Label start) {
+        visitInsn();
+        super.visitLineNumber(line, start);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void visitEnd() {
+        visitInsn();
+        super.visitEnd();
     }
 }
