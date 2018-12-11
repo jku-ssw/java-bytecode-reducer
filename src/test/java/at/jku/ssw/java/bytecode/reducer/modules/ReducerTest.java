@@ -173,8 +173,8 @@ abstract class ReducerTest {
                             mEx.instructions.toArray(),
                             mAc.instructions.toArray(),
                             (iEx, iAc) -> {
-                                assertEquals(iEx.getOpcode(), iAc.getOpcode(), iEx.getOpcode());
-                                assertEquals(iEx.getType(), iAc.getType(), iEx.getOpcode());
+                                assertEquals(iEx.getOpcode(), iAc.getOpcode(), iEx.toString());
+                                assertEquals(iEx.getType(), iAc.getType(), iEx.toString());
                             }
                     );
                 },
