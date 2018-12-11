@@ -48,7 +48,7 @@ public abstract class BytecodeSample {
      * @return a class writer instance that already contains the class header
      */
     public ClassWriter assemble(int version) {
-        ClassWriter cw = new ClassWriter(0);
+        ClassWriter cw = new ClassWriter(ClassWriter.COMPUTE_MAXS);
         cw.visit(version, ACC_PUBLIC, className, null, DEFAULT_SUPERCLASS, new String[]{});
         return prepareFields(cw);
     }

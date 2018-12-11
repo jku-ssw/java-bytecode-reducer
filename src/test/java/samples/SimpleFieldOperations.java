@@ -38,6 +38,7 @@ public class SimpleFieldOperations extends BytecodeSample {
         mv.visitVarInsn(ALOAD, 0);
         mv.visitFieldInsn(GETFIELD, internalName, "foo", "I");
         mv.visitFieldInsn(PUTFIELD, internalName, "foo", "I");
+        mv.visitInsn(RETURN);
         mv.visitMaxs(2, 1);
         mv.visitEnd();
         return cw;
@@ -61,6 +62,7 @@ public class SimpleFieldOperations extends BytecodeSample {
         mv.visitVarInsn(ALOAD, 0);
         mv.visitLdcInsn(10);
         mv.visitFieldInsn(PUTFIELD, internalName, "foo", "I");
+        mv.visitInsn(RETURN);
         mv.visitMaxs(2, 1);
         mv.visitEnd();
         return cw;
@@ -85,6 +87,7 @@ public class SimpleFieldOperations extends BytecodeSample {
         mv.visitInsn(DUP);
         mv.visitFieldInsn(GETFIELD, internalName, "foo", "I");
         mv.visitFieldInsn(PUTFIELD, internalName, "foo", "I");
+        mv.visitInsn(RETURN);
         mv.visitMaxs(2, 1);
         mv.visitEnd();
         return cw;
