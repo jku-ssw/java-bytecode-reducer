@@ -4,6 +4,12 @@ package at.jku.ssw.java.bytecode.reducer.utils.cachetypes;
  * Identifies a code range within a given member.
  */
 public class CodePosition implements Comparable<CodePosition> {
+
+    /**
+     * The {@link #toString()} format.
+     */
+    private static final String FMT = "%s[%d:%d]";
+
     /**
      * Unique name of the corresponding member (e.g. descriptor, name).
      */
@@ -38,6 +44,16 @@ public class CodePosition implements Comparable<CodePosition> {
     }
 
     /**
+     * Creates a new code position for the given index position.
+     *
+     * @param member The corresponding member name
+     * @param index  The index position
+     */
+    public CodePosition(String member, int index) {
+        this(member, index, index);
+    }
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -61,6 +77,12 @@ public class CodePosition implements Comparable<CodePosition> {
         result = 31 * result + begin;
         result = 31 * result + end;
         return result;
+    }
+
+
+    @Override
+    public String toString() {
+        return String.format(FMT, member, begin, end);
     }
 
     /**
