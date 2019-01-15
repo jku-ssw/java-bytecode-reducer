@@ -28,7 +28,7 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
      * Find the next applicable code positions in the given behaviour with the
      * given code iterator and perform the reduction operation on it
      *
-     * @param stable   The current reduction base (for accessing the cache)
+     * @param stable The current reduction base (for accessing the cache)
      * @param method The current method
      * @param it     The code iterator that allows low level access
      * @param frames The execution frames of this method which store
@@ -52,16 +52,16 @@ public interface InstructionReducer extends IterativeReducer<CodePosition> {
                 .flatMap(Catch.function(method -> {
                     var m = method.getMethodInfo();
 
-                    final var ca = m.getCodeAttribute();
-                    final var it = ca.iterator();
-
                     // invoke code analyzer that allows lookup of stack contents
                     // and local variables
                     var analyzer = new Analyzer();
                     var frames = analyzer.analyze(
-                            method.getDeclaringClass(),
+                            clazz,
                             method.getMethodInfo()
                     );
+
+                    final var ca = m.getCodeAttribute();
+                    final var it = ca.iterator();
 
                     /*
                         Every constructor code begins with
